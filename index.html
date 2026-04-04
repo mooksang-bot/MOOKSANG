@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>성가대 연습 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f1e8 0%, #e8dcc8 100%);
+            color: #333;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== 모드 선택 화면 ===== */
+        .mode-selection {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .mode-selection.hidden {
+            display: none;
+        }
+
+        .mode-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .mode-subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .mode-button {
+            padding: 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: white;
+        }
+
+        .mode-button-conductor {
+            background: linear-gradient(135deg, #d4a574 0%, #c9935f 100%);
+        }
+
+        .mode-button-member {
+            background: linear-gradient(135deg, #78aa64 0%, #a8d572 100%);
+        }
+
+        .mode-button:active {
+            transform: scale(0.95);
+        }
+
+        .mode-icon {
+            font-size: 32px;
+        }
+
+        /* ===== 헤더 ===== */
+        .header {
+            background: linear-gradient(135deg, #d4a574 0%, #c9935f 100%);
+            padding: 12px;
+            text-align: center;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            flex: 1;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .header p {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .mode-switch-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ===== 상태 메시지 ===== */
+        .status-message {
+            background: rgba(212, 165, 116, 0.2);
+            border-left: 4px solid #d4a574;
+            padding: 12px;
+            margin: 12px;
+            border-radius: 6px;
+            color: #8b6f47;
+            font-size: 12px;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: rgba(120, 170, 100, 0.2);
+            border-left-color: #78aa64;
+            color: #556b42;
+        }
+
+        /* ===== 콘텐츠 ===== */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            -webkit-overflow-scrolling: touch;
+            display: none;
+        }
+
+        .content.show {
+            display: block;
+        }
+
+        /* ===== 성가대원 모드 ===== */
+        .member-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+        }
+
+        .video-upload-section {
+            background: #fff9f0;
+            border: 2px dashed #d4a574;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .video-upload-section:active {
+            background: #f0e6d2;
+        }
+
+        .video-upload-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .video-upload-text {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .video-upload-subtext {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .video-upload-section input[type=file] {
+            display: none;
+        }
+
+        .video-file-info {
+            display: none;
+            margin-top: 10px;
+            background: rgba(120, 170, 100, 0.1);
+            border: 1px solid #78aa64;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 11px;
+            color: #556b42;
+            font-weight: 600;
+        }
+
+        .video-file-info.show {
+            display: block;
+        }
+
+        /* ===== 비디오 섹션 ===== */
+        .video-section {
+            background: #f5f1e8;
+            border: 2px solid #d4a574;
+            border-radius: 12px;
+            padding: 12px;
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .video-section.show {
+            display: flex;
+        }
+
+        .video-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            flex: 1;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .progress-track {
+            background: rgba(0, 0, 0, 0.2);
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            border-radius: 3px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #78aa64 0%, #a8d572 100%);
+            width: 0%;
+            transition: width 0.05s linear;
+        }
+
+        .video-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .control-button {
+            flex: 1;
+            padding: 9px;
+            background: linear-gradient(135deg, #d4a574 0%, #c9935f 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .control-button:active {
+            transform: scale(0.95);
+        }
+
+        .control-button:disabled {
+            opacity: 0.5;
+        }
+
+        .time-display {
+            color: #888;
+            font-size: 11px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        /* ===== 파트 선택 버튼 ===== */
+        .part-selection {
+            background: #fff9f0;
+            border: 2px solid #d4a574;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .part-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #c9935f;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .part-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .part-btn {
+            flex: 1;
+            padding: 16px 12px;
+            border: 2px solid #d4a574;
+            background: white;
+            border-radius: 10px;
+            color: #333;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .part-btn-icon {
+            font-size: 24px;
+        }
+
+        .part-btn.active {
+            background: linear-gradient(135deg, #d4a574 0%, #c9935f 100%);
+            color: white;
+            border-color: #c9935f;
+            box-shadow: 0 4px 12px rgba(201, 147, 95, 0.3);
+        }
+
+        .part-btn:active:not(.active) {
+            transform: scale(0.95);
+        }
+
+        /* ===== 파트 상태 ===== */
+        .part-status {
+            display: flex;
+            justify-content: space-around;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        .status-item {
+            flex: 1;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .status-value {
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .status-on {
+            color: #78aa64;
+        }
+
+        .status-off {
+            color: #999;
+        }
+
+        /* ===== 빈 상태 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+            opacity: 0.6;
+        }
+
+        .empty-state-text {
+            font-size: 12px;
+        }
+
+        /* ===== 지휘자 모드 ===== */
+        .conductor-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section {
+            background: #fff9f0;
+            border: 2px solid #d4a574;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #c9935f;
+            margin-bottom: 10px;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .upload-box {
+            background: #fff;
+            border: 2px dashed #d4a574;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .upload-box:active {
+            background: #f0e6d2;
+        }
+
+        .upload-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .upload-title {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 3px;
+            color: #333;
+        }
+
+        .upload-subtitle {
+            font-size: 10px;
+            color: #999;
+        }
+
+        .upload-box input[type=file] {
+            display: none;
+        }
+
+        .file-info {
+            display: none;
+            margin-top: 8px;
+            background: rgba(120, 170, 100, 0.1);
+            border: 1px solid #78aa64;
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 10px;
+            color: #556b42;
+            font-weight: 600;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== 모드 선택 ===== -->
+    <div id="modeSelection" class="mode-selection">
+        <div class="mode-title">🎵 성가대 연습</div>
+        <div class="mode-subtitle">당신의 역할을 선택하세요</div>
+        
+        <div class="mode-buttons">
+            <button class="mode-button mode-button-conductor" onclick="selectMode('conductor')">
+                <div class="mode-icon">🎼</div>
+                <div>지휘자 (음악 파일 업로드)</div>
+            </button>
+            
+            <button class="mode-button mode-button-member" onclick="selectMode('member')">
+                <div class="mode-icon">👥</div>
+                <div>성가대원 (버튼으로 파트 선택)</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== 메인 앱 ===== -->
+    <div class="container" id="mainApp" style="display: none;">
+        <div class="header">
+            <div class="header-title">
+                <h1>🎵 성가대 연습</h1>
+                <p id="modeLabel"></p>
+            </div>
+            <button class="mode-switch-btn" onclick="switchMode()">전환</button>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+
+        <!-- ===== 성가대원 모드 콘텐츠 ===== -->
+        <div id="memberContent" class="content">
+            <div class="member-content">
+                <!-- 영상 업로드 -->
+                <div class="video-upload-section" id="videoUploadSection">
+                    <div class="video-upload-icon">📹</div>
+                    <div class="video-upload-text">성가 영상 업로드</div>
+                    <div class="video-upload-subtext">클릭 또는 드래그</div>
+                    <input type="file" id="videoFile" accept="video/*">
+                    <div class="video-file-info" id="videoFileInfo"></div>
+                </div>
+
+                <!-- 영상 플레이어 -->
+                <div class="video-section" id="videoSection">
+                    <div class="video-container">
+                        <video id="videoPlayer"></video>
+                    </div>
+
+                    <div class="progress-track">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+
+                    <div class="video-controls">
+                        <button class="control-button" id="playBtn" onclick="handlePlayback('play')" disabled>▶️ 재생</button>
+                        <button class="control-button" id="pauseBtn" onclick="handlePlayback('pause')" disabled>⏸️ 정지</button>
+                    </div>
+
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+                    </div>
+
+                    <!-- 파트 선택 버튼 -->
+                    <div class="part-selection">
+                        <div class="part-title">🎤 파트 선택</div>
+                        
+                        <div class="part-buttons">
+                            <button class="part-btn" id="altoBtn" onclick="selectPart('alto')">
+                                <div class="part-btn-icon">👩</div>
+                                <div>ALTO</div>
+                            </button>
+                            
+                            <button class="part-btn active" id="bothBtn" onclick="selectPart('both')">
+                                <div class="part-btn-icon">👥</div>
+                                <div>BOTH</div>
+                            </button>
+                            
+                            <button class="part-btn" id="sopranoBtn" onclick="selectPart('soprano')">
+                                <div class="part-btn-icon">👩🎤</div>
+                                <div>SOPRANO</div>
+                            </button>
+                        </div>
+
+                        <div class="part-status">
+                            <div class="status-item">
+                                <div class="status-label">Piano</div>
+                                <div class="status-value status-on">✓ ON</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-label" id="leftLabel">Alto</div>
+                                <div class="status-value" id="leftStatus">OFF</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-label" id="rightLabel">Soprano</div>
+                                <div class="status-value" id="rightStatus">OFF</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-icon">🎬</div>
+                    <div class="empty-state-text">영상 파일을 업로드하세요</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 지휘자 모드 콘텐츠 ===== -->
+        <div id="conductorContent" class="content">
+            <div class="conductor-content">
+                <!-- 영상 파일 -->
+                <div class="section">
+                    <div class="section-title">📹 영상 파일</div>
+                    <div class="upload-box" onclick="document.getElementById('conductorVideoFile').click()">
+                        <div class="upload-icon">📹</div>
+                        <div class="upload-title">성가 영상</div>
+                        <div class="upload-subtitle">클릭하여 선택</div>
+                        <input type="file" id="conductorVideoFile" accept="video/*">
+                        <div class="file-info" id="conductorVideoFileInfo"></div>
+                    </div>
+                </div>
+
+                <!-- 오디오 파일 -->
+                <div class="section">
+                    <div class="section-title">🎵 오디오 파일</div>
+                    <div class="upload-grid">
+                        <div class="upload-box" onclick="document.getElementById('pianoFile').click()">
+                            <div class="upload-icon">🎹</div>
+                            <div class="upload-title">피아노 반주</div>
+                            <input type="file" id="pianoFile" accept="audio/*">
+                            <div class="file-info" id="pianoFileInfo"></div>
+                        </div>
+
+                        <div class="upload-box" onclick="document.getElementById('sopranoFile').click()">
+                            <div class="upload-icon">👩🎤</div>
+                            <div class="upload-title">Soprano + Tenor</div>
+                            <input type="file" id="sopranoFile" accept="audio/*">
+                            <div class="file-info" id="sopranoFileInfo"></div>
+                        </div>
+
+                        <div class="upload-box" onclick="document.getElementById('altoFile').click()">
+                            <div class="upload-icon">👩</div>
+                            <div class="upload-title">Alto + Bass</div>
+                            <input type="file" id="altoFile" accept="audio/*">
+                            <div class="file-info" id="altoFileInfo"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="empty-state">
+                    <div class="empty-state-icon">📂</div>
+                    <div class="empty-state-text">모든 파일을 업로드하세요</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            currentMode: null,
+            currentPart: 'both',
+            videoFile: null,
+            pianoBuffer: null,
+            sopranoBuffer: null,
+            altoBuffer: null,
+            
+            pianoSource: null,
+            sopranoSource: null,
+            altoSource: null,
+            
+            pianoGain: null,
+            sopranoGain: null,
+            altoGain: null,
+            
+            audioContext: null,
+            playbackInterval: null,
+            isPlaying: false,
+            startTime: 0,
+            pausedTime: 0
+        };
+
+        // 모드 선택
+        function selectMode(mode) {
+            state.currentMode = mode;
+            document.getElementById('modeSelection').classList.add('hidden');
+            document.getElementById('mainApp').style.display = 'flex';
+            
+            if (mode === 'member') {
+                document.getElementById('memberContent').classList.add('show');
+                document.getElementById('conductorContent').classList.remove('show');
+                document.getElementById('modeLabel').textContent = '👥 성가대원 모드';
+                setupMemberMode();
+            } else {
+                document.getElementById('conductorContent').classList.add('show');
+                document.getElementById('memberContent').classList.remove('show');
+                document.getElementById('modeLabel').textContent = '🎼 지휘자 모드';
+                setupConductorMode();
+            }
+        }
+
+        // 모드 전환
+        function switchMode() {
+            const newMode = state.currentMode === 'member' ? 'conductor' : 'member';
+            selectMode(newMode);
+        }
+
+        // 성가대원 모드 설정
+        function setupMemberMode() {
+            const videoUploadSection = document.getElementById('videoUploadSection');
+            const videoFileInput = document.getElementById('videoFile');
+
+            videoUploadSection.addEventListener('click', () => videoFileInput.click());
+
+            videoUploadSection.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                videoUploadSection.classList.add('drag-over');
+            });
+
+            videoUploadSection.addEventListener('dragleave', () => {
+                videoUploadSection.classList.remove('drag-over');
+            });
+
+            videoUploadSection.addEventListener('drop', (e) => {
+                e.preventDefault();
+                videoUploadSection.classList.remove('drag-over');
+                if (e.dataTransfer.files.length > 0) {
+                    handleVideoSelect(e.dataTransfer.files[0]);
+                }
+            });
+
+            videoFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleVideoSelect(e.target.files[0]);
+                }
+            });
+
+            selectPart('both');
+        }
+
+        function handleVideoSelect(file) {
+            if (file.size > 500 * 1024 * 1024) {
+                showStatus('파일이 너무 큽니다 (최대 500MB)', 'error');
+                return;
+            }
+
+            state.videoFile = file;
+            const videoUrl = URL.createObjectURL(file);
+            document.getElementById('videoPlayer').src = videoUrl;
+            
+            document.getElementById('videoFileInfo').textContent = `✅ ${file.name}`;
+            document.getElementById('videoFileInfo').classList.add('show');
+
+            document.getElementById('videoPlayer').addEventListener('loadedmetadata', () => {
+                document.getElementById('videoPlayer').volume = 0;
+                document.getElementById('videoSection').classList.add('show');
+                document.getElementById('emptyState').style.display = 'none';
+
+                document.getElementById('playBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = false;
+
+                startPlaybackTracking();
+                updateTimeDisplay();
+            }, { once: true });
+
+            showStatus(`영상 로드됨: ${file.name}`, 'success');
+        }
+
+        // 파트 선택
+        function selectPart(part) {
+            state.currentPart = part;
+            
+            // 버튼 상태 업데이트
+            document.getElementById('altoBtn').classList.remove('active');
+            document.getElementById('bothBtn').classList.remove('active');
+            document.getElementById('sopranoBtn').classList.remove('active');
+
+            let altoVol, sopranoVol;
+
+            if (part === 'alto') {
+                document.getElementById('altoBtn').classList.add('active');
+                altoVol = 1.0;
+                sopranoVol = 0;
+                document.getElementById('leftLabel').textContent = 'Alto';
+                document.getElementById('leftStatus').textContent = '✓ ON';
+                document.getElementById('leftStatus').className = 'status-value status-on';
+                document.getElementById('rightLabel').textContent = 'Soprano';
+                document.getElementById('rightStatus').textContent = 'OFF';
+                document.getElementById('rightStatus').className = 'status-value status-off';
+            } else if (part === 'soprano') {
+                document.getElementById('sopranoBtn').classList.add('active');
+                altoVol = 0;
+                sopranoVol = 1.0;
+                document.getElementById('leftLabel').textContent = 'Alto';
+                document.getElementById('leftStatus').textContent = 'OFF';
+                document.getElementById('leftStatus').className = 'status-value status-off';
+                document.getElementById('rightLabel').textContent = 'Soprano';
+                document.getElementById('rightStatus').textContent = '✓ ON';
+                document.getElementById('rightStatus').className = 'status-value status-on';
+            } else {
+                // both
+                document.getElementById('bothBtn').classList.add('active');
+                altoVol = 1.0;
+                sopranoVol = 1.0;
+                document.getElementById('leftLabel').textContent = 'Alto';
+                document.getElementById('leftStatus').textContent = '✓ ON';
+                document.getElementById('leftStatus').className = 'status-value status-on';
+                document.getElementById('rightLabel').textContent = 'Soprano';
+                document.getElementById('rightStatus').textContent = '✓ ON';
+                document.getElementById('rightStatus').className = 'status-value status-on';
+            }
+
+            // 재생 중이면 음량 즉시 적용
+            if (state.altoGain) state.altoGain.gain.value = altoVol;
+            if (state.sopranoGain) state.sopranoGain.gain.value = sopranoVol;
+        }
+
+        // 지휘자 모드 설정
+        function setupConductorMode() {
+            setupFileUpload('conductorVideoFile', 'conductorVideoFileInfo', 'video');
+            setupFileUpload('pianoFile', 'pianoFileInfo', 'piano');
+            setupFileUpload('sopranoFile', 'sopranoFileInfo', 'soprano');
+            setupFileUpload('altoFile', 'altoFileInfo', 'alto');
+        }
+
+        function setupFileUpload(inputId, infoId, type) {
+            const input = document.getElementById(inputId);
+            const info = document.getElementById(infoId);
+
+            input.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0], type);
+                }
+            });
+        }
+
+        function handleFileSelect(file, type) {
+            if (file.size > 500 * 1024 * 1024) {
+                showStatus('파일이 너무 큽니다 (최대 500MB)', 'error');
+                return;
+            }
+
+            if (type === 'video') {
+                state.videoFile = file;
+                document.getElementById('conductorVideoFileInfo').textContent = `✅ ${file.name}`;
+                document.getElementById('conductorVideoFileInfo').classList.add('show');
+                showStatus(`영상 파일 저장됨: ${file.name}`, 'success');
+                return;
+            }
+
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const fileReader = new FileReader();
+
+            fileReader.onload = (e) => {
+                audioContext.decodeAudioData(
+                    e.target.result,
+                    (audioBuffer) => {
+                        if (type === 'piano') {
+                            state.pianoBuffer = audioBuffer;
+                            document.getElementById('pianoFileInfo').textContent = `✅ ${file.name}`;
+                            document.getElementById('pianoFileInfo').classList.add('show');
+                            showStatus(`피아노 반주 저장됨`, 'success');
+                        } else if (type === 'soprano') {
+                            state.sopranoBuffer = audioBuffer;
+                            document.getElementById('sopranoFileInfo').textContent = `✅ ${file.name}`;
+                            document.getElementById('sopranoFileInfo').classList.add('show');
+                            showStatus(`소프라노 저장됨`, 'success');
+                        } else if (type === 'alto') {
+                            state.altoBuffer = audioBuffer;
+                            document.getElementById('altoFileInfo').textContent = `✅ ${file.name}`;
+                            document.getElementById('altoFileInfo').classList.add('show');
+                            showStatus(`알토 저장됨`, 'success');
+                        }
+                    },
+                    (error) => {
+                        showStatus(`오디오 오류: ${error.message}`, 'error');
+                    }
+                );
+            };
+
+            fileReader.readAsArrayBuffer(file);
+        }
+
+        // 재생 제어
+        function handlePlayback(action) {
+            if (!state.pianoBuffer || !state.sopranoBuffer || !state.altoBuffer) {
+                showStatus('음성 파일이 없습니다', 'error');
+                return;
+            }
+
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            state.audioContext = audioContext;
+
+            if (action === 'play') {
+                stopAudioSources();
+
+                // 피아노
+                state.pianoSource = audioContext.createBufferSource();
+                state.pianoSource.buffer = state.pianoBuffer;
+                state.pianoGain = audioContext.createGain();
+                state.pianoGain.gain.value = 1.0;
+                state.pianoSource.connect(state.pianoGain);
+                state.pianoGain.connect(audioContext.destination);
+
+                // 소프라노
+                state.sopranoSource = audioContext.createBufferSource();
+                state.sopranoSource.buffer = state.sopranoBuffer;
+                state.sopranoGain = audioContext.createGain();
+                state.sopranoSource.connect(state.sopranoGain);
+                state.sopranoGain.connect(audioContext.destination);
+
+                // 알토
+                state.altoSource = audioContext.createBufferSource();
+                state.altoSource.buffer = state.altoBuffer;
+                state.altoGain = audioContext.createGain();
+                state.altoSource.connect(state.altoGain);
+                state.altoGain.connect(audioContext.destination);
+
+                // 동시 재생
+                const offset = state.pausedTime % state.pianoBuffer.duration;
+                state.pianoSource.start(0, offset);
+                state.sopranoSource.start(0, offset);
+                state.altoSource.start(0, offset);
+
+                state.startTime = audioContext.currentTime - state.pausedTime;
+                document.getElementById('videoPlayer').play();
+                document.getElementById('videoPlayer').volume = 0;
+                state.isPlaying = true;
+
+                selectPart(state.currentPart);
+            } else if (action === 'pause') {
+                stopAudioSources();
+                state.pausedTime = (state.audioContext.currentTime - state.startTime) % state.pianoBuffer.duration;
+                document.getElementById('videoPlayer').pause();
+                state.isPlaying = false;
+            }
+        }
+
+        function stopAudioSources() {
+            try {
+                if (state.pianoSource) state.pianoSource.stop();
+                if (state.sopranoSource) state.sopranoSource.stop();
+                if (state.altoSource) state.altoSource.stop();
+            } catch (e) {}
+        }
+
+        function startPlaybackTracking() {
+            if (state.playbackInterval) clearInterval(state.playbackInterval);
+
+            state.playbackInterval = setInterval(() => {
+                if (state.isPlaying && state.audioContext) {
+                    const currentTime = state.audioContext.currentTime - state.startTime;
+                    document.getElementById('videoPlayer').currentTime = currentTime;
+                    updateTimeDisplay();
+                }
+            }, 50);
+        }
+
+        function updateTimeDisplay() {
+            const videoPlayer = document.getElementById('videoPlayer');
+            const current = videoPlayer.currentTime;
+            const duration = videoPlayer.duration;
+            
+            document.getElementById('currentTime').textContent = formatTime(current);
+            document.getElementById('duration').textContent = formatTime(duration);
+
+            const progress = (current / duration) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('statusMessage');
+            container.textContent = message;
+            container.className = `status-message show ${type}`;
+            setTimeout(() => container.classList.remove('show'), 3000);
+        }
+
+        window.addEventListener('beforeunload', () => {
+            stopAudioSources();
+        });
+    </script>
+</body>
+</html>
