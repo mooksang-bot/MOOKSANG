@@ -1,0 +1,518 @@
+<title>엘리사 수학 교실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: one centered column (max 720px) of big touch targets over an anime-style sky; views swap in place. */
+:root{
+  --sky1:#bfe6ff; --sky2:#ffe3ef; --ink:#2b2350; --muted:#625b86; --card:#ffffff; --card2:#f6f3ff;
+  --line:#e2dcf5; --pri:#ff6f4f; --pri-ink:#ffffff; --mint:#22a88a; --sun:#ffc23c; --violet:#6c55e0;
+  --good:#16865c; --good-bg:#dcf6ea; --bad:#d23c43; --bad-bg:#ffe4e4; --cloud:#ffffffd9;
+  --display:"Jua","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --sky1:#17183d; --sky2:#3a2148; --ink:#f4f1ff; --muted:#bdb5e3; --card:#25224a; --card2:#2e2a58;
+  --line:#403a72; --pri:#ff8566; --pri-ink:#1b1238; --mint:#4fd3b0; --sun:#ffd166; --violet:#a796ff;
+  --good:#5fe0a6; --good-bg:#173d33; --bad:#ff7b80; --bad-bg:#4a1f2b; --cloud:#ffffff22; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --sky1:#17183d; --sky2:#3a2148; --ink:#f4f1ff; --muted:#bdb5e3; --card:#25224a; --card2:#2e2a58;
+  --line:#403a72; --pri:#ff8566; --pri-ink:#1b1238; --mint:#4fd3b0; --sun:#ffd166; --violet:#a796ff;
+  --good:#5fe0a6; --good-bg:#173d33; --bad:#ff7b80; --bad-bg:#4a1f2b; --cloud:#ffffff22; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:linear-gradient(180deg,var(--sky1),var(--sky2)) fixed;background-color:var(--sky1);color:var(--ink);
+  font-family:var(--body);font-size:18px;line-height:1.6;min-height:100vh;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px;position:relative}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.25}
+h1{font-size:2.1rem} h2{font-size:1.6rem} h3{font-size:1.25rem}
+p{margin:0}
+button{font-family:var(--display);font-size:1.1rem;cursor:pointer;color:inherit}
+button:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+a{color:var(--violet)}
+.muted{color:var(--muted)}
+.clouds{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.clouds span{position:absolute;background:var(--cloud);border-radius:999px;filter:blur(1px);animation:drift 40s linear infinite}
+.clouds span::before,.clouds span::after{content:"";position:absolute;background:inherit;border-radius:50%}
+.clouds span::before{width:55%;height:160%;left:15%;bottom:20%}
+.clouds span::after{width:40%;height:130%;right:12%;bottom:25%}
+@keyframes drift{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
+.wrap>*{position:relative;z-index:1}
+
+/* top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:4px 14px;font-family:var(--display);font-size:1rem;white-space:nowrap}
+.chip b{font-weight:400;color:var(--pri)}
+.back{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px 16px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center;background:var(--card);border:3px solid var(--line);border-radius:28px;padding:18px}
+.hero>div{min-width:0}
+.mascot{width:150px;height:150px;animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+.bubble{background:var(--card2);border-radius:20px;padding:12px 16px;margin-top:8px;position:relative;font-size:1.05rem}
+.hero h1 span{color:var(--pri)}
+@media (max-width:520px){.hero{grid-template-columns:1fr;text-align:center;justify-items:center}.mascot{width:120px;height:120px}h1{font-size:1.8rem}}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.tile{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;background:var(--card);border:3px solid var(--line);border-radius:24px;padding:16px;min-height:150px;transition:transform .15s,border-color .15s;position:relative}
+.tile:hover{transform:translateY(-3px);border-color:var(--violet)}
+.tile:active{transform:scale(.98)}
+.tile .ic{width:58px;height:58px;border-radius:18px;display:grid;place-items:center}
+.tile .t{font-family:var(--display);font-size:1.35rem}
+.tile .d{font-family:var(--body);font-size:.95rem;color:var(--muted);line-height:1.4}
+.tile.big{grid-column:1/-1;flex-direction:row;align-items:center;gap:16px;min-height:120px;background:var(--pri);border-color:var(--pri);color:var(--pri-ink)}
+.tile.big .d{color:var(--pri-ink);opacity:.9}
+.tile.big .ic{background:#ffffff33;width:72px;height:72px;flex:none}
+.badge{position:absolute;top:10px;right:12px;background:var(--bad);color:#fff;border-radius:999px;min-width:30px;height:30px;padding:0 8px;display:grid;place-items:center;font-family:var(--display);font-size:1rem}
+@media (max-width:420px){.tiles{grid-template-columns:1fr}.tile{min-height:0}}
+
+/* journey path */
+.card{background:var(--card);border:3px solid var(--line);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.path{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-size:.85rem;border:2px solid var(--line);background:var(--card2);color:var(--muted)}
+.dot.ok{background:var(--sun);border-color:var(--sun);color:#3b2a00}
+.dot.now{background:var(--pri);border-color:var(--pri);color:var(--pri-ink);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--pri) 50%,transparent)}50%{box-shadow:0 0 0 8px transparent}}
+.gsep{width:2px;height:30px;background:var(--line);margin:0 4px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
+
+/* problem */
+.qcard{background:var(--card);border:3px solid var(--line);border-radius:28px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{font-family:var(--display);font-size:.95rem;background:var(--card2);border-radius:999px;padding:3px 12px;color:var(--violet)}
+.tag.rev{background:var(--bad-bg);color:var(--bad)}
+.q{font-family:var(--display);font-size:1.7rem;line-height:1.7;overflow-wrap:anywhere}
+.q small{display:block;font-family:var(--body);font-size:1rem;color:var(--muted)}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.1;margin:0 3px;font-size:.85em}
+.fr>span:first-child{border-bottom:2px solid currentColor;padding:0 4px}
+.rt{border-top:2px solid currentColor;padding:0 2px;margin-left:1px}
+sup{font-size:.6em}
+.ansbox{font-family:var(--display);font-size:2rem;min-height:64px;border:3px dashed var(--line);border-radius:18px;display:flex;align-items:center;justify-content:center;padding:6px 12px;background:var(--card2);font-variant-numeric:tabular-nums}
+.ansbox.empty{color:var(--muted);font-size:1.1rem}
+.pad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pad button{min-height:58px;border-radius:16px;border:2px solid var(--line);background:var(--card);font-size:1.5rem}
+.pad button.op{background:var(--card2)}
+.pad button.go{background:var(--pri);border-color:var(--pri);color:var(--pri-ink);grid-column:span 2}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choices button{min-height:70px;border-radius:18px;border:3px solid var(--line);background:var(--card);font-size:1.3rem;padding:10px;text-align:center;line-height:1.5}
+.choices button.pick{border-color:var(--violet);background:var(--card2)}
+.choices button.right{border-color:var(--good);background:var(--good-bg)}
+.choices button.wrong{border-color:var(--bad);background:var(--bad-bg)}
+@media (max-width:480px){.choices{grid-template-columns:1fr}.q{font-size:1.45rem}}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{border-radius:16px;border:3px solid var(--line);background:var(--card);padding:12px 18px;min-height:54px}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:var(--pri-ink)}
+.btn.ghost{background:transparent}
+.btn.grow{flex:1}
+
+.fb{border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:10px;animation:pop .3s ease-out}
+@keyframes pop{from{transform:scale(.94);opacity:.4}to{transform:none;opacity:1}}
+.fb.good{background:var(--good-bg);color:var(--ink);border:3px solid var(--good)}
+.fb.bad{background:var(--bad-bg);color:var(--ink);border:3px solid var(--bad)}
+.fb h3 .mark{color:var(--good)} .fb.bad h3 .mark{color:var(--bad)}
+.tip{background:var(--card);border-radius:16px;padding:12px 14px;border:2px solid var(--line)}
+.tip b{font-family:var(--display);font-weight:400;color:var(--pri)}
+.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.steps li{padding-left:4px}
+.progress{height:14px;border-radius:999px;background:var(--card2);overflow:hidden;border:2px solid var(--line)}
+.progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--sun),var(--pri));border-radius:999px;transition:width .4s}
+
+/* roadmap & report */
+.stage{border-left:6px solid var(--c,var(--violet));padding-left:14px;display:flex;flex-direction:column;gap:8px}
+.units{display:flex;flex-wrap:wrap;gap:6px}
+.unit{font-size:.92rem;border-radius:999px;padding:3px 12px;background:var(--card2);border:2px solid var(--line)}
+.unit.app{border-color:var(--mint)}
+.unit.done{background:var(--sun);border-color:var(--sun);color:#3b2a00}
+.links{display:flex;flex-direction:column;gap:6px;font-size:.98rem}
+.skillrow{display:grid;grid-template-columns:minmax(0,1fr) 110px 48px;gap:10px;align-items:center;font-size:.98rem}
+.skillrow .progress{height:12px}
+.skillrow span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat div{background:var(--card2);border-radius:18px;padding:12px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-weight:400;font-size:1.7rem;color:var(--pri);font-variant-numeric:tabular-nums}
+.wrongitem{border-top:2px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:4px}
+.save{font-size:.85rem;color:var(--muted);text-align:center}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+.confetti i{position:absolute;top:-20px;width:12px;height:16px;border-radius:3px;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.6}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="clouds" aria-hidden="true">
+  <span style="top:8%;width:160px;height:44px;animation-duration:55s;animation-delay:-10s"></span>
+  <span style="top:30%;width:110px;height:32px;animation-duration:70s;animation-delay:-40s"></span>
+  <span style="top:62%;width:180px;height:50px;animation-duration:85s;animation-delay:-25s"></span>
+</div>
+<main class="wrap" id="app"></main>
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+
+<script>
+/* ================= 수학 유틸 ================= */
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const RNZ=(a,b)=>{let v;do v=R(a,b);while(v===0);return v};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a};
+const M='−';
+const n=x=>x<0?M+(-x):''+x;
+const p=x=>x<0?`(${M}${-x})`:`(+${x})`;
+const pp=x=>x<0?`(${M}${-x})`:''+x;
+const fr=(a,b)=>{if(b<0){a=-a;b=-b}return `${a<0?M:''}<span class="fr"><span>${Math.abs(a)}</span><span>${b}</span></span>`};
+const frR=(a,b)=>{const g=gcd(a,b)||1;a/=g;b/=g;if(b<0){a=-a;b=-b}return b===1?n(a):fr(a,b)};
+const sup=e=>`<sup>${e}</sup>`;
+const rt=x=>`√<span class="rt">${x}</span>`;
+function poly(terms){let s='';for(const [c,v] of terms){if(c===0)continue;const a=Math.abs(c);const body=(a===1&&v)?v:a+v;if(!s)s=(c<0?M:'')+body;else s+=(c<0?` ${M} `:' + ')+body}return s||'0'}
+const lin=(A,B,v='x')=>poly([[A,v],[B,'']]);
+const tail=v=>v===0?'':(v<0?` ${M} ${-v}`:` + ${v}`);
+const near=(a,b)=>Math.abs(a-b)<1e-6;
+function factorStr(x){const f=[];let m=x;for(let d=2;d<=m;d++){let e=0;while(m%d===0){m/=d;e++}if(e)f.push(e>1?d+sup(e):''+d)}return f.join(' × ')}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=R(0,i);[a[i],a[j]]=[a[j],a[i]]}return a}
+function mc(correct,dis,filler){const seen=new Set([correct]);const out=[{h:correct,ok:true}];
+  for(const [h,tag] of dis){if(out.length>=4)break;if(!seen.has(h)){seen.add(h);out.push({h,ok:false,tag})}}
+  let g=0;while(out.length<4&&g++<40){const h=filler();if(!seen.has(h)){seen.add(h);out.push({h,ok:false,tag:'calc'})}}
+  return shuffle(out)}
+
+/* ================= 실수 유형 ================= */
+const TAGS={
+  fracAdd:['분모끼리 더했어요','분수의 덧셈은 먼저 분모를 같게(통분) 만들고, 분자끼리만 더해요. 분모는 더하지 않아요!'],
+  decimal:['소수점 위치 실수','두 소수의 "소수점 아래 자리 수"를 더한 만큼 답에도 소수점 아래 자리를 만들어요.'],
+  ratioAdd:['비를 더하기로 계산했어요','비례식은 곱셈 관계예요. (바깥 두 수의 곱) = (안쪽 두 수의 곱)을 써요.'],
+  gcdlcm:['최대공약수와 최소공배수 헷갈림','최대공약수 = 두 수를 함께 나누는 가장 큰 수. 최소공배수 = 두 수의 공통 배수 중 가장 작은 수.'],
+  sign:['부호(+, −) 실수','계산이 끝나면 답의 부호를 꼭 한 번 더 확인해요. 음수가 몇 개인지 세어 보면 좋아요.'],
+  subFlip:['빼기를 더하기로 바꿀 때 부호','(□) − (△)는 (□) + (빼는 수의 부호를 바꾼 △)로 바꿔요. 부호 바꾸기를 잊지 마요!'],
+  power:['거듭제곱과 괄호','(−2)²은 (−2)×(−2)=4, −2²은 −(2×2)=−4예요. 괄호가 있는지 먼저 봐요.'],
+  powerMul:['거듭제곱을 곱셈으로 착각','2³은 2×3이 아니라 2×2×2예요. 같은 수를 여러 번 곱하는 거예요.'],
+  subst:['음수를 괄호 없이 넣었어요','음수를 대입할 때는 꼭 괄호를 씌워요. x = −2이면 x² = (−2)² = 4예요.'],
+  distribute:['분배법칙 실수','괄호 앞의 수(특히 −)는 괄호 안의 모든 항에 곱해요. −3(x − 2) = −3x + 6.'],
+  transpose:['이항할 때 부호','등호(=) 건너편으로 넘어가면 +는 −로, −는 +로 바뀌어요.'],
+  xyswap:['x, y 자리 혼동','점 (x, y)에서 앞이 x, 뒤가 y예요. 정비례 y=ax는 a = y ÷ x, 반비례 y=a/x는 a = x × y.'],
+  expLaw:['지수법칙 혼동','곱하면 지수끼리 더하고, 거듭제곱의 거듭제곱은 지수끼리 곱하고, 나누면 지수끼리 빼요.'],
+  expand:['전개할 때 항을 빠뜨렸어요','(x + a)(x + b) = x² + (a + b)x + ab. 가운데 항(a + b)x를 빠뜨리지 마요.'],
+  ineqFlip:['부등호 방향','양변을 음수로 곱하거나 나누면 부등호 방향이 반대로 바뀌어요!'],
+  order:['x와 y를 바꿔 썼어요','답을 구한 뒤 처음 식에 넣어 맞는지 확인하면 순서 실수를 막을 수 있어요.'],
+  slopeFlip:['기울기의 위아래가 바뀌었어요','기울기 = (y의 증가량) ÷ (x의 증가량). y가 위(분자)예요.'],
+  sqrtSimp:['루트 밖으로 꺼내기','√(a² × b) = a√b. 제곱인 부분만 밖으로 나오고, 나올 때는 a(제곱근)로 나와요.'],
+  factorConcept:['인수분해 두 수 찾기','곱해서 상수항, 더해서 x의 계수가 되는 두 수를 찾아요.'],
+  calc:['계산 실수','한 줄씩 종이에 써서 천천히 다시 계산해 봐요. 암산보다 실수가 훨씬 줄어요.'],
+  concept:['개념이 아직 헷갈려요','괜찮아요! 아래 풀이를 천천히 읽고, 비슷한 문제로 한 번 더 해 봐요.']
+};
+
+/* ================= 단원(스킬) ================= */
+const SKILLS=[
+ {id:'frac',g:'초6',name:'분수의 덧셈',concept:'분모가 다르면 먼저 통분(분모를 같게)한 뒤 분자끼리 더해요.',gen(){
+   let b=R(2,9),d;do d=R(2,9);while(d===b);const a=R(1,b-1),c=R(1,d-1);const N=a*d+c*b,D=b*d,L=b*d/gcd(b,d);
+   return {type:'num',q:`${fr(a,b)} + ${fr(c,d)} = ?<small>기약분수로 써요. 예: 7/6</small>`,ans:N/D,ansH:frR(N,D),
+    diag:v=>near(v,(a+c)/(b+d))?'fracAdd':null,
+    steps:[`분모 ${b}와 ${d}를 ${L}로 같게 만들어요(통분).`,`${fr(a*L/b,L)} + ${fr(c*L/d,L)}`,`분자끼리 더하면 ${fr(a*L/b+c*L/d,L)}`,`약분하면 <b>${frR(N,D)}</b>`]}}},
+ {id:'dec',g:'초6',name:'소수의 곱셈',concept:'소수점을 떼고 곱한 뒤, 두 수의 소수점 아래 자리 수를 더한 만큼 소수점을 찍어요.',gen(){
+   let X;do X=R(11,49);while(X%10===0);const Y=R(2,9);const ans=X*Y/100,x=X/10,y=Y/10;
+   return {type:'num',q:`${x} × ${y} = ?`,ans,ansH:''+ans,
+    diag:v=>(near(v,ans*10)||near(v,ans*100)||near(v,ans/10))?'decimal':null,
+    steps:[`소수점을 떼고 계산: ${X} × ${Y} = ${X*Y}`,`${x}는 소수점 아래 1자리, ${y}도 1자리 → 모두 2자리`,`${X*Y} → <b>${ans}</b>`]}}},
+ {id:'ratio',g:'초6',name:'비례식',concept:'비례식에서 (바깥 두 수의 곱) = (안쪽 두 수의 곱)이에요.',gen(){
+   let a,b;do{a=R(2,9);b=R(2,9)}while(a===b||gcd(a,b)!==1);const k=R(2,6);
+   return {type:'num',q:`${a} : ${b} = ${a*k} : □<br><small>□에 알맞은 수는?</small>`,ans:b*k,ansH:''+b*k,
+    diag:v=>v===b+(a*k-a)?'ratioAdd':null,
+    steps:[`바깥 두 수의 곱 = 안쪽 두 수의 곱`,`${a} × □ = ${b} × ${a*k} = ${a*b*k}`,`□ = ${a*b*k} ÷ ${a} = <b>${b*k}</b>`]}}},
+ {id:'gcd',g:'중1',name:'최대공약수·최소공배수',concept:'소인수분해한 뒤, 공통인 소인수끼리 곱하면 최대공약수, 모든 소인수를 곱하면 최소공배수예요.',gen(){
+   const g=R(2,6);let m1,m2;do{m1=R(2,7);m2=R(2,7)}while(m1===m2||gcd(m1,m2)!==1);const x=g*m1,y=g*m2,G=g,L=g*m1*m2;const askG=Math.random()<.5;
+   const ans=askG?G:L;
+   return {type:'num',q:`${x}와 ${y}의 <u>${askG?'최대공약수':'최소공배수'}</u>는?`,ans,ansH:''+ans,
+    diag:v=>(v===(askG?L:G)||v===x*y)?'gcdlcm':null,
+    steps:[`${x} = ${factorStr(x)}`,`${y} = ${factorStr(y)}`,`최대공약수 = ${G}, 최소공배수 = ${G} × ${m1} × ${m2} = ${L}`,`그래서 답은 <b>${ans}</b>`]}}},
+ {id:'iadd',g:'중1',name:'정수의 덧셈·뺄셈',concept:'부호가 같으면 더하고 같은 부호, 다르면 큰 쪽에서 작은 쪽을 빼고 큰 쪽 부호. 빼기는 부호를 바꿔 더하기로!',gen(){
+   const x=RNZ(-12,12),y=RNZ(-12,12),op=pick(['+','−']);const ans=op==='+'?x+y:x-y;const z=op==='+'?y:-y;
+   return {type:'num',q:`${p(x)} ${op} ${p(y)} = ?`,ans,ansH:n(ans),
+    diag:v=>(op==='−'&&v===x+y&&v!==ans)?'subFlip':(v===-ans&&ans!==0?'sign':null),
+    steps:[op==='−'?`빼기를 더하기로: ${p(x)} + ${p(-y)} (빼는 수의 부호를 바꿔요)`:`${p(x)} + ${p(y)}`,
+      (x>0)===(z>0)?`두 수의 부호가 같아요 → 절댓값끼리 더하고(${Math.abs(x)}+${Math.abs(z)}) 같은 부호를 붙여요.`:`부호가 달라요 → 절댓값이 큰 수에서 작은 수를 빼고(${Math.max(Math.abs(x),Math.abs(z))}−${Math.min(Math.abs(x),Math.abs(z))}), 절댓값이 큰 수의 부호를 붙여요.`,
+      `답: <b>${n(ans)}</b>`]}}},
+ {id:'imul',g:'중1',name:'정수의 곱셈·거듭제곱',concept:'음수가 짝수 개면 +, 홀수 개면 −. (−2)²과 −2²은 달라요!',gen(){
+   if(Math.random()<.55){const fs=[RNZ(-9,9),RNZ(-9,9)];if(Math.random()<.5)fs.push(pick([-2,-3,2,3,-4,5]));const ans=fs.reduce((s,v)=>s*v,1);const neg=fs.filter(v=>v<0).length;
+     return {type:'num',q:fs.map(p).join(' × ')+' = ?',ans,ansH:n(ans),diag:v=>(v===-ans&&ans!==0)?'sign':null,
+      steps:[`음수의 개수: ${neg}개 → ${neg%2===0?'짝수 개라서 +':'홀수 개라서 −'}`,`절댓값끼리 곱하기: ${fs.map(Math.abs).join(' × ')} = ${Math.abs(ans)}`,`답: <b>${n(ans)}</b>`]}}
+   const a=pick([2,3]),e=R(2,4),paren=Math.random()<.5;const base=Math.pow(a,e);const ans=paren?(e%2?-base:base):-base;
+   return {type:'num',q:(paren?`(${M}${a})${sup(e)}`:`${M}${a}${sup(e)}`)+' = ?',ans,ansH:n(ans),
+    diag:v=>(Math.abs(v)===a*e&&a*e!==base)?'powerMul':((v===-ans)?'power':null),
+    steps:paren?[`(${M}${a})${sup(e)}은 (${M}${a})를 ${e}번 곱해요.`,`음수 ${e}개 → ${e%2?'홀수 개라서 −':'짝수 개라서 +'}`,`답: <b>${n(ans)}</b>`]
+               :[`${M}${a}${sup(e)}은 괄호가 없어서 ${a}${sup(e)}만 먼저 계산해요: ${a}${sup(e)} = ${base}`,`그 앞에 −를 붙여요.`,`답: <b>${n(ans)}</b>`]}}},
+ {id:'subs',g:'중1',name:'문자식에 수 대입',concept:'문자 자리에 수를 넣을 때, 음수는 반드시 괄호를 씌워요.',gen(){
+   const xv=RNZ(-3,3),A=R(1,3),B=RNZ(-5,5),C=R(-6,6);const ans=A*xv*xv+B*xv+C;const wrong=-A*xv*xv+B*xv+C;
+   return {type:'num',q:`x = ${n(xv)}일 때,<br>${poly([[A,'x²'],[B,'x'],[C,'']])}의 값은?`,ans,ansH:n(ans),
+    diag:v=>(xv<0&&v===wrong&&wrong!==ans)?'subst':(v===-ans&&ans!==0?'sign':null),
+    steps:[`x 자리에 ${pp(xv)}를 괄호와 함께 넣어요.`,`${A===1?'':A+' × '}${p(xv)}² ${B<0?M:'+'} ${Math.abs(B)} × ${p(xv)}${tail(C)}`,`= ${n(A*xv*xv)}${tail(B*xv)}${tail(C)}`,`= <b>${n(ans)}</b>`]}}},
+ {id:'lin',g:'중1',name:'일차식의 계산',concept:'괄호 앞의 수를 괄호 안 모든 항에 곱한 다음(분배법칙), 같은 문자끼리·수끼리 모아요.',gen(){
+   let a,b;do{a=R(2,5);b=R(2,5)}while(a===b);const P=RNZ(-6,6),Q=RNZ(-6,6);const C=lin(a-b,a*P-b*Q);
+   return {type:'mc',q:`${a}(${lin(1,P)}) ${M} ${b}(${lin(1,Q)})<br><small>간단히 하면?</small>`,
+    choices:mc(C,[[lin(a-b,a*P+b*Q),'distribute'],[lin(a-b,a*P-Q),'distribute'],[lin(a+b,a*P-b*Q),'sign']],()=>lin(a-b+RNZ(-2,2),a*P-b*Q+RNZ(-3,3))),ansH:C,
+    steps:[`${a}(${lin(1,P)}) = ${lin(a,a*P)}`,`${M}${b}(${lin(1,Q)}) = ${lin(-b,-b*Q)} ← 괄호 앞 −${b}를 두 항 모두에 곱해요.`,`x끼리: ${a} ${M} ${b} = ${n(a-b)}, 수끼리: ${n(a*P)}${tail(-b*Q)} = ${n(a*P-b*Q)}`,`답: <b>${C}</b>`]}}},
+ {id:'eq1',g:'중1',name:'일차방정식',concept:'x가 있는 항은 왼쪽, 수는 오른쪽으로 이항(부호 바꿔 넘기기)한 다음 x의 계수로 나눠요.',gen(){
+   let a,c;do{a=RNZ(-5,6);c=R(-4,5)}while(a===c);const s=R(-6,6),b=R(-9,9),d=a*s+b-c*s;
+   const wrong=(a-c)!==0?(d+b)/(a-c):NaN;
+   return {type:'num',q:`${lin(a,b)} = ${lin(c,d)}<br><small>x의 값은?</small>`,ans:s,ansH:n(s),
+    diag:v=>(near(v,wrong)&&!near(wrong,s))?'transpose':(v===-s&&s!==0?'sign':null),
+    steps:[`x 항은 왼쪽, 수는 오른쪽으로 이항해요. 넘어가면 부호가 바뀌어요.`,`${lin(a,0)}${c===0?'':(c>0?` ${M} `:' + ')+lin(Math.abs(c),0)} = ${n(d)}${tail(-b)}`,`${lin(a-c,0)} = ${n(d-b)}`,`x = ${n(d-b)} ÷ ${pp(a-c)} = <b>${n(s)}</b>`]}}},
+ {id:'prop',g:'중1',name:'정비례·반비례',concept:'정비례 y = ax 에서 a = y ÷ x. 반비례 y = a/x 에서 a = x × y.',gen(){
+   if(Math.random()<.5){const a=RNZ(-5,5),x=RNZ(-4,4),y=a*x;
+     return {type:'num',q:`정비례 y = ax의 그래프가<br>점 (${n(x)}, ${n(y)})을 지나요. a는?`,ans:a,ansH:n(a),
+      diag:v=>(near(v,x/y)&&!near(x/y,a))?'xyswap':(v===-a?'sign':null),
+      steps:[`점의 좌표를 y = ax에 넣어요: ${n(y)} = a × ${pp(x)}`,`a = ${n(y)} ÷ ${pp(x)} = <b>${n(a)}</b>`]}}
+   const a=pick([6,8,12,18,24])*pick([1,-1]);const ds=[1,2,3,4,6].filter(d=>Math.abs(a)%d===0);const x=pick(ds)*pick([1,-1]),y=a/x;
+   return {type:'num',q:`반비례 y = <span class="fr"><span>a</span><span>x</span></span>의 그래프가<br>점 (${n(x)}, ${n(y)})을 지나요. a는?`,ans:a,ansH:n(a),
+    diag:v=>(near(v,y/x)&&!near(y/x,a))?'xyswap':(v===-a?'sign':null),
+    steps:[`반비례에서 a = x × y 예요.`,`a = ${pp(x)} × ${pp(y)} = <b>${n(a)}</b>`]}}},
+ {id:'exp',g:'중2',name:'지수법칙',concept:'aᵐ × aⁿ = aᵐ⁺ⁿ, (aᵐ)ⁿ = aᵐˣⁿ, aᵐ ÷ aⁿ = aᵐ⁻ⁿ',gen(){
+   const k=R(3,5),kind=pick(['mul','pow','div']);const v=pick(['a','x']);
+   if(kind==='mul'){const m=R(2,6);return {type:'num',q:`${v}${sup(m)} × ${v}${sup(k)} = ${v}${sup('□')}<br><small>□는?</small>`,ans:m+k,ansH:''+(m+k),diag:t=>t===m*k?'expLaw':null,steps:[`밑이 같은 수의 곱셈은 지수끼리 더해요.`,`${m} + ${k} = <b>${m+k}</b>`]}}
+   if(kind==='pow'){const m=R(2,5);return {type:'num',q:`(${v}${sup(m)})${sup(k)} = ${v}${sup('□')}<br><small>□는?</small>`,ans:m*k,ansH:''+(m*k),diag:t=>(t===m+k||t===Math.pow(m,k))?'expLaw':null,steps:[`거듭제곱의 거듭제곱은 지수끼리 곱해요.`,`${m} × ${k} = <b>${m*k}</b>`]}}
+   const m=k*R(1,3)+R(1,4);return {type:'num',q:`${v}${sup(m)} ÷ ${v}${sup(k)} = ${v}${sup('□')}<br><small>□는?</small>`,ans:m-k,ansH:''+(m-k),diag:t=>(near(t,m/k)||t===m+k)?'expLaw':null,steps:[`밑이 같은 수의 나눗셈은 지수끼리 빼요.`,`${m} − ${k} = <b>${m-k}</b>`]}}},
+ {id:'expand',g:'중2',name:'다항식의 곱셈(전개)',concept:'(x + a)(x + b) = x² + (a + b)x + ab',gen(){
+   let a,b;do{a=RNZ(-6,6);b=RNZ(-6,6)}while(a+b===0);const C=poly([[1,'x²'],[a+b,'x'],[a*b,'']]);
+   return {type:'mc',q:`(${lin(1,a)})(${lin(1,b)})<br><small>전개하면?</small>`,ansH:C,
+    choices:mc(C,[[poly([[1,'x²'],[a*b,'']]),'expand'],[poly([[1,'x²'],[a*b,'x'],[a+b,'']]),'expand'],[poly([[1,'x²'],[a+b,'x'],[-a*b,'']]),'sign'],[poly([[1,'x²'],[-(a+b),'x'],[a*b,'']]),'sign']],()=>poly([[1,'x²'],[a+b+RNZ(-2,2),'x'],[a*b,'']])),
+    steps:[`앞 괄호의 각 항을 뒤 괄호의 각 항에 곱해요.`,`x × x + x × ${pp(b)} + ${pp(a)} × x + ${pp(a)} × ${pp(b)}`,`= x² + (${n(a)}${tail(b)})x + (${n(a*b)})`,`답: <b>${C}</b>`]}}},
+ {id:'ineq',g:'중2',name:'일차부등식',concept:'방정식처럼 풀되, 음수로 곱하거나 나누면 부등호 방향을 바꿔요.',gen(){
+   const a=pick([-5,-4,-3,-2,2,3,4,5]),k=R(-6,6),b=RNZ(-9,9),op=pick(['<','>']);const c=a*k+b;const flip=o=>o==='<'?'>':'<';const dir=a>0?op:flip(op);
+   const C=`x ${dir} ${n(k)}`;
+   return {type:'mc',q:`${lin(a,b)} ${op} ${n(c)}<br><small>부등식을 풀면?</small>`,ansH:C,
+    choices:mc(C,[[`x ${flip(dir)} ${n(k)}`,'ineqFlip'],[`x ${dir} ${n(-k)}`,'sign'],[`x ${flip(dir)} ${n(-k)}`,'sign']],()=>`x ${pick(['<','>'])} ${n(k+RNZ(-3,3))}`),
+    steps:[`수를 오른쪽으로 이항: ${lin(a,0)} ${op} ${n(c)}${tail(-b)}`,`${lin(a,0)} ${op} ${n(c-b)}`,`양변을 ${pp(a)}로 나눠요.${a<0?' <b>음수로 나누니까 부등호 방향이 바뀌어요!</b>':''}`,`답: <b>${C}</b>`]}}},
+ {id:'sys',g:'중2',name:'연립방정식',concept:'한 식을 x = … 꼴로 바꿔 다른 식에 넣거나(대입법), 두 식을 더하고 빼서 한 문자를 없애요(가감법).',gen(){
+   let x0,y0,b1,a2,b2;do{x0=R(-5,5);y0=R(-5,5);b1=RNZ(-3,3);a2=R(1,4);b2=RNZ(-3,3)}while(x0===y0||b2-a2*b1===0);
+   const c1=x0+b1*y0,c2=a2*x0+b2*y0;const f=(x,y)=>`x = ${n(x)}, y = ${n(y)}`;const C=f(x0,y0);
+   return {type:'mc',q:`<span style="display:inline-block;text-align:left">${poly([[1,'x'],[b1,'y']])} = ${n(c1)}<br>${poly([[a2,'x'],[b2,'y']])} = ${n(c2)}</span><br><small>해는?</small>`,ansH:C,
+    choices:mc(C,[[f(y0,x0),'order'],[f(x0,-y0),'sign'],[f(-x0,y0),'sign']],()=>f(x0+RNZ(-2,2),y0+RNZ(-2,2))),
+    steps:[`첫째 식에서 x = ${poly([[c1,''],[-b1,'y']])} 로 바꿔요.`,`둘째 식에 넣으면: ${a2===1?'':a2}(${poly([[c1,''],[-b1,'y']])})${b2<0?` ${M} `:' + '}${Math.abs(b2)===1?'':Math.abs(b2)}y = ${n(c2)}`,`정리하면 ${lin(b2-a2*b1,0,'y')} = ${n(c2-a2*c1)} → y = ${n(y0)}`,`x = ${n(c1)}${tail(-b1)} × ${pp(y0)} = ${n(x0)}`,`답: <b>${C}</b>`]}}},
+ {id:'slope',g:'중2',name:'일차함수의 기울기',concept:'기울기 = (y의 증가량) ÷ (x의 증가량)',gen(){
+   const m=RNZ(-4,4),x1=R(-4,3),dx=R(1,4),y1=R(-5,5),x2=x1+dx,y2=y1+m*dx;
+   return {type:'num',q:`두 점 (${n(x1)}, ${n(y1)}), (${n(x2)}, ${n(y2)})을<br>지나는 직선의 기울기는?`,ans:m,ansH:n(m),
+    diag:v=>(near(v,1/m)&&Math.abs(m)!==1)?'slopeFlip':(v===-m?'sign':null),
+    steps:[`기울기 = (y의 증가량) ÷ (x의 증가량)`,`y의 증가량: ${n(y2)} − ${pp(y1)} = ${n(m*dx)}`,`x의 증가량: ${n(x2)} − ${pp(x1)} = ${dx}`,`${n(m*dx)} ÷ ${dx} = <b>${n(m)}</b>`]}}},
+ {id:'sqrt',g:'중3',name:'제곱근 간단히',concept:'√(a² × b) = a√b : 제곱인 수는 루트 밖으로 나와요.',gen(){
+   const k=R(2,5),r=pick([2,3,5,6,7]),N=k*k*r;const C=`${k}${rt(r)}`;
+   return {type:'mc',q:`${rt(N)}<br><small>a√b 꼴로 간단히 하면?</small>`,ansH:C,
+    choices:mc(C,[[`${k*k}${rt(r)}`,'sqrtSimp'],[`${r}${rt(k*k)}`,'sqrtSimp'],[`${k}${rt(k*r)}`,'sqrtSimp']],()=>`${k+RNZ(-1,2)}${rt(pick([2,3,5,6,7]))}`),
+    steps:[`${N} = ${k*k} × ${r} = ${k}² × ${r}`,`√(${k}²) = ${k} 이므로 ${k}가 루트 밖으로 나와요.`,`답: <b>${C}</b>`]}}},
+ {id:'factor',g:'중3',name:'인수분해',concept:'x² + px + q 에서 곱해서 q, 더해서 p가 되는 두 수를 찾아요.',gen(){
+   let a,b;do{a=RNZ(-6,6);b=RNZ(-6,6)}while(a+b===0||a===b);const f=(u,v)=>`(${lin(1,u)})(${lin(1,v)})`;const C=f(a,b);
+   return {type:'mc',q:`${poly([[1,'x²'],[a+b,'x'],[a*b,'']])}<br><small>인수분해하면?</small>`,ansH:C,
+    choices:mc(C,[[f(-a,-b),'sign'],[f(a,-b),'sign'],[f(a*b,1),'factorConcept']],()=>f(a+RNZ(-2,2),b)),
+    steps:[`곱해서 ${n(a*b)}, 더해서 ${n(a+b)}이 되는 두 수를 찾아요.`,`→ ${n(a)}와 ${n(b)}`,`답: <b>${C}</b>`]}}},
+ {id:'quad',g:'중3',name:'이차방정식',concept:'인수분해해서 AB = 0 이면 A = 0 또는 B = 0 이에요.',gen(){
+   let r1,r2;do{r1=R(-6,6);r2=R(-6,6)}while(r1===r2||r1+r2===0);const s=(u,v)=>{const [a,b]=u<v?[u,v]:[v,u];return `x = ${n(a)} 또는 x = ${n(b)}`};const C=s(r1,r2);
+   return {type:'mc',q:`${poly([[1,'x²'],[-(r1+r2),'x'],[r1*r2,'']])} = 0<br><small>해는?</small>`,ansH:C,
+    choices:mc(C,[[s(-r1,-r2),'sign'],[s(r1,-r2),'sign'],[s(-r1,r2),'sign']],()=>s(r1+RNZ(-2,2),r2)),
+    steps:[`인수분해: (${lin(1,-r1)})(${lin(1,-r2)}) = 0`,`${lin(1,-r1)} = 0 또는 ${lin(1,-r2)} = 0`,`답: <b>${C}</b>`]}}}
+];
+const SK=Object.fromEntries(SKILLS.map((s,i)=>[s.id,{...s,i}]));
+
+/* ================= 상태와 저장 ================= */
+const LS='elisa-math-v1';
+const blank=()=>({v:1,updatedAt:0,skills:{},mistakes:{},review:{},history:[],diag:null,stars:0,daily:{date:'',count:0},total:{n:0,c:0}});
+let S=blank();
+try{const t=JSON.parse(localStorage.getItem(LS)||'null');if(t&&t.v===1)S=Object.assign(blank(),t)}catch(e){}
+let db=null,docRef=null,saveMode='local',saving=false,pending=false;
+function sk(id){return S.skills[id]||(S.skills[id]={n:0,c:0,m:0})}
+const mastered=id=>{const s=S.skills[id];return !!s&&s.m>=.75&&s.n>=3};
+function curIndex(){for(const s of SKILLS)if(!mastered(s.id))return SK[s.id].i;return SKILLS.length-1}
+const today=()=>new Date().toLocaleDateString('sv');
+function save(){S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}
+  if(!docRef)return;if(saving){pending=true;return}saving=true;
+  docRef.set(JSON.parse(JSON.stringify(S))).then(()=>{saveMode='cloud'}).catch(()=>{saveMode='local'}).finally(()=>{saving=false;updateSave();if(pending){pending=false;save()}})}
+function updateSave(){const el=document.getElementById('save');if(el)el.textContent=saveMode==='cloud'?'기록이 계정에 안전하게 저장되고 있어요.':'기록이 이 기기에만 저장되고 있어요. (claude.ai에 로그인하면 계정에 저장돼요)'}
+(async()=>{try{if(!window.claude)return;const [d,u]=await Promise.all([claude.use('db'),claude.use('user')]);if(!d||!u)return;const id=await u.id();if(!id)return;
+  db=d;docRef=db.collection('data/users/'+id).doc('progress');const snap=await docRef.get();
+  if(snap.exists){const r=snap.data();if(r&&r.v===1&&(r.updatedAt||0)>=(S.updatedAt||0)){S=Object.assign(blank(),r);try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}if(view==='home')render()}else save()}
+  else if(S.updatedAt)save();saveMode='cloud';updateSave()}catch(e){}})();
+
+/* ================= 화면 ================= */
+const app=document.getElementById('app');
+let view='home',sess=null;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MASCOT=`<svg class="mascot" viewBox="0 0 160 160" aria-hidden="true">
+ <defs><radialGradient id="mg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fff6c9"/><stop offset="1" stop-color="#ffc23c"/></radialGradient></defs>
+ <path d="M80 6l9 20 22-3-12 18 16 15-22 2-4 22-9-20-9 20-4-22-22-2 16-15-12-18 22 3z" fill="#ff8a65" opacity=".25"/>
+ <path d="M58 30 L52 8 L72 24 Z M102 30 L108 8 L88 24 Z" fill="#ffb02e"/>
+ <circle cx="80" cy="88" r="58" fill="url(#mg)" stroke="#e79a10" stroke-width="3"/>
+ <ellipse cx="60" cy="84" rx="11" ry="14" fill="#2b2350"/><ellipse cx="100" cy="84" rx="11" ry="14" fill="#2b2350"/>
+ <circle cx="64" cy="79" r="4.5" fill="#fff"/><circle cx="104" cy="79" r="4.5" fill="#fff"/><circle cx="57" cy="90" r="2" fill="#fff"/><circle cx="97" cy="90" r="2" fill="#fff"/>
+ <ellipse cx="46" cy="104" rx="9" ry="5" fill="#ff7a8a" opacity=".55"/><ellipse cx="114" cy="104" rx="9" ry="5" fill="#ff7a8a" opacity=".55"/>
+ <path d="M70 106 Q80 116 90 106" stroke="#2b2350" stroke-width="4" fill="none" stroke-linecap="round"/>
+ <text x="80" y="62" text-anchor="middle" font-family="Jua,sans-serif" font-size="18" fill="#b36a00">π</text>
+ <rect x="122" y="112" width="26" height="26" rx="6" fill="#6c55e0" transform="rotate(14 135 125)"/><text x="135" y="131" text-anchor="middle" font-family="Jua,sans-serif" font-size="17" fill="#fff" transform="rotate(14 135 125)">x</text>
+</svg>`;
+const IC={
+ diag:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="18" cy="18" r="11"/><path d="M26 26l8 8M13 18l4 4 7-8"/></svg>`,
+ play:`<svg width="44" height="44" viewBox="0 0 40 40"><path d="M20 4l4.7 10 11 1.2-8.2 7.5 2.3 10.8L20 28l-9.8 5.5 2.3-10.8L4.3 15.2l11-1.2z" fill="currentColor"/></svg>`,
+ rev:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M8 20a12 12 0 1 0 4-9"/><path d="M8 6v7h7"/></svg>`,
+ map:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M4 9l10-4 12 4 10-4v26l-10 4-12-4-10 4z"/><path d="M14 5v26M26 9v26"/></svg>`,
+ rep:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 34h28M10 28V18M18 28V10M26 28v-6M34 28V14"/></svg>`
+};
+function topBar(title){return `<div class="topbar">${title?`<button class="back" data-go="home">← 처음으로</button><h2>${title}</h2>`:`<span class="chip">⭐ 별 <b>${S.stars}</b>개</span>`}<span class="chip">오늘 <b>${S.daily.date===today()?S.daily.count:0}</b>문제</span></div>`}
+
+function render(){window.scrollTo(0,0);
+  if(view==='home')home();else if(view==='road')road();else if(view==='report')report();else if(view==='quiz')quiz();
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==='diag')startDiag();else if(g==='practice')startPractice(false);else if(g==='review')startPractice(true);else{view=g;render()}});
+  updateSave()}
+
+function home(){const ci=curIndex(),cur=SKILLS[ci],revN=Object.values(S.review).reduce((a,b)=>a+b,0);
+  let msg;if(!S.diag)msg=`안녕, 엘리사! 나는 수학 별 친구 <b>루미</b>야. 먼저 <b>실력 진단 테스트</b>로 엘리사가 어디서부터 시작하면 좋을지 알아보자!`;
+  else if(revN)msg=`지난번에 헷갈린 문제가 <b>${revN}개</b> 있어. 비슷한 문제로 다시 연습하면 금방 잡을 수 있어!`;
+  else msg=`지금 단계는 <b>${cur.g} · ${cur.name}</b>이야. 오늘도 10문제 같이 풀어 보자!`;
+  let path='',lastG='';SKILLS.forEach((s,i)=>{if(s.g!==lastG&&i)path+='<span class="gsep"></span>';lastG=s.g;path+=`<span class="dot ${mastered(s.id)?'ok':i===ci?'now':''}" title="${s.g} ${s.name}">${i+1}</span>`});
+  app.innerHTML=`${topBar()}
+  <section class="hero">${MASCOT}<div><h1><span>엘리사</span>의 수학 교실</h1><p class="bubble">${msg}</p></div></section>
+  <section class="tiles">
+   <button class="tile big" data-go="${S.diag?'practice':'diag'}"><span class="ic">${S.diag?IC.play:IC.diag}</span><span><span class="t">${S.diag?'오늘의 연습 시작':'실력 진단 테스트'}</span><br><span class="d">${S.diag?`${cur.g} · ${cur.name}부터 10문제. 틀리면 비슷한 문제가 다시 나와요.`:'초6부터 중3까지 한 문제씩 풀면서 출발점을 찾아요. 약 10분.'}</span></span></button>
+   <button class="tile" data-go="${S.diag?'diag':'practice'}"><span class="ic" style="background:var(--card2);color:var(--violet)">${S.diag?IC.diag:IC.play}</span><span class="t">${S.diag?'실력 진단 다시 하기':'바로 연습하기'}</span><span class="d">${S.diag?`지난 진단: ${S.diag.date}`:'초6 분수부터 차근차근'}</span></button>
+   <button class="tile" data-go="review"><span class="ic" style="background:var(--bad-bg);color:var(--bad)">${IC.rev}</span><span class="t">오답 복습</span><span class="d">틀린 문제와 비슷한 문제를 다시 풀어요</span>${revN?`<span class="badge">${revN}</span>`:''}</button>
+   <button class="tile" data-go="road"><span class="ic" style="background:var(--good-bg);color:var(--mint)">${IC.map}</span><span class="t">학습 로드맵</span><span class="d">초6 → 중1 → 중2 → 중3 공부 순서와 추천 강의</span></button>
+   <button class="tile" data-go="report"><span class="ic" style="background:var(--card2);color:var(--pri)">${IC.rep}</span><span class="t">부모님 리포트</span><span class="d">단원별 실력과 자주 하는 실수</span></button>
+  </section>
+  <section class="card"><h3>엘리사의 수학 여행</h3><div class="path">${path}</div>
+   <div class="legend"><span><span class="dot ok" style="display:inline-grid;width:18px;height:18px"></span> 통과</span><span><span class="dot now" style="display:inline-grid;width:18px;height:18px;animation:none"></span> 지금 단계</span><span>초6 · 중1 · 중2 · 중3 순서</span></div></section>
+  <p class="save" id="save"></p>`}
+
+/* ---- 진단 & 연습 세션 ---- */
+function startDiag(){sess={mode:'diag',i:0,res:[],wrongRun:0,wrongTotal:0};nextQ()}
+function startPractice(reviewOnly){if(reviewOnly&&!Object.keys(S.review).length){sess={mode:'empty'};view='quiz';render();return}
+  sess={mode:reviewOnly?'review':'practice',count:0,goal:10,correct:0,forceSkill:null};nextQ()}
+function chooseSkill(){
+  if(sess.forceSkill){const f=sess.forceSkill;sess.forceSkill=null;return {id:f,rev:true}}
+  const revs=Object.keys(S.review);
+  if(sess.mode==='review')return revs.length?{id:pick(revs),rev:true}:null;
+  if(revs.length&&Math.random()<.35)return {id:pick(revs),rev:true};
+  const ci=curIndex();const done=SKILLS.slice(0,ci).filter(s=>mastered(s.id));
+  if(done.length&&Math.random()<.25)return {id:pick(done).id,rev:false,old:true};
+  return {id:SKILLS[ci].id,rev:false}}
+function nextQ(){view='quiz';
+  if(sess.mode==='diag'){if(sess.i>=SKILLS.length||sess.wrongRun>=3||sess.wrongTotal>=5)return finishDiag();sess.skill=SKILLS[sess.i].id;sess.rev=false}
+  else{if(sess.count>=sess.goal)return finishPractice();const c=chooseSkill();if(!c)return finishPractice();sess.skill=c.id;sess.rev=c.rev;sess.old=c.old}
+  sess.prob=SK[sess.skill].gen();sess.input='';sess.answered=false;sess.pickIdx=null;render()}
+
+function quiz(){
+  if(sess.mode==='empty'){app.innerHTML=`${topBar('오답 복습')}<section class="qcard" style="align-items:center;text-align:center">${MASCOT}<h2>복습할 문제가 없어요!</h2><p class="muted">틀린 문제가 생기면 여기에 모여요.</p><button class="btn pri" data-go="practice">오늘의 연습 하러 가기</button></section>`;return}
+  if(sess.mode==='result'){app.innerHTML=sess.html;return}
+  const s=SK[sess.skill],P=sess.prob;
+  const prog=sess.mode==='diag'?`진단 ${sess.i+1} / ${SKILLS.length}`:`${sess.count+1} / ${sess.goal}`;
+  const pct=sess.mode==='diag'?sess.i/SKILLS.length*100:sess.count/sess.goal*100;
+  let body;
+  if(P.type==='num')body=`<div class="ansbox ${sess.input?'':'empty'}" id="ans" aria-live="polite">${sess.input?esc(sess.input.replace(/-/g,M)):'아래 숫자판으로 답을 입력해요'}</div>
+    <div class="pad" id="pad">${['7','8','9','⌫','4','5','6','/','1','2','3','−','0','.'].map(k=>`<button class="${/[0-9]/.test(k)?'':'op'}" data-k="${k}" aria-label="${k==='⌫'?'지우기':k==='/'?'분수 막대':k}">${k}</button>`).join('')}<button class="go" data-k="ok">확인</button></div>`;
+  else body=`<div class="choices">${P.choices.map((c,i)=>`<button data-c="${i}">${c.h}</button>`).join('')}</div>`;
+  app.innerHTML=`${topBar(sess.mode==='diag'?'실력 진단 테스트':sess.mode==='review'?'오답 복습':'오늘의 연습')}
+  <div class="progress"><i style="width:${pct}%"></i></div>
+  <section class="qcard"><div class="qhead"><span class="tag">${s.g} · ${s.name}</span><span class="chip">${prog}</span></div>
+   ${sess.rev?'<span class="tag rev" style="align-self:flex-start">비슷한 문제 다시! 이번엔 꼭 맞혀 보자</span>':''}
+   <div class="q">${P.q}</div>${body}
+   <div class="row"><button class="btn ghost" id="idk">잘 모르겠어요</button><button class="btn ghost" id="hint">개념 힌트</button></div>
+   <div id="fb"></div></section>`;
+  document.getElementById('hint').onclick=()=>{const f=document.getElementById('fb');f.innerHTML=`<div class="tip"><b>루미의 힌트</b><br>${s.concept}</div>`};
+  document.getElementById('idk').onclick=()=>answer(null);
+  if(P.type==='num'){document.getElementById('pad').onclick=e=>{const b=e.target.closest('button');if(b)key(b.dataset.k)}}
+  else app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>answer(+b.dataset.c))}
+function key(k){if(view!=='quiz'||!sess||sess.answered||!sess.prob||sess.prob.type!=='num')return;
+  if(k==='ok'){if(sess.input)answer(sess.input);return}
+  if(k==='⌫')sess.input=sess.input.slice(0,-1);else if(k==='−'||k==='-'){sess.input=sess.input.startsWith('-')?sess.input.slice(1):'-'+sess.input}
+  else if(sess.input.length<9)sess.input+=k;
+  const a=document.getElementById('ans');a.className='ansbox'+(sess.input?'':' empty');a.textContent=sess.input?sess.input.replace(/-/g,M):'아래 숫자판으로 답을 입력해요'}
+document.addEventListener('keydown',e=>{if(view!=='quiz'||!sess||!sess.prob)return;
+  if(sess.answered&&e.key==='Enter'){const nx=document.getElementById('next');if(nx){e.preventDefault();nx.click()}return}
+  if(/^[0-9./]$/.test(e.key))key(e.key);else if(e.key==='-')key('-');else if(e.key==='Backspace')key('⌫');else if(e.key==='Enter')key('ok')});
+function parse(s){s=s.replace(/−/g,'-').trim();if(s.includes('/')){const [a,b]=s.split('/');const x=+a,y=+b;return (a===''||b===''||!y)?NaN:x/y}return s===''||s==='-'?NaN:+s}
+
+function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill];let ok,tag=null,givenH;
+  if(given===null){ok=false;tag='concept';givenH='모르겠어요'}
+  else if(P.type==='num'){const v=parse(given);if(isNaN(v)){document.getElementById('fb').innerHTML='<div class="tip">숫자를 다시 확인해 줘요. 분수는 3/4처럼 써요.</div>';return}
+    ok=near(v,P.ans);givenH=given.replace(/-/g,M);if(!ok)tag=P.diag(v)||'calc'}
+  else{const c=P.choices[given];ok=c.ok;givenH=c.h;if(!ok)tag=c.tag||'calc';
+    app.querySelectorAll('[data-c]').forEach((b,i)=>{b.disabled=true;if(P.choices[i].ok)b.classList.add('right');else if(i===given)b.classList.add('wrong')})}
+  sess.answered=true;
+  if(P.type==='num')app.querySelectorAll('#pad button').forEach(b=>b.disabled=true);
+  app.querySelector('#idk').disabled=true;
+  // 기록
+  const k=sk(sess.skill);const wasM=mastered(sess.skill);k.n++;if(ok){k.c++;k.m=k.m*.6+.4}else k.m=k.m*.6;
+  S.total.n++;if(ok)S.total.c++;
+  if(S.daily.date!==today())S.daily={date:today(),count:0};S.daily.count++;
+  if(ok){S.stars++;if(S.review[sess.skill]){S.review[sess.skill]--;if(!S.review[sess.skill])delete S.review[sess.skill]}}
+  else{S.mistakes[tag]=(S.mistakes[tag]||0)+1;S.review[sess.skill]=Math.min(3,(S.review[sess.skill]||0)+2)}
+  S.history.unshift({t:Date.now(),skill:sess.skill,ok,tag,q:P.q.replace(/<small>.*?<\/small>/g,''),given:givenH,ans:P.ansH});S.history=S.history.slice(0,60);
+  const levelUp=!wasM&&mastered(sess.skill)&&sess.mode!=='diag';
+  if(sess.mode==='diag'){sess.res.push({id:sess.skill,ok});if(ok)sess.wrongRun=0;else{sess.wrongRun++;sess.wrongTotal++}}
+  else{sess.count++;if(ok)sess.correct++;else sess.forceSkill=sess.skill}
+  save();
+  const praise=pick(['정답! 최고야!','맞았어! 대단해!','완벽해! 이 느낌 그대로!','정답! 실력이 쑥쑥 크고 있어!']);
+  const fb=document.getElementById('fb');
+  fb.innerHTML=ok?`<div class="fb good"><h3><span class="mark">○</span> ${praise}</h3>${levelUp?`<div class="tip"><b>레벨 업!</b> “${s.name}” 단원을 통과했어요. 다음 단원으로 넘어가요!</div>`:''}
+    <details><summary>풀이 보기</summary><ol class="steps">${P.steps.map(x=>`<li>${x}</li>`).join('')}</ol></details>
+    <button class="btn pri" id="next">다음 문제 →</button></div>`
+   :`<div class="fb bad"><h3><span class="mark">✕</span> ${given===null?'괜찮아, 같이 풀어 보자!':'아쉬워! 어디서 틀렸는지 보자'}</h3>
+    ${given===null?'':`<p>엘리사의 답: <b>${givenH}</b> · 정답: <b>${P.ansH}</b></p>`}
+    <div class="tip"><b>루미가 찾은 실수: ${TAGS[tag][0]}</b><br>${TAGS[tag][1]}</div>
+    <ol class="steps">${P.steps.map(x=>`<li>${x}</li>`).join('')}</ol>
+    <button class="btn pri" id="next">${sess.mode==='diag'?'다음 문제 →':'비슷한 문제로 다시 도전 →'}</button></div>`;
+  if(ok)confetti(levelUp?60:18);
+  document.getElementById('next').onclick=()=>{if(sess.mode==='diag')sess.i++;nextQ()};
+  fb.scrollIntoView({behavior:'smooth',block:'nearest'})}
+
+function finishDiag(){const res=sess.res;let start=res.findIndex(r=>!r.ok);if(start<0)start=Math.min(res.length,SKILLS.length-1);
+  res.forEach((r,i)=>{if(r.ok&&i<start){const k=sk(r.id);k.m=Math.max(k.m,.8);k.n=Math.max(k.n,3)}});
+  // 진단에서 틀린 단원보다 앞 단원은 통과 처리, 나머지는 그대로
+  S.diag={date:today(),start,score:res.filter(r=>r.ok).length,of:res.length};save();
+  const s=SKILLS[curIndex()];
+  sess={mode:'result',html:`${topBar('진단 결과')}<section class="qcard" style="align-items:center;text-align:center">${MASCOT}
+   <h2>엘리사의 출발점은<br><span style="color:var(--pri)">${s.g} · ${s.name}</span></h2>
+   <p class="muted">${res.length}문제 중 ${S.diag.score}문제 정답. 루미가 이 결과를 기억하고, 여기서부터 문제를 낼게요.</p></section>
+   <section class="card"><h3>문제별 결과</h3>${res.map(r=>`<div class="skillrow"><span>${SK[r.id].g} · ${SK[r.id].name}</span><span></span><span style="color:${r.ok?'var(--good)':'var(--bad)'}">${r.ok?'○ 정답':'✕ 복습'}</span></div>`).join('')}
+   ${res.length<SKILLS.length?`<p class="muted">앞 단원부터 탄탄하게 하려고 진단을 여기서 멈췄어요. 남은 단원은 연습하면서 차례로 열려요.</p>`:''}</section>
+   <div class="row"><button class="btn pri grow" data-go="practice">바로 연습 시작</button><button class="btn grow" data-go="road">로드맵 보기</button></div>`};
+  view='quiz';render();confetti(40)}
+function finishPractice(){const c=sess.correct,t=sess.count;const s=SKILLS[curIndex()];
+  sess={mode:'result',html:`${topBar('오늘의 결과')}<section class="qcard" style="align-items:center;text-align:center">${MASCOT}
+   <h2>${t?`${t}문제 중 <span style="color:var(--pri)">${c}문제</span> 정답!`:'복습 완료!'}</h2>
+   <p>${c===t?'완벽해! 루미가 깜짝 놀랐어!':c>=t*.7?'아주 잘했어! 틀린 문제는 루미가 기억해 뒀다가 다시 낼게.':'어려운 단원이었지? 괜찮아. 틀린 유형은 비슷한 문제로 다시 연습하자.'}</p>
+   <p class="muted">다음 단계: ${s.g} · ${s.name}</p></section>
+   <div class="row"><button class="btn pri grow" data-go="practice">10문제 더 하기</button><button class="btn grow" data-go="home">처음으로</button></div>`};
+  view='quiz';render();confetti(c===t&&t?60:20)}
+
+/* ---- 로드맵 ---- */
+const yt=q=>`<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(q)}" target="_blank" rel="noopener">유튜브에서 “${q}” 찾기</a>`;
+const ROAD=[
+ {g:'초6',c:'var(--sun)',title:'초6 다지기',units:['분수의 덧셈·뺄셈','분수·소수의 곱셈과 나눗셈','비와 비율','비례식과 비례배분'],
+  tip:'중학교 수학의 계산은 거의 다 분수와 소수 위에서 이루어져요. 분수 계산이 빨라야 중1이 편해요.',q:['초6 분수의 나눗셈 개념','초6 비례식과 비례배분']},
+ {g:'중1',c:'var(--pri)',title:'중1 · 수와 식의 기초',units:['소인수분해','정수와 유리수','문자와 식','일차방정식','좌표평면과 그래프','기본 도형·작도','평면·입체도형','자료의 정리'],
+  tip:'가장 중요한 건 "정수 계산"과 "부호"예요. 여기서 부호 실수를 잡으면 중2·중3이 훨씬 쉬워져요. 하루 20분, 10문제 + 오답 복습을 추천해요.',q:['중1 정수와 유리수 개념','중1 일차방정식 개념','중1 정비례 반비례']},
+ {g:'중2',c:'var(--violet)',title:'중2 · 식과 함수',units:['유리수와 순환소수','식의 계산(지수법칙)','일차부등식','연립일차방정식','일차함수','삼각형·사각형의 성질','도형의 닮음','확률'],
+  tip:'중1의 일차방정식이 바탕이에요. 부등식에서는 "음수로 나누면 방향이 바뀐다", 함수에서는 "기울기 = y증가량 ÷ x증가량"을 확실히 해요.',q:['중2 연립방정식 개념','중2 일차함수 기울기']},
+ {g:'중3',c:'var(--mint)',title:'중3 · 제곱근과 이차',units:['제곱근과 실수','다항식의 곱셈과 인수분해','이차방정식','이차함수','삼각비','원의 성질','통계'],
+  tip:'중2의 전개(곱셈공식)가 인수분해와 이차방정식으로 이어져요. 곱셈공식을 거꾸로 쓰는 것이 인수분해예요.',q:['중3 제곱근 개념','중3 인수분해 공식','중3 이차방정식 풀이']}
+];
+const APPU={'초6':{'분수의 덧셈·뺄셈':'frac','분수·소수의 곱셈과 나눗셈':'dec','비례식과 비례배분':'ratio'},'중1':{'소인수분해':'gcd','정수와 유리수':'iadd','문자와 식':'lin','일차방정식':'eq1','좌표평면과 그래프':'prop'},'중2':{'식의 계산(지수법칙)':'exp','일차부등식':'ineq','연립일차방정식':'sys','일차함수':'slope'},'중3':{'제곱근과 실수':'sqrt','다항식의 곱셈과 인수분해':'factor','이차방정식':'quad'}};
+function road(){app.innerHTML=`${topBar('학습 로드맵')}
+  <section class="card"><h3>루미 선생님의 추천 순서</h3><p>한 단계를 80% 이상 맞히면 다음 단계로 넘어가요. 선행학습은 빠르게보다 <b>정확하게</b>가 더 중요해요. 초록 테두리 단원은 이 앱에서 바로 연습할 수 있어요.</p></section>
+  ${ROAD.map(r=>`<section class="card"><div class="stage" style="--c:${r.c}"><h3>${r.title}</h3>
+   <div class="units">${r.units.map(u=>{const id=(APPU[r.g]||{})[u];return `<span class="unit ${id?(mastered(id)?'done':'app'):''}">${u}${id&&mastered(id)?' ✓':''}</span>`}).join('')}</div>
+   <p>${r.tip}</p>
+   <div class="links">${r.q.map(yt).join('')}</div></div></section>`).join('')}
+  <section class="card"><h3>강의 고르는 방법</h3><p>위 링크는 유튜브 <b>검색 결과</b>로 연결돼요. 특정 채널을 확인하지 않고 추천하지 않으려고 검색어로 안내했어요. 무료 공식 강의로는 EBS 중학 강의도 있으니 함께 찾아보세요. 15분 이내의 개념 영상 1개를 본 뒤 여기서 10문제를 풀면 가장 효과적이에요.</p></section>`}
+
+/* ---- 부모님 리포트 ---- */
+function report(){const tn=S.total.n,acc=tn?Math.round(S.total.c/tn*100):0;
+  const ms=Object.entries(S.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,5);const wrong=S.history.filter(h=>!h.ok).slice(0,8);
+  app.innerHTML=`${topBar('부모님 리포트')}
+  <section class="stat"><div><b>${tn}</b>푼 문제</div><div><b>${acc}%</b>정답률</div><div><b>${SKILLS.filter(s=>mastered(s.id)).length}/${SKILLS.length}</b>통과 단원</div></section>
+  <section class="card"><h3>단원별 실력</h3><p class="muted" style="font-size:.95rem">막대는 최근 결과에 더 큰 비중을 둔 숙련도예요. 75% 이상, 3문제 이상이면 통과.</p>
+   ${SKILLS.map(s=>{const k=S.skills[s.id]||{n:0,c:0,m:0};return `<div class="skillrow"><span>${s.g} · ${s.name}</span><div class="progress"><i style="width:${Math.round(k.m*100)}%"></i></div><span>${k.c}/${k.n}</span></div>`}).join('')}</section>
+  <section class="card"><h3>자주 하는 실수</h3>${ms.length?ms.map(([t,c])=>`<div class="tip"><b>${TAGS[t][0]} · ${c}번</b><br>${TAGS[t][1]}</div>`).join(''):'<p class="muted">아직 기록된 실수가 없어요.</p>'}</section>
+  <section class="card"><h3>최근 틀린 문제</h3>${wrong.length?wrong.map(h=>`<div class="wrongitem"><span class="tag" style="align-self:flex-start">${SK[h.skill]?SK[h.skill].g+' · '+SK[h.skill].name:''}</span><div style="font-family:var(--display);font-size:1.2rem">${h.q}</div><p>엘리사: <b>${h.given}</b> · 정답: <b>${h.ans}</b> · ${TAGS[h.tag]?TAGS[h.tag][0]:''}</p></div>`).join(''):'<p class="muted">아직 틀린 문제가 없어요.</p>'}</section>
+  <section class="card"><h3>기록 지우기</h3><p class="muted">진단과 모든 기록을 처음 상태로 돌려요. 되돌릴 수 없어요.</p><div class="row" id="resetRow"><button class="btn" id="reset">기록 지우기</button></div></section>
+  <p class="save" id="save"></p>`;
+  document.getElementById('reset').onclick=()=>{document.getElementById('resetRow').innerHTML='<span>정말 지울까요?</span><button class="btn pri" id="yes">네, 지워요</button><button class="btn" id="no">아니요</button>';
+    document.getElementById('yes').onclick=()=>{S=blank();save();view='home';render()};document.getElementById('no').onclick=()=>report()}}
+
+function confetti(nn){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const c=document.getElementById('confetti');const cols=['#ff6f4f','#ffc23c','#6c55e0','#22a88a','#ff7a8a'];
+  for(let i=0;i<nn;i++){const e=document.createElement('i');e.style.left=Math.random()*100+'vw';e.style.background=pick(cols);e.style.animationDelay=Math.random()*.4+'s';c.appendChild(e);setTimeout(()=>e.remove(),2200)}}
+render();
+</script>
