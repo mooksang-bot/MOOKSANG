@@ -882,10 +882,10 @@ function lMemo(){const D=st.lDraft;
   $$('[data-lmed]').forEach(b=>b.onclick=()=>{const m=st.lmemos.find(x=>x.id===b.dataset.lmed);if(!m)return;st.lDraft={id:m.id,text:m.text,locked:false};st.lNote='고친 다음 보내기를 눌러 주세요.';render();window.scrollTo(0,0);$('#lmText').focus()})}
 
 /* ---- 마스터 창 ---- */
-const MSECT=[['memo','메모하기'],['lecture','강의 시작'],['notice','제자들에게 메모 보내기'],['lessons','훈련 과정 입력'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
+const MSECT=[['memo','메모하기'],['lecture','강의 시작'],['att','출석부'],['notice','제자들에게 메모 보내기'],['lessons','훈련 과정 입력'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
   root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like memo-ic ${lmUnread()?'blink':''}" id="lmIc" aria-label="반장이 보낸 메모 ${lmUnread()}개">${LENV}반장 메모<b class="n">${lmUnread()||''}</b></button><button class="who btn-like" id="toApp">제자 화면</button>`,`<span class="mbadge under">마스터 창</span>`)}
-   <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button></div><button class="btn ${st.mtab==='materials'?'on':''}" id="qUp">자료 올리기</button><button class="btn ${st.mtab==='notice'?'on':''}" id="qMsg">제자들에게 메모 보내기</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
+   <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button></div><button class="btn ${st.mtab==='materials'?'on':''}" id="qUp">자료 올리기</button><button class="btn ${st.mtab==='att'?'on':''}" id="qAtt">출석부</button><button class="btn ${st.mtab==='notice'?'on':''}" id="qMsg">제자들에게 메모 보내기</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
    <div class="mbar"><h2>${st.mtab==='memo'?'':cur[1]}</h2><div class="mmenu">
      ${st.mtab!=='memo'?'<button class="btn" id="toMemo">← 메모하기</button>':''}
      <button class="btn" id="mMenu" aria-expanded="${st.menuOpen}">${st.menuOpen?'닫기':'다른 기능'}</button>
@@ -895,10 +895,10 @@ function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur
   on('#lmIc',async()=>{st.mtab='memo';st.menuOpen=false;render();const c=$('#lmCard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});await lmMarkRead()});
   on('#qHome',()=>{st.menuOpen=false;go('cover')});
   const qGo=t=>{st.mtab=t;st.editing=null;st.menuOpen=false;render()};
-  on('#qLec',()=>qGo('lecture'));on('#qUp',()=>qGo('materials'));on('#qMsg',()=>qGo('notice'));on('#qPw',()=>qGo('pw'));
+  on('#qLec',()=>qGo('lecture'));on('#qAtt',()=>qGo('att'));on('#qUp',()=>qGo('materials'));on('#qMsg',()=>qGo('notice'));on('#qPw',()=>qGo('pw'));
   on('#mMenu',()=>{st.menuOpen=!st.menuOpen;render()});on('#toMemo',()=>{st.mtab='memo';st.editing=null;render()});
   $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;st.menuOpen=false;render()});
-  ({lecture:mLecture,memo:mMemo,notice:mNotice,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
+  ({att:()=>{leadSub();lRoster()},lecture:mLecture,memo:mMemo,notice:mNotice,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
 function mMemo(){const ed=st.editing&&st.memos.find(n=>n.id===st.editing);const n=ed||{};
   $('#body').innerHTML=`<section class="card" style="order:2"><p class="kicker">${ed?'메모 수정':'메모하기'}</p>
     <label>제목 <input id="nTitle" maxlength="60" value="${esc(n.title)}"></label>
