@@ -344,7 +344,21 @@ table.att{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;
 table.att th,table.att td{border-bottom:1px solid var(--line);padding:6px;text-align:center;white-space:nowrap}
 table.att thead th{background:var(--soft);font-weight:700;font-size:.85rem}
 table.att th.nm{text-align:left;position:sticky;left:0;background:var(--card);z-index:1;min-width:84px}
-table.att th.nm span{display:block;font-size:.75rem;color:var(--muted);font-weight:400}
+table.att th.nm span{display:inline;margin-left:5px;font-size:.75rem;color:var(--muted);font-weight:400}
+/* 반장 출석 체크: 한 화면에 */
+body.lattfit .head{padding-block:6px 4px}
+body.lattfit .wrap.lead{gap:8px}
+body.lattfit .mtabs button{padding:6px 14px;min-height:38px}
+body.lattfit #body>.card{padding:10px 12px;gap:6px}
+body.lattfit .monbar .btn{min-height:34px;padding:3px 12px}
+body.lattfit .monbar b{font-size:1.05rem}
+body.lattfit table.att th,body.lattfit table.att td{padding:2px 4px}
+body.lattfit table.att thead th{font-size:.8rem;padding-block:4px}
+body.lattfit table.att th.nm span{font-size:.72rem}
+body.lattfit .ptuin{height:26px;width:32px}
+body.lattfit .ptu-legend{font-size:.8rem;gap:4px;margin:0}
+body.lattfit .ptu-legend .cell.ptu{width:20px;height:18px;font-size:.7rem}
+@media (max-width:600px){body.lattfit .ptuin{height:24px;width:25px;font-size:.85rem}body.lattfit table.att th,body.lattfit table.att td{padding:2px 2px}body.lattfit table.att thead th{font-size:.7rem}body.lattfit td.sumc{padding-inline:1px}body.lattfit .sm-s{margin-right:1px;letter-spacing:-.02em}body.lattfit table.att th.nm{min-width:0;font-size:.85rem}body.lattfit table.att th.nm span{margin-left:3px;font-size:.68rem}body.lattfit .ptu-legend .small{display:none}body.lattfit .sm-s{font-size:.6rem;padding:0 3px}}
 table.att tfoot th,table.att tfoot td{background:var(--soft);font-weight:700}
 .cell{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-size:1.2rem;color:var(--accent);font-weight:700}
 .cell.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
@@ -583,7 +597,7 @@ const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
 /* 마스터(편집자)라도 '제자들 입장'으로 들어오면 제자와 똑같은 화면만 보여요 ('2반 입장' 버튼) */
 const isM=()=>!!st.master&&st.view!=='app';
 function go(view){st.view=view;window.scrollTo(0,0);render()}
-function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster');
+function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster','lattfit');
   if(st.view==='master'&&!masterUnlocked())st.view='cover';
   if(st.view==='app'&&!canEnter())st.view='cover';
   if(st.view==='leader'&&!leaderUnlocked())st.view='cover';
@@ -835,7 +849,7 @@ function bindLpw(){on('#lpClose',()=>{st.lpwOpen=false;render()});$('#lpModal').
     if(h===st.leaderHash){st.leaderOk=h;ssSet(LLD,h);st.lpwOpen=false;st.lpwWrong=0;go('leader')}
     else{st.lpwWrong++;if(st.lpwWrong>=5){st.lpwWait=Date.now()+30000;st.lpwWrong=0;st.lpwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else st.lpwMsg='비밀번호가 맞지 않아요.';render();const i=$('#lpIn');if(i)i.focus()}};
   on('#lpGo',go2);const i=$('#lpIn');if(i)i.onkeydown=e=>{if(e.key==='Enter')go2()}}
-function leaderView(){leadSub();document.body.classList.remove('lroster');if(!st.lmonth)st.lmonth=ymNow();
+function leaderView(){leadSub();document.body.classList.remove('lroster','lattfit');if(!st.lmonth)st.lmonth=ymNow();
   const T=[['att','출석 체크'],['dues','회비 납부'],['roster','제자 명단']];if(!T.some(t=>t[0]===st.ltab))st.ltab='att';
   root.innerHTML=`<div class="shell"><div class="wrap lead">${headHtml(`<button class="who btn-like" id="lCover">표지</button><span class="mbadge lb">반장 창</span>`)}
    <nav class="mtabs" aria-label="반장 메뉴">${T.map(([k,l])=>`<button data-ltab="${k}" class="${st.ltab===k?'on':''}">${l}</button>`).join('')}</nav>
@@ -888,7 +902,7 @@ function monBar(){const [y,mo]=st.lmonth.split('-').map(Number);
 function bindMon(){on('#mPrev',()=>{st.lmonth=shiftYm(st.lmonth,-1);render()});on('#mNext',()=>{st.lmonth=shiftYm(st.lmonth,1);render()})}
 const noRoster=()=>`<section class="card empty">먼저 제자 명단에 제자를 추가해 주세요.<div class="row" style="justify-content:center;margin-top:10px"><button class="btn pri" id="goRoster">+ 제자 추가하러 가기</button></div></section>`;
 function curAtt(){return plain(st.att[st.lmonth]||{days:{},dues:{}})}
-function lAtt(){const days=sundays(st.lmonth),mo=+st.lmonth.split('-')[1],A=curAtt(),D=A.days||{};
+function lAtt(){document.body.classList.add('lattfit');const days=sundays(st.lmonth),mo=+st.lmonth.split('-')[1],A=curAtt(),D=A.days||{};
   let h=`<section class="card"><p class="kicker">출석 체크 · 주일 기준</p>${monBar()}`;
   if(!st.roster.length){$('#body').innerHTML=h+'</section>'+noRoster();bindMon();on('#goRoster',()=>{st.ltab='roster';st.rEdit='new';render()});return}
   h+=`<div class="tblwrap"><table class="att"><thead><tr><th scope="col">이름</th>${days.map(d=>`<th scope="col">${mo}/${d}</th>`).join('')}<th scope="col">${mo}월 출결</th></tr></thead><tbody>
