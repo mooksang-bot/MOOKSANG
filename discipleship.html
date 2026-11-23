@@ -136,8 +136,8 @@ body.app::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-i
 .item:first-child,.kicker+.item,.kicker+h2+.item{border-top:0;padding-top:0}
 #body{width:100%}
 /* 마스터 창: 한 화면에 맞추기 (내용은 칸 안에서만 스크롤) */
-body.mfit{height:100%;overflow:hidden}
-body.mfit .shell{height:100%;padding-block:0 calc(10px + env(safe-area-inset-bottom,0px))}
+body.mfit{height:100vh;height:100dvh;overflow:hidden}
+body.mfit .shell{height:100vh;height:100dvh;box-sizing:border-box;padding-block:0 calc(10px + env(safe-area-inset-bottom,0px))}
 body.mfit .shell>.wrap{height:100%;gap:8px}
 body.mfit .head{position:static;padding-block:10px 4px;flex:none}
 body.mfit .mtabs{flex:none}
@@ -151,6 +151,13 @@ body.mfit .mtabs{flex:none}
 .mpop button.on{color:var(--accent);font-weight:700;background:var(--soft)}
 body.mfit #body{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:10px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border-radius:18px}
 body.mfit .card{padding:14px 16px;gap:10px}
+/* 휴대폰 출석부: 칸 안 스크롤 대신 화면 전체를 손가락으로 끌어 내려 보기 */
+@media (max-width:899px){
+  body.mfit.lroster{height:auto;overflow:visible}
+  body.mfit.lroster .shell,body.mfit.lroster .shell>.wrap{height:auto}
+  body.mfit.lroster #body{flex:none;overflow:visible;min-height:auto}
+}
+.tblwrap{touch-action:pan-x pan-y}
 body.mfit textarea{min-height:76px}
 body.mfit label{gap:4px}
 body.mfit input,body.mfit textarea,body.mfit select{padding:8px 12px}
