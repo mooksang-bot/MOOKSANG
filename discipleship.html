@@ -302,6 +302,20 @@ em.by.lead{background:#3b8fc9}
 .cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end}
 .cgrid .row{margin:0}
 @media (max-width:600px){.cgrid{grid-template-columns:minmax(0,1fr)}}
+/* 반장 2반 명단: 한 화면에 */
+body.lcfit .head{padding-block:6px 4px}
+body.lcfit .wrap.lead{gap:8px}
+body.lcfit .mtabs button{padding:6px 14px;min-height:38px}
+body.lcfit #body{gap:8px}
+body.lcfit #body>.card{padding:10px 12px;gap:6px}
+body.lcfit .cgrid{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:6px}
+body.lcfit .cgrid label{font-size:.8rem;gap:2px}
+body.lcfit .cgrid input{padding:6px 10px;min-height:36px}
+body.lcfit .cgrid .btn{min-height:38px;padding:4px 14px}
+body.lcfit table.ctab th,body.lcfit table.ctab td{padding:2px 6px}
+body.lcfit table.ctab thead th{font-size:.8rem;padding-block:4px}
+body.lcfit table.ctab .cact .btn{min-height:26px;padding:1px 10px;font-size:.8rem}
+@media (max-width:600px){body.lcfit .cgrid{grid-template-columns:minmax(0,.9fr) minmax(0,1.2fr) auto}body.lcfit .cgrid .btn{padding:4px 10px}body.lcfit table.ctab .cact .btn{padding:1px 7px;font-size:.75rem}body.lcfit table.ctab td{font-size:.85rem}}
 table.ctab th[scope=row]{text-align:left;font-weight:700}
 table.ctab td a{color:var(--ink);text-decoration:none;border-bottom:1px dashed var(--muted)}
 table.ctab .cact{gap:6px;flex-wrap:nowrap;justify-content:center}
@@ -597,7 +611,7 @@ const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
 /* 마스터(편집자)라도 '제자들 입장'으로 들어오면 제자와 똑같은 화면만 보여요 ('2반 입장' 버튼) */
 const isM=()=>!!st.master&&st.view!=='app';
 function go(view){st.view=view;window.scrollTo(0,0);render()}
-function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster','lattfit');
+function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster','lattfit','lcfit');
   if(st.view==='master'&&!masterUnlocked())st.view='cover';
   if(st.view==='app'&&!canEnter())st.view='cover';
   if(st.view==='leader'&&!leaderUnlocked())st.view='cover';
@@ -849,8 +863,8 @@ function bindLpw(){on('#lpClose',()=>{st.lpwOpen=false;render()});$('#lpModal').
     if(h===st.leaderHash){st.leaderOk=h;ssSet(LLD,h);st.lpwOpen=false;st.lpwWrong=0;go('leader')}
     else{st.lpwWrong++;if(st.lpwWrong>=5){st.lpwWait=Date.now()+30000;st.lpwWrong=0;st.lpwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else st.lpwMsg='비밀번호가 맞지 않아요.';render();const i=$('#lpIn');if(i)i.focus()}};
   on('#lpGo',go2);const i=$('#lpIn');if(i)i.onkeydown=e=>{if(e.key==='Enter')go2()}}
-function leaderView(){leadSub();document.body.classList.remove('lroster','lattfit');if(!st.lmonth)st.lmonth=ymNow();
-  const T=[['att','출석 체크'],['dues','회비 납부'],['roster','제자 명단']];if(!T.some(t=>t[0]===st.ltab))st.ltab='att';
+function leaderView(){leadSub();document.body.classList.remove('lroster','lattfit','lcfit');if(!st.lmonth)st.lmonth=ymNow();
+  const T=[['att','출석 체크'],['dues','회비 납부'],['roster','2반 명단']];if(!T.some(t=>t[0]===st.ltab))st.ltab='att';
   root.innerHTML=`<div class="shell"><div class="wrap lead">${headHtml(`<button class="who btn-like" id="lCover">표지</button><span class="mbadge lb">반장 창</span>`)}
    <nav class="mtabs" aria-label="반장 메뉴">${T.map(([k,l])=>`<button data-ltab="${k}" class="${st.ltab===k?'on':''}">${l}</button>`).join('')}</nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
@@ -858,16 +872,16 @@ function leaderView(){leadSub();document.body.classList.remove('lroster','lattfi
   $$('[data-ltab]').forEach(b=>b.onclick=()=>{st.ltab=b.dataset.ltab;st.rEdit=null;render()});
   ({att:lAtt,dues:lDues,roster:lContacts,up:lUp,memo:lMemo})[st.ltab]()}
 /* 반장 창 '제자 명단': 이름과 연락처만 보고, 넣고, 고치기 */
-function lContacts(){const ed=st.cEdit&&st.roster.find(r=>r.id===st.cEdit);const R0=st.roster;
-  $('#body').innerHTML=`<section class="card cform"><p class="kicker">${ed?'제자 고치기':'제자 넣기'}</p>
+function lContacts(){document.body.classList.add('lcfit');const ed=st.cEdit&&st.roster.find(r=>r.id===st.cEdit);const R0=st.roster;
+  $('#body').innerHTML=`<section class="card cform"><p class="kicker">${ed?'2반 명단 고치기':'2반 명단에 넣기'}</p>
     <div class="cgrid"><label>이름 <input id="cName" maxlength="20" autocomplete="off" value="${esc(ed?ed.name:'')}" placeholder="예: 홍길동"></label>
     <label>연락처 <input id="cPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="${esc(ed?ed.phone:'')}" placeholder="010-1234-5678"></label>
     <div class="row"><button class="btn pri" id="cSave">${ed?'고친 내용 저장':'저장'}</button>${ed?'<button class="btn" id="cCancel">취소</button>':''}</div></div></section>
-   <section class="card"><p class="kicker">제자 명단 · ${R0.length}명</p>
+   <section class="card clist"><p class="kicker">2반 명단 · ${R0.length}명</p>
     ${R0.length?`<div class="tblwrap"><table class="att ctab"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">연락처</th><th scope="col">수정·삭제</th></tr></thead><tbody>
       ${R0.map((x,i)=>`<tr class="${x.id===st.cEdit?'cedit':''}"><td class="num">${i+1}</td><th scope="row">${esc(x.name)}</th><td>${x.phone?`<a href="tel:${esc(String(x.phone).replace(/[^0-9+]/g,''))}">${esc(x.phone)}</a>`:'<span class="muted">-</span>'}</td>
         <td><div class="row cact"><button class="btn" data-ced="${x.id}">수정</button><button class="btn danger" data-cdel="${x.id}">삭제</button></div></td></tr>`).join('')}</tbody></table></div>`
-      :'<p class="muted">아직 제자가 없어요. 위에서 이름과 연락처를 넣어 주세요.</p>'}</section>`;
+      :'<p class="muted">아직 2반 명단이 비어 있어요. 위에서 이름과 연락처를 넣어 주세요.</p>'}</section>`;
   on('#cSave',async()=>{const name=$('#cName').value.trim(),phone=$('#cPhone').value.trim();if(!name){toast('이름을 적어 주세요.');return}
     const o=ed?{...plain(ed),name,phone,updatedAt:Date.now()}:{id:uidGen(),name,phone,role:'',sex:'',createdAt:Date.now(),updatedAt:Date.now()};
     st.cEdit=null;await saveRoster(o);render()});
