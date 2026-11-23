@@ -135,6 +135,20 @@ sup{font-size:.6em}
 body.fit .qcard{overflow-y:auto;overscroll-behavior:contain}
 .inlfb{display:flex;flex-direction:column;gap:10px}
 .inlfb>.fb{animation:pop .3s ease-out}
+/* 풀이 보기: 네온 빛 박스 */
+.neonbox{display:flex;flex-direction:column;gap:10px}
+.neonbox>summary{list-style:none;cursor:pointer;align-self:flex-start;display:inline-flex;align-items:center;gap:10px;position:relative;overflow:hidden;
+  padding:10px 20px;border-radius:16px;border:3px solid var(--violet);background:var(--card);color:var(--violet);font-family:var(--display);font-size:1.15rem;
+  transition:box-shadow .2s,border-color .2s,color .2s,transform .15s}
+.neonbox>summary::-webkit-details-marker{display:none}
+.neonbox>summary::before{content:"▶";font-size:.8em;transition:transform .2s}
+.neonbox[open]>summary::before{transform:rotate(90deg)}
+.neonbox>summary::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;
+  background:radial-gradient(120px circle at var(--x,50%) var(--y,50%),rgba(95,245,230,.45),rgba(160,110,255,.18) 45%,transparent 70%)}
+.neonbox>summary:hover,.neonbox>summary:focus-visible,.neonbox>summary:active{border-color:#3fe6d6;color:var(--ink);transform:translateY(-1px);
+  box-shadow:0 0 0 2px #5ff5e6,0 0 14px #5ff5e6,0 0 30px rgba(140,90,255,.65),inset 0 0 12px rgba(95,245,230,.35);text-shadow:0 0 8px rgba(95,245,230,.9)}
+.neonbox>summary:hover::after,.neonbox>summary:active::after{opacity:1}
+@media (prefers-reduced-motion:reduce){.neonbox>summary{transition:none}}
 .inlfb>.tip{border:3px solid var(--violet);display:flex;flex-direction:column;gap:8px}
 .stamp{position:absolute;inset:0;z-index:60;display:grid;place-items:center;pointer-events:none}
 body>.stamp{position:fixed}
@@ -597,7 +611,7 @@ function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill
   const fb=document.getElementById('fb');fb.hidden=false;
   fb.innerHTML=ok?`<div class="fb good"><h3><span class="mark">○</span> 정답이에요! ${praise}</h3>
     <p>엘리사의 답: <b>${givenH}</b> — 맞았어요.</p>${levelUp?`<div class="tip"><b>레벨 업!</b> “${s.name}” 단원을 통과했어요. 다음 단원으로 넘어가요!</div>`:''}
-    <details><summary>풀이 보기</summary><ol class="steps">${P.steps.map(x=>`<li>${x}</li>`).join('')}</ol></details>
+    <details class="neonbox"><summary>풀이 보기</summary><ol class="steps">${P.steps.map(x=>`<li>${x}</li>`).join('')}</ol></details>
     <button class="btn pri" id="next">다음 문제 →</button></div>`
    :`<div class="fb bad"><h3><span class="mark">✕</span> ${given===null?'괜찮아, 같이 풀어 보자!':'오답이에요. 어디서 틀렸는지 보자'}</h3>
     ${given===null?'':`<p>엘리사의 답: <b>${givenH}</b> · 정답: <b>${P.ansH}</b></p>`}
@@ -608,6 +622,7 @@ function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill
   if(ok)confetti(levelUp?60:18);
   document.getElementById('next').onclick=()=>{if(sess.mode==='diag')sess.i++;nextQ()};
 }
+document.addEventListener('pointermove',e=>{const s=e.target&&e.target.closest&&e.target.closest('.neonbox>summary');if(!s)return;const r=s.getBoundingClientRect();s.style.setProperty('--x',(e.clientX-r.left)+'px');s.style.setProperty('--y',(e.clientY-r.top)+'px')},{passive:true});
 function stamp(ok){const d=document.createElement('div');d.className='stamp '+(ok?'ok':'no');d.setAttribute('role','status');
   d.innerHTML=`<div><span>${ok?'○':'✕'}</span><b>${ok?'정답':'오답'}</b></div>`;(app.querySelector('.qcard')||document.body).appendChild(d);setTimeout(()=>d.remove(),1400)}
 function tipSheet(h){const f=document.getElementById('fb');if(!f)return;f.hidden=false;setTimeout(()=>f.scrollIntoView({block:'nearest'}),0);f.innerHTML=`<div class="tip">${h}<button class="btn pri" id="closeTip">알겠어요</button></div>`;document.getElementById('closeTip').onclick=()=>{f.hidden=true;f.innerHTML=''}}
