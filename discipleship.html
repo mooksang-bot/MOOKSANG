@@ -424,7 +424,7 @@ const IC={home:'<path d="M3 11l9-7 9 7v9H4z"/><path d="M9 20v-6h6v6"/>',book:'<p
 const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
 function headHtml(right){return `<header class="head"><button class="mark" id="toCover" aria-label="표지 보기" style='background:${bgCss(st.cover)};background-size:cover;background-position:center'></button>
   <div class="t"><h1>${esc(st.cover.title)}</h1><p>${esc(st.cover.sub)}</p></div>${right}</header>`}
-function appView(){const tabs=[['home','홈','home'],['lessons','훈련 과정','book'],['materials','자료실','folder']];
+function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침','book'],['materials','자료실','folder']];
   if(!tabs.some(t=>t[0]===st.tab))st.tab='home';
   const right=st.master?`<button class="who m btn-like" id="toMaster">마스터 창</button>`:`<span class="who">${st.me?esc(st.me.name)+' 성도님':'성도님'}</span>`;
   root.innerHTML=`<div class="shell"><div class="wrap">${headHtml(right)}
