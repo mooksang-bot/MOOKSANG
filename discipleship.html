@@ -86,7 +86,7 @@ body.app::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-i
 .tabs button{flex:1;border:0;background:none;padding:8px 4px;border-radius:10px;font-size:.9rem;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
 .tabs button svg{width:24px;height:24px}
 .tabs button.on{color:var(--accent);font-weight:700}
-@media (min-width:900px){
+@media (min-width:768px){
   .shell{padding-block:0 40px}
   .tabs{position:static;background:none;border:0;padding:0 0 4px}
   .tabs .in{gap:6px}
@@ -152,7 +152,7 @@ body.mfit .mtabs{flex:none}
 body.mfit #body{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:10px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border-radius:18px}
 body.mfit .card{padding:14px 16px;gap:10px}
 /* 휴대폰 출석부: 칸 안 스크롤 대신 화면 전체를 손가락으로 끌어 내려 보기 */
-@media (max-width:899px){
+@media (max-width:767px){
   body.mfit.lroster{height:auto;overflow:visible}
   body.mfit.lroster .shell,body.mfit.lroster .shell>.wrap{height:auto}
   body.mfit.lroster #body{flex:none;overflow:visible;min-height:auto}
@@ -161,7 +161,7 @@ body.mfit .card{padding:14px 16px;gap:10px}
 body.mfit textarea{min-height:76px}
 body.mfit label{gap:4px}
 body.mfit input,body.mfit textarea,body.mfit select{padding:8px 12px}
-@media (min-width:900px){
+@media (min-width:768px){
   body.mfit #body{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden;align-items:start;align-content:stretch}
   body.mfit #body>.card{max-height:100%;overflow:auto;overscroll-behavior:contain}
   body.mfit #body>.card:only-child{grid-column:1/-1}
@@ -265,7 +265,7 @@ label.oxb:has(input:focus-visible){outline:3px solid var(--accent)}
 .qol li.ok::after{content:" ✓"}
 .qans{margin:0}
 .qitem.qed{outline:2px solid #39ff88;border-radius:12px}
-@media (min-width:900px){body.mfit #body:has(>.qform){grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+@media (min-width:768px){body.mfit #body:has(>.qform){grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
 .qbar .btn.lecbtn{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .qbar .btn.lecbtn.on{background:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 2px #5ff5e6,0 0 12px #5ff5e6}
 .lecup .leclist{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:auto}
@@ -299,6 +299,15 @@ label.oxb:has(input:focus-visible){outline:3px solid var(--accent)}
 .lecview.fs .a4bar .btn{background:#2a2622;color:#f3ece2;border-color:#4a433b}
 .lecview.fs .a4bar .btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 body.lecfs{overflow:hidden}
+/* 아이패드(터치 화면 768px 이상): 화면을 넓게 쓰기 */
+@media (min-width:768px) and (pointer:coarse){
+  .wrap{max-width:min(1140px,100%)}
+  .tabs .in{max-width:min(1140px,100%)}
+  .gvcard .a4stage.gvstage{height:max(360px,min(calc(100vh - 300px),calc((100vw - 48px)*1.4142)))}
+  .btn,.mtabs button,.qbar .btn{min-height:46px}
+  .ptuin{width:38px;height:34px}
+  body.lattfit .ptuin{height:30px;width:36px}
+}
 body.lecfs .shell{visibility:hidden}
 body.lecfs>.lecview.fs{visibility:visible}
 .lecview:fullscreen .a4stage{height:auto}
@@ -317,7 +326,7 @@ body.lecfs>.lecview.fs{visibility:visible}
 .a4bar{flex-wrap:wrap;display:flex;align-items:center;justify-content:center;gap:12px;flex:none}
 .a4bar .btn{min-width:96px}
 .a4bar span{font-weight:800;min-width:64px;text-align:center}
-@media (min-width:900px){body.mfit #body:has(>.lecview){grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr)}.lecview{height:100%}.a4stage{height:auto}.lecup{display:flex;flex-direction:column;max-height:100%}}
+@media (min-width:768px){body.mfit #body:has(>.lecview){grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr)}.lecview{height:100%}.a4stage{height:auto}.lecup{display:flex;flex-direction:column;max-height:100%}}
 .lec-h{font-size:1.05rem;margin-top:4px}
 /* 제자 화면: 자료를 한눈에 (카드 격자) */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -353,7 +362,7 @@ em.by.lead{background:#3b8fc9}
 .gview textarea#gText{min-height:140px}
 .gup .gdrop{border:2px dashed var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,box-shadow .15s}
 .gup .gdrop:hover,.gup .gdrop:focus-within{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
-@media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,2fr) minmax(0,.75fr)}.gview .gbox{height:auto;flex:1;min-height:120px}.gview textarea#gText{min-height:84px;height:84px}.gview{display:flex;flex-direction:column;height:100%}}
+@media (min-width:768px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,2fr) minmax(0,.75fr)}.gview .gbox{height:auto;flex:1;min-height:120px}.gview textarea#gText{min-height:84px;height:84px}.gview{display:flex;flex-direction:column;height:100%}}
 .cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.7fr) minmax(0,1fr) auto;gap:10px;align-items:end}
 .cgrid .row{margin:0}
 @media (max-width:600px){.cgrid{grid-template-columns:minmax(0,1fr)}}
