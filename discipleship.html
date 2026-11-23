@@ -731,7 +731,7 @@ function headHtml(right,under){const ps=pastorSrc(st.cover);return `<header clas
   <div class="t"><h1>${esc(st.cover.title)}</h1><p>${esc(st.cover.sub)}</p>${under||''}</div>${right}</header>`}
 function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침 보기','book'],['materials','제자들 보기','folder'],['notices','공지 보기','bell']];
   if(!tabs.some(t=>t[0]===st.tab))st.tab='home';
-  const right=isM()?`<button class="who m btn-like" id="toMaster">마스터 창</button>`:`<span class="who">${st.me?esc(st.me.name)+' 성도님':'성도님'}</span>`;
+  const right=isM()?`<button class="who m btn-like" id="toMaster">마스터 창</button>`:'';
   root.innerHTML=`<div class="shell"><div class="wrap">${headHtml(right)}
    <nav class="tabs"><div class="in">${tabs.map(([k,l,i])=>`<button data-tab="${k}" class="${st.tab===k?'on':''}">${ic(i)}<span>${l}</span></button>`).join('')}</div></nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
