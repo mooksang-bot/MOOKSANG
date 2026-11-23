@@ -224,6 +224,7 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
   .lesson:hover{box-shadow:0 0 0 1px var(--accent),0 0 18px color-mix(in srgb,var(--accent) 35%,transparent)}
 }
 .linkbtn{display:block;border:0;background:none;padding:4px 0;color:var(--accent);text-decoration:underline;text-align:left;font-weight:500}
+#reader[hidden],[hidden]{display:none!important}
 #reader{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;color:#f3ece2;background:#1d1814;background-image:radial-gradient(ellipse at 50% 45%,#40352b 0%,#1d1814 72%);
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #reader .rbar{display:flex;align-items:center;gap:8px;padding:8px 16px;min-height:56px}
@@ -498,10 +499,40 @@ function matRow(m,admin){const img=m.kind==='file'&&/^image\//.test(m.contentTyp
     <span class="tx"><strong>${esc(m.title)}</strong><span>${l?esc((l.week?l.week+'주차 · ':'')+l.title)+' · ':''}${fmtDate(m.createdAt)}</span></span>
     ${bookable(m)?`<button class="btn pri" data-read="${m.id}">책으로 보기</button>`:`<a class="btn" href="${esc(href)}" target="_blank" rel="noopener">열기</a>`}</div>
     ${m.desc?`<p class="small" style="white-space:pre-wrap">${esc(m.desc)}</p>`:''}
-    ${admin?`<div class="row"><button class="btn danger" data-delmat="${m.id}">지우기</button></div>`:''}</div>`}
-function materialsTab(){$('#body').innerHTML=`<section class="card"><p class="kicker">자료실</p>
-  ${st.materials.length?st.materials.map(m=>matRow(m,false)).join(''):'<p class="muted">김병구 목사님이 자료를 올리면 여기에 보여요.</p>'}</section>`}
-function lessonsTab(){let h='';
+    ${admin?`<div class="row"><button class="btn danger" data-delmat="${m.id}">삭제</button></div>`:''}</div>`}
+/* ---- 제자 화면에서 바로 자료 올리기 (마스터) ---- */
+function upPanel(cat){if(!st.master)return '';const g=cat==='guide';
+  return `<section class="card upcard"><p class="kicker">${g?'기초반 지침 자료 올리기':'자료실에 자료 올리기'}</p>
+    <label>자료 제목 <input id="upTitle" maxlength="80" placeholder="${g?'예: 기초반 1주차 지침':'예: 1주차 교재'}"></label>
+    <label>파일 (PDF·사진·영상, 한 파일 20MB까지) <input id="upFile" type="file" multiple accept="application/pdf,image/*,video/*"></label>
+    <p class="small muted">PDF나 사진은 올리면 바로 <b>책장을 넘기는 A4 책</b>으로 펼쳐져요. 사진 여러 장을 함께 고르면 한 권의 책이 돼요.</p>
+    <div class="row"><button class="btn pri" id="upGo" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':'올리기'}</button></div></section>`}
+async function doUpload(fs,base){if(!fs.length){toast('파일을 골라 주세요.');return null}
+  if(fs.some(f=>f.size>20*1024*1024)){toast('20MB보다 작은 파일을 골라 주세요.');return null}
+  if(!assets&&!isLocal()){toast('파일은 마스터만 올릴 수 있어요.');return null}
+  const allImg=fs.every(f=>/^image\//.test(f.type));const list=allImg?fs:[fs[0]];
+  st.busy=true;render();let m=null;
+  try{const ids=[],urls=[];
+    for(const f of list){if(assets){const r=await assets.upload(f);ids.push(r.id)}else urls.push(URL.createObjectURL(f))}
+    const f=list[0];
+    m={...base,kind:'file',assetId:ids[0]||'',fileName:f.name,contentType:f.type||'application/octet-stream',size:list.reduce((a,x)=>a+x.size,0)};
+    if(list.length>1&&ids.length)m.pages=ids;
+    if(urls.length){LOCALURLS[m.id]=urls;m.pageCount=urls.length}
+    await saveMat(m)}
+  catch(e){m=null;toast('파일을 올리지 못했어요. 다른 파일로 해 보세요.')}finally{st.busy=false;render()}
+  return m}
+function bindUp(cat){const g=$('#upGo');if(!g)return;
+  g.onclick=async()=>{const fs=[...$('#upFile').files];const t=$('#upTitle').value.trim()||(fs[0]?fs[0].name.replace(/\.[^.]+$/,''):'');
+    const m=await doUpload(fs,{id:uidGen(),title:t,desc:'',lessonId:'',cat,createdAt:Date.now()});if(m&&bookable(m))openReader(m)}}
+function bindDelMat(){$$('#body [data-delmat]').forEach(b=>b.onclick=()=>{const m=st.materials.find(x=>x.id===b.dataset.delmat);
+  b.parentElement.innerHTML=`<span>삭제할까요?</span><button class="btn danger" id="yM">삭제</button><button class="btn" id="nM">취소</button>`;
+  on('#yM',async()=>{await delMat(m);render()});on('#nM',()=>render())})}
+function materialsTab(){const lib=st.materials.filter(m=>m.cat!=='guide');
+  $('#body').innerHTML=`${upPanel('library')}<section class="card"><p class="kicker">자료실</p>
+  ${lib.length?lib.map(m=>matRow(m,st.master)).join(''):'<p class="muted">김병구 목사님이 자료를 올리면 여기에 보여요.</p>'}</section>`;
+  bindUp('library');bindDelMat()}
+function lessonsTab(){let h=upPanel('guide');const guides=st.materials.filter(m=>m.cat==='guide');
+  if(guides.length||st.master)h+=`<section class="card"><p class="kicker">기초반 지침 자료</p>${guides.length?guides.map(m=>matRow(m,st.master)).join(''):'<p class="muted">위에서 지침 자료를 올리면 여기에 보여요.</p>'}</section>`;
   if(!st.lessons.length)h+=`<section class="card empty">김병구 목사님이 과정을 올리면 여기에 보여요.</section>`;
   for(const l of st.lessons){const done=!!st.prog.done[l.id],open=st.open===l.id;const mats=st.materials.filter(m=>m.lessonId===l.id);
     h+=`<article class="lesson"><button class="lh" data-open="${l.id}" aria-expanded="${open}"><span class="wk">${l.week?`<b>${esc(l.week)}</b>주차`:'과정'}</span>
@@ -512,7 +543,7 @@ function lessonsTab(){let h='';
         ${st.master?'<p class="small muted">제자 화면 미리보기예요. 고치기는 마스터 창에서 해요.</p>'
         :`<label>나의 나눔 (목사님만 볼 수 있어요) <textarea id="note_${l.id}" maxlength="2000" placeholder="이번 과정에서 받은 은혜와 적용을 적어 보세요.">${esc(st.prog.notes[l.id])}</textarea></label>
           <div class="row"><button class="btn" data-note="${l.id}">나눔 저장</button><button class="btn ${done?'':'pri'}" data-done="${l.id}">${done?'완료 취소':'과제 완료했어요'}</button></div>`}</div>`:''}</article>`}
-  const b=$('#body');b.innerHTML=h;
+  const b=$('#body');b.innerHTML=h;bindUp('guide');bindDelMat();
   b.querySelectorAll('[data-open]').forEach(x=>x.onclick=()=>{st.open=st.open===x.dataset.open?null:x.dataset.open;render()});
   b.querySelectorAll('[data-done]').forEach(x=>x.onclick=async()=>{const id=x.dataset.done;if(st.prog.done[id])delete st.prog.done[id];else st.prog.done[id]=Date.now();render();if(await saveProg()&&st.prog.done[id])toast('수고하셨어요! 완료로 표시했어요.')});
   b.querySelectorAll('[data-note]').forEach(x=>x.onclick=async()=>{const id=x.dataset.note;st.prog.notes[id]=$('#note_'+id).value.trim();if(await saveProg())toast('나눔을 저장했어요.')})}
