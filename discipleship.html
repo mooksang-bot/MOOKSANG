@@ -236,6 +236,35 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 .qcol{display:flex;flex-direction:column;gap:6px}
 .qbar .btn.lecbtn{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .qbar .btn.lecbtn.on{background:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 2px #5ff5e6,0 0 12px #5ff5e6}
+.lecup .leclist{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:auto}
+.lecit{display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:12px;padding:4px 4px 4px 0}
+.lecit.on{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px rgba(57,255,136,.5)}
+.lecpick{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:none;border:0;color:var(--ink);text-align:left;padding:6px 10px;cursor:pointer;font-family:var(--sans)}
+.lecpick strong{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lecpick span{font-size:.78rem;color:var(--muted)}
+.lecit .btn{min-height:32px;padding:3px 10px;font-size:.85rem}
+.lecview{display:flex;flex-direction:column;gap:8px}
+.a4stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;perspective:2200px;height:min(70vh,calc((100vw - 64px)*1.4142))}
+.a4page{position:relative;background:#fff;color:#222;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 1px rgba(0,0,0,.15);overflow:hidden;transform-style:preserve-3d;aspect-ratio:1/1.4142}
+.a4page>img,.a4page>video,.leaf>img,.leaf>video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff}
+.a4msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center;color:#333}
+.a4msg .muted{color:#666}
+.leaf{position:absolute;inset:0;background:#fff;transform-origin:left center;backface-visibility:hidden;z-index:2;box-shadow:0 0 24px rgba(0,0,0,.35)}
+.leaf .shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.0) 40%,rgba(0,0,0,.35));opacity:0}
+.leaf.next{animation:leafNext .7s cubic-bezier(.45,.05,.35,1) forwards}
+.leaf.next .shade{animation:shadeIn .7s forwards}
+.leaf.prev{animation:leafPrev .7s cubic-bezier(.45,.05,.35,1) forwards}
+.leaf.prev .shade{animation:shadeOut .7s forwards}
+@keyframes leafNext{from{transform:rotateY(0)}to{transform:rotateY(-100deg)}}
+@keyframes leafPrev{from{transform:rotateY(-100deg)}to{transform:rotateY(0)}}
+@keyframes shadeIn{from{opacity:0}to{opacity:1}}
+@keyframes shadeOut{from{opacity:1}to{opacity:0}}
+.lecview:fullscreen{background:#111;padding:16px;height:100vh}
+.lecview:fullscreen .a4stage{height:auto}
+.a4bar{flex-wrap:wrap;display:flex;align-items:center;justify-content:center;gap:12px;flex:none}
+.a4bar .btn{min-width:96px}
+.a4bar span{font-weight:800;min-width:64px;text-align:center}
+@media (min-width:900px){body.mfit #body:has(>.lecview){grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr)}.lecview{height:100%}.a4stage{height:auto}.lecup{display:flex;flex-direction:column;max-height:100%}}
 .lec-h{font-size:1.05rem;margin-top:4px}
 /* 제자 화면: 자료를 한눈에 (카드 격자) */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -737,7 +766,7 @@ const matGrid=(list,empty)=>list.length?`<div class="mgrid">${list.map(matTile).
 function noticesTab(){const mine=st.notices.filter(forMe);
   $('#body').innerHTML=`<section class="card"><p class="kicker">공지 보기 · ${mine.length}개</p>
     ${mine.length?mine.map(n=>noticeItem(n,(n.createdAt||0)>st.seen).replace('<div class="item">',`<div class="item"><em class="by ${byOf(n)==='반장'?'lead':''}">${byOf(n)}</em>`)).join(''):'<p class="muted">마스터나 반장이 공지를 올리면 여기에 보여요.</p>'}</section>`}
-function materialsTab(){const lib=st.materials.filter(m=>m.cat!=='guide'&&m.cat!=='notice');
+function materialsTab(){const lib=st.materials.filter(m=>m.cat!=='guide'&&m.cat!=='notice'&&m.cat!=='lecture');
   $('#body').innerHTML=`<section class="card"><p class="kicker">제자들 보기 · 자료 ${lib.length}개</p>${matGrid(lib,'마스터나 반장이 자료를 올리면 여기에 바로 보여요.')}</section>
   ${upPanel('library')}${isM()&&lib.length?`<section class="card"><p class="kicker">자료 관리 (마스터)</p>${lib.map(m=>matRow(m,true)).join('')}</section>`:''}`;
   bindUp('library');bindDelMat()}
@@ -1053,7 +1082,7 @@ function mGuide(){const gs=st.materials.filter(m=>m.cat==='guide');
   on('#gSave',async()=>{await saveGuideText($('#gText').value.replace(/\s+$/,''));render()});
   on('#gReset',()=>{$('#gText').value=st.guideText||''});
   bindGZoom();bindDelMat();$$('.gview img.gimg').forEach(im=>{if(!im.complete)im.addEventListener('load',gFit,{once:true})});gFit();gFillPdfs()}
-function mMaterials(G){const k=st.matKind;const list=st.materials.filter(m=>G?m.cat==='guide':m.cat!=='guide');
+function mMaterials(G){const k=st.matKind;const list=st.materials.filter(m=>G?m.cat==='guide':m.cat!=='guide'&&m.cat!=='lecture');
   $('#body').innerHTML=`<section class="card"><p class="kicker">${G?'기초반 지침서 올리기':'자료 입력'}</p>
     ${G?'<p class="small muted">여기에 올린 자료는 제자 화면의 <b>“기초반 지침 보기”</b>에 바로 보여요.</p>':''}
     <div class="seg"><button class="btn ${k==='file'?'on':''}" data-kind="file">파일 올리기</button><button class="btn ${k==='link'?'on':''}" data-kind="link">링크 (유튜브 등)</button></div>
@@ -1113,13 +1142,55 @@ function mMembers(){const ids=Object.keys(st.members).sort((a,b)=>(st.members[a]
     h+=`<div class="member"><div><span class="nm">${esc(m.name)}</span> ${m.group?`<span class="muted small">· ${esc(m.group)}</span>`:''}</div><span class="chk ${total&&d===total?'ok':''}">${d} / ${total} 완료</span>
       ${notes.length?`<details class="notes"><summary class="small muted">나눔 ${notes.length}개 보기</summary>${notes.map(l=>`<div><b>${esc(l.title)}</b><br>${esc(p.notes[l.id])}</div>`).join('')}</details>`:''}</div>`}
   $('#body').innerHTML=h+'</section>'}
-function mLecture(){const files=st.materials.filter(m=>m.kind==='file');
-  const groups=[['기초반 지침',files.filter(m=>m.cat==='guide')],['제자들 보기 자료',files.filter(m=>!m.cat||m.cat==='library')],['공지 첨부 자료',files.filter(m=>m.cat==='notice')]].filter(g=>g[1].length);
-  $('#body').innerHTML=`<section class="card lec"><p class="kicker">강의 자료 · ${files.length}개</p>
-    <p class="small muted">강의할 자료를 누르면 A4 책으로 펼쳐져요. PC에서는 책 화면의 “전체 화면”으로 크게 보여 주세요. 넘기기: 버튼, 화면 누르기, ← → 키.</p>
-    ${groups.length?groups.map(([t,l])=>`<h3 class="lec-h">${t} <span class="small muted">${l.length}개</span></h3>${matGrid(l,'')}`).join('')
-      :`<p class="muted">아직 올린 강의 자료가 없어요.</p><div class="row"><button class="btn pri" id="lecUp">자료 올리기</button></div>`}</section>`;
-  on('#lecUp',()=>{st.mtab='materials';render()})}
+/* ================= 강의 시작: 왼쪽 강좌 자료 올리기 / 오른쪽 A4 책 보기 ================= */
+const LEC={};/* id -> {n, src:[]} */
+const lecList=()=>st.materials.filter(m=>m.cat==='lecture');
+function lecCount(m){const ct=m.contentType||'';if(/^image\//.test(ct))return m.pages?m.pages.length:(m.pageCount||(LOCALURLS[m.id]||[1]).length);if(/pdf/.test(ct))return LEC[m.id]?LEC[m.id].n:0;return 1}
+async function lecSrc(m,i){const ct=m.contentType||'';if(/^image\//.test(ct))return assetUrl(m,i);
+  if(/pdf/.test(ct)){const L=LEC[m.id]||(LEC[m.id]={n:0,src:[],doc:null});
+    if(!L.doc){const lib=await loadPdfJs();L.doc=await lib.getDocument({url:assetUrl(m)}).promise;L.n=L.doc.numPages}
+    if(!L.src[i]){const pg=await L.doc.getPage(i+1);const v0=pg.getViewport({scale:1});const v=pg.getViewport({scale:1600/v0.width});const c=document.createElement('canvas');c.width=v.width;c.height=v.height;
+      const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:v}).promise;L.src[i]=c.toDataURL('image/jpeg',.9)}
+    return L.src[i]}
+  return ''}
+function lecInner(m,src){const ct=m.contentType||'';
+  if(/^video\//.test(ct))return `<video src="${esc(assetUrl(m))}" controls playsinline></video>`;
+  if(!/^image\//.test(ct)&&!/pdf/.test(ct)){const href=m.kind==='link'?safeLink(m.url):assetUrl(m);return `<div class="a4msg"><p><b>${esc(m.title)}</b></p><a class="btn pri" href="${esc(href)}" target="_blank" rel="noopener">${m.kind==='link'?'링크 열기':'파일 열기'}</a></div>`}
+  return src?`<img src="${src}" alt="${esc(m.title)}">`:'<div class="a4msg"><p class="muted">펼치는 중…</p></div>'}
+function lecSize(){const stg=$('.a4stage'),pg=stg&&stg.querySelector('.a4page');if(!pg)return;const W=stg.clientWidth,H=stg.clientHeight;
+  let h=Math.min(H,W*1.4142);if(h<120)h=W*1.4142;const w=h/1.4142;pg.style.width=Math.floor(w)+'px';pg.style.height=Math.floor(h)+'px'}
+window.addEventListener('resize',()=>{if(st.view==='master'&&st.mtab==='lecture')lecSize()});
+document.addEventListener('fullscreenchange',()=>{const b=$('#lecFull');if(b)b.textContent=document.fullscreenElement?'전체 화면 끝':'전체 화면';setTimeout(lecSize,50)});
+async function lecShow(dir){const m=lecList().find(x=>x.id===st.lecSel);const pg=$('.a4page');if(!m||!pg)return;
+  const ct=m.contentType||'';let src='';try{src=(/^image\//.test(ct)||/pdf/.test(ct))?await lecSrc(m,st.lecP):''}catch(e){pg.innerHTML='<div class="a4msg"><p class="muted">자료를 열지 못했어요. 다시 올려 보세요.</p></div>';return}
+  const n=lecCount(m)||1;if(st.lecP>n-1){st.lecP=n-1;return lecShow(0)}
+  const html=lecInner(m,src);const lab=$('#lecNo');if(lab)lab.textContent=`${st.lecP+1} / ${n}`;
+  const pv=$('#lecPrev'),nx=$('#lecNext');if(pv)pv.disabled=st.lecP<=0;if(nx)nx.disabled=st.lecP>=n-1;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!dir||reduce){pg.innerHTML=html;return}
+  /* 책장 넘기기: 다음 = 지금 쪽이 왼쪽 등을 축으로 넘어가요 / 이전 = 앞 쪽이 넘어와 덮어요 */
+  const old=pg.innerHTML;st.lecAnim=true;const tok=st.lecTok=(st.lecTok||0)+1;const done=()=>{if(st.lecTok!==tok)return;st.lecTok++;pg.innerHTML=html;st.lecAnim=false};
+  if(dir>0){pg.innerHTML=html+`<div class="leaf next">${old}<i class="shade"></i></div>`}
+  else{pg.innerHTML=old+`<div class="leaf prev">${html}<i class="shade"></i></div>`}
+  pg.querySelector('.leaf').addEventListener('animationend',done,{once:true});setTimeout(done,1100)}
+function lecGo(d){if(st.lecAnim)return;const m=lecList().find(x=>x.id===st.lecSel);if(!m)return;const n=lecCount(m)||1;const p=st.lecP+d;if(p<0||p>n-1)return;st.lecP=p;lecShow(d)}
+document.addEventListener('keydown',e=>{if(st.view!=='master'||st.mtab!=='lecture'||RD.m||/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||''))return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();lecGo(1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();lecGo(-1)}});
+function mLecture(){const L=lecList();if(!L.some(m=>m.id===st.lecSel)){st.lecSel=L.length?L[0].id:null;st.lecP=0}
+  const cur=L.find(m=>m.id===st.lecSel);
+  $('#body').innerHTML=`<section class="card lecup"><p class="kicker">강좌 자료 올리기</p>
+    <label class="gdrop">파일 고르기 <span class="small muted">PDF·사진(여러 장이면 한 권)·영상 · 한 파일 20MB까지</span><input id="lecFile" type="file" multiple accept="application/pdf,image/*,video/*"></label>
+    <div class="row"><button class="btn pri" id="lecGoUp" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':'강좌 자료 올리기'}</button></div>
+    <p class="kicker" style="margin-top:6px">올린 강좌 자료 ${L.length}개</p>
+    <div class="leclist">${L.length?L.map(m=>`<div class="lecit ${m.id===st.lecSel?'on':''}"><button class="lecpick" data-lec="${m.id}"><strong>${esc(m.title)}</strong><span>${fmtDate(m.createdAt)}</span></button><button class="btn danger" data-delmat="${m.id}">삭제</button></div>`).join(''):'<p class="muted">아직 올린 강좌 자료가 없어요.</p>'}</div></section>
+   <section class="card lecview"><p class="kicker">A4 책으로 보기${cur?` · ${esc(cur.title)}`:''}</p>
+    <div class="a4stage"><div class="a4page">${cur?'':'<div class="a4msg"><p class="muted">왼쪽에서 강좌 자료를 올리면 여기에 A4 크기로 보여요.</p></div>'}</div></div>
+    <div class="a4bar"><button class="btn" id="lecPrev" ${cur?'':'disabled'}>◀ 이전</button><span id="lecNo">${cur?'':'0 / 0'}</span><button class="btn pri" id="lecNext" ${cur?'':'disabled'}>다음 ▶</button><button class="btn" id="lecFull" ${cur?'':'disabled'}>전체 화면</button></div></section>`;
+  on('#lecGoUp',async()=>{const fs=[...$('#lecFile').files];const m=await doUpload(fs,{id:uidGen(),title:fs.length?fs[0].name.replace(/\.[^.]+$/,''):'',desc:'',lessonId:'',cat:'lecture',by:'마스터',createdAt:Date.now()});if(m){st.lecSel=m.id;st.lecP=0;render()}});
+  $$('[data-lec]').forEach(b=>b.onclick=()=>{st.lecSel=b.dataset.lec;st.lecP=0;render()});
+  on('#lecPrev',()=>lecGo(-1));on('#lecNext',()=>lecGo(1));
+  on('#lecFull',()=>{const c=$('.lecview');if(document.fullscreenElement)document.exitFullscreen();else if(c&&c.requestFullscreen)c.requestFullscreen().catch(()=>toast('이 기기에서는 전체 화면을 쓸 수 없어요.'))});
+  bindDelMat();lecSize();if(cur)lecShow(0)}
 function mPw(){$('#body').innerHTML=`<section class="card"><p class="kicker">제자들 입장 비밀번호</p>
     <span class="status ${st.pwHash?'ok':'no'}">${st.pwHash?'● 제자 비밀번호가 정해져 있어요':'● 아직 비밀번호가 없어요 (제자들이 들어올 수 없어요)'}</span>
     <p>표지에서 “제자들 입장”을 누르면 이 비밀번호를 물어봐요. 정한 비밀번호를 제자들에게 알려 주세요. 앱을 다시 열면 또 물어봐요.</p>
