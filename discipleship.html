@@ -236,7 +236,7 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 .qcol{display:flex;flex-direction:column;gap:6px}
 .qrow{display:flex;gap:6px}
 .qbar .btn.quizbtn{background:linear-gradient(180deg,#ffd36b,#f2b630);border-color:#f2b630;color:#2a1c00;font-weight:700}
-.qbar .btn.quizbtn.on{box-shadow:0 0 0 2px #ffe08a,0 0 12px #ffd36b}
+.qbar .btn.quizbtn.on,.qbar .btn.quizbtn.on:hover{background:linear-gradient(180deg,#ffd36b,#f2b630);border-color:#f2b630;color:#2a1c00;box-shadow:0 0 0 2px #ffe08a,0 0 12px #ffd36b}
 .qform .qtype{display:flex;gap:6px;flex-wrap:wrap}
 .qform .qtype .btn{flex:1;min-width:0}
 .qch{border:1px solid var(--line);border-radius:14px;padding:8px 10px;margin:0;display:flex;flex-direction:column;gap:6px}
@@ -262,7 +262,6 @@ label.oxb:has(input:focus-visible){outline:3px solid var(--accent)}
 .qans{margin:0}
 .qitem.qed{outline:2px solid #39ff88;border-radius:12px}
 @media (min-width:900px){body.mfit #body:has(>.qform){grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
-.qbar .btn.lecbtn{
 .qbar .btn.lecbtn{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .qbar .btn.lecbtn.on{background:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 2px #5ff5e6,0 0 12px #5ff5e6}
 .lecup .leclist{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:auto}
