@@ -226,6 +226,17 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 .linkbtn{display:block;border:0;background:none;padding:4px 0;color:var(--accent);text-decoration:underline;text-align:left;font-weight:500}
 #reader[hidden],[hidden]{display:none!important}
 .qbar{display:flex;gap:6px;flex-wrap:wrap;flex:none}
+/* 받는 제자 체크 목록: 마우스를 올리면 녹색 네온, 체크하면 녹색으로 빛남 */
+.rcpt{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.rhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;max-height:230px;overflow:auto;padding:4px}
+label.rchk{display:flex;flex-direction:row;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;cursor:pointer;color:var(--ink);font-size:.95rem;transition:box-shadow .18s,border-color .18s,background .18s}
+label.rchk small{color:var(--muted);font-size:.75rem;margin-left:auto}
+label.rchk input{width:20px;height:20px;margin:0;accent-color:#22c55e;flex:none;border-radius:4px}
+label.rchk input:checked{box-shadow:0 0 0 2px #39ff88,0 0 10px #39ff88,0 0 20px rgba(57,255,136,.6)}
+label.rchk:has(input:checked){border-color:#22c55e;background:color-mix(in srgb,#22c55e 14%,transparent)}
+label.rchk:hover,label.rchk:focus-within,label.rchk:active{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88,0 0 26px rgba(57,255,136,.45)}
+label.rchk.all{padding:6px 10px}
 .mbadge.under{display:inline-block;margin-top:6px;white-space:nowrap}
 @media (max-width:520px){body.mfit .head{flex-wrap:wrap}body.mfit .head .t{flex:1 1 150px}body.mfit .head .t h1,body.mfit .head .t>p{white-space:normal}}
 .qbar .btn{min-height:40px;padding:6px 14px;font-size:.95rem}
@@ -538,16 +549,16 @@ function noticeItem(n,isNew){return `<div class="item">${n.pinned?'<span class="
   ${n.text?`<p class="notice">${esc(n.text)}</p>`:''}${attHtml(n)}<span class="date">${fmtDate(n.updatedAt||n.createdAt)}</span></div>`}
 function homeTab(){const total=st.lessons.length,done=st.lessons.filter(l=>st.prog.done[l.id]).length;
   const next=st.lessons.find(l=>!st.prog.done[l.id])||st.lessons[st.lessons.length-1];
-  const ns=st.allNotices?st.notices:st.notices.slice(0,3);const seen=st.seen;
+  const mine=st.notices.filter(forMe);const ns=st.allNotices?mine:mine.slice(0,3);const seen=st.seen;
   $('#body').innerHTML=`${ns.length?`<section class="card"><p class="kicker">목사님이 보낸 메모</p>
     ${ns.map(n=>noticeItem(n,(n.createdAt||0)>seen)).join('')}
-    ${st.notices.length>3?`<button class="btn ghost" id="moreN">${st.allNotices?'접기':`공지 ${st.notices.length}개 모두 보기`}</button>`:''}</section>`:''}
+    ${mine.length>3?`<button class="btn ghost" id="moreN">${st.allNotices?'접기':`메모 ${mine.length}개 모두 보기`}</button>`:''}</section>`:''}
    <section class="card"><p class="kicker">나의 훈련</p><h2>${done} / ${total} 과정 완료</h2><div class="bar"><i style="width:${total?done/total*100:0}%"></i></div></section>
    <section class="card"><p class="kicker">이번에 할 과정</p>
     ${next?`<h2>${next.week?esc(next.week)+'주차 · ':''}${esc(next.title)}</h2>${next.scripture?`<p class="muted">본문: ${esc(next.scripture)}</p>`:''}<div class="row"><button class="btn pri" id="goLesson">과정 보기</button></div>`
      :`<p class="muted">김병구 목사님이 과정을 올리면 여기에 보여요.</p>`}</section>
    <p class="small muted" style="text-align:center">${st.mode==='db'?'모든 내용은 성도님들과 실시간으로 함께 보여요.':'미리보기: 이 기기에만 저장돼요.'}</p>`;
-  const latest=st.notices.reduce((m,n)=>Math.max(m,n.createdAt||0),0);if(latest>st.seen){st.seen=latest;lsSet(LSEEN,String(latest))}
+  const latest=mine.reduce((m,n)=>Math.max(m,n.createdAt||0),0);if(latest>st.seen){st.seen=latest;lsSet(LSEEN,String(latest))}
   on('#moreN',()=>{st.allNotices=!st.allNotices;render()});
   on('#goLesson',()=>{st.tab='lessons';st.open=next.id;render()})}
 function matRow(m,admin){const img=m.kind==='file'&&/^image\//.test(m.contentType||'');
@@ -850,24 +861,37 @@ function mSettings(){$('#body').innerHTML=`<section class="card"><p class="kicke
   on('#decor',()=>{st.draft=plain(st.cover);go('cover')});
   on('#mSavePw',async()=>{const a=$('#m1').value.trim(),b=$('#m2').value.trim();if(a.length<4){toast('4자 이상 적어 주세요.');return}if(a!==b){toast('두 비밀번호가 달라요.');return}await saveMasterPw(a);render()});
   on('#mLock',lockMaster)}
-function mNotice(){const ed=st.editing&&st.notices.find(n=>n.id===st.editing);const n=ed||{};const att=n.matId&&st.materials.find(m=>m.id===n.matId);
+const forMe=n=>st.master||!n.to||!n.to.length||(!!st.me&&Array.isArray(n.toNames)&&n.toNames.includes(st.me.name));
+function toLabel(x){return !x.to||!x.to.length?'전체 제자':x.toNames&&x.toNames.length?x.toNames.join(', '):x.to.length+'명'}
+function mNotice(){leadSub();const ed=st.editing&&st.notices.find(n=>n.id===st.editing);const n=ed||{};const att=n.matId&&st.materials.find(m=>m.id===n.matId);
+  if(st.ntSelFor!==(st.editing||'new')||(!ed&&!st.ntSelTouched&&!(st.ntSel||[]).length&&st.roster.length)){st.ntSelFor=st.editing||'new';st.ntSel=n.to&&n.to.length?n.to.filter(id=>st.roster.some(r=>r.id===id)):st.roster.map(r=>r.id)}
+  const sel=new Set(st.ntSel||[]);const R=st.roster;const allOn=R.length>0&&R.every(r=>sel.has(r.id));
   $('#body').innerHTML=`<section class="card"><p class="kicker">${ed?'보낸 메모 수정':'제자들에게 메모 보내기'}</p>
     <label>제목 <input id="ntTitle" maxlength="60" value="${esc(n.title)}"></label>
     <label>내용 <textarea id="ntText" maxlength="3000">${esc(n.text)}</textarea></label>
     <label>자료 첨부 (선택 · PDF·사진·영상, 20MB까지) <input id="ntFile" type="file" multiple accept="application/pdf,image/*,video/*"></label>
     ${att?`<div class="row"><span class="small">첨부: <b>${esc(att.title)}</b></span><button class="btn" id="ntDetach">첨부 빼기</button></div>`:''}
+    <div class="rcpt"><div class="rhead"><b>받는 제자</b>${R.length?`<label class="rchk all"><input type="checkbox" id="ntAll" ${allOn?'checked':''}><span>전체 선택</span></label>`:''}</div>
+      ${R.length?`<div class="rlist">${R.map(r=>`<label class="rchk"><input type="checkbox" data-to="${r.id}" ${sel.has(r.id)?'checked':''}><span>${esc(r.name)}</span>${r.role?`<small>${esc(r.role)}</small>`:''}</label>`).join('')}</div>
+      <p class="small muted" id="ntCount">${sel.size}명 선택 · ${allOn?'전체 제자에게 보내요':'선택한 제자에게만 보여요'}</p>`
+      :'<p class="small muted">반장 창의 “제자 명단”에 제자를 추가하면 여기에 목록이 나와요. 지금은 모든 제자에게 보내져요.</p>'}</div>
     <label class="check"><input type="checkbox" id="ntPin" ${n.pinned?'checked':''}> 중요 (맨 위에 고정)</label>
     <div class="row"><button class="btn pri" id="ntSend" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':ed?'고쳐서 다시 보내기':'제자들에게 보내기'}</button>${ed?'<button class="btn" id="ntCancel">취소</button>':''}</div>
     <p class="small muted">보낸 메모는 제자들의 “홈 화면”에 바로 보여요. PDF나 사진을 첨부하면 제자들이 책으로 펼쳐 볼 수 있어요.</p></section>
    <section class="card"><p class="kicker">보낸 메모 ${st.notices.length}개</p>
-    ${st.notices.length?st.notices.map(x=>`<div class="item">${x.pinned?'<span class="pinned">중요</span>':''}${x.title?`<h3>${esc(x.title)}</h3>`:''}${x.text?`<p class="notice">${esc(x.text)}</p>`:''}${attHtml(x)}<span class="date">${fmtDate(x.updatedAt||x.createdAt)}</span>
+    ${st.notices.length?st.notices.map(x=>`<div class="item">${x.pinned?'<span class="pinned">중요</span>':''}${x.title?`<h3>${esc(x.title)}</h3>`:''}${x.text?`<p class="notice">${esc(x.text)}</p>`:''}${attHtml(x)}<span class="date">받는 사람: ${esc(toLabel(x))} · ${fmtDate(x.updatedAt||x.createdAt)}</span>
       <div class="row"><button class="btn" data-nted="${x.id}">수정</button><button class="btn danger" data-ntdel="${x.id}">삭제</button></div></div>`).join(''):'<p class="muted">아직 보낸 메모가 없어요.</p>'}</section>`;
   let detach=false;on('#ntDetach',e=>{detach=true;e.target.closest('.row').innerHTML='<span class="small muted">첨부를 뺐어요. 보내기를 누르면 적용돼요.</span>'});
   on('#ntSend',async()=>{const title=$('#ntTitle').value.trim(),text=$('#ntText').value.trim(),pinned=$('#ntPin').checked,fs=[...$('#ntFile').files];
     if(!title&&!text&&!fs.length&&!(att&&!detach)){toast('내용을 적거나 자료를 첨부해 주세요.');return}
+    const pick=R.filter(r=>(st.ntSel||[]).includes(r.id));if(R.length&&!pick.length){toast('받을 제자를 한 명 이상 골라 주세요.');return}
+    const everyone=!R.length||pick.length===R.length;const toIds=everyone?[]:pick.map(r=>r.id),toNames=everyone?[]:pick.map(r=>r.name);
     let matId=detach?'':(n.matId||'');
     if(fs.length){const m=await doUpload(fs,{id:uidGen(),title:title||fs[0].name.replace(/\.[^.]+$/,''),desc:'',lessonId:'',cat:'notice',createdAt:Date.now()});if(!m)return;matId=m.id}
-    const o={id:n.id||uidGen(),title,text,pinned,matId,createdAt:n.createdAt||Date.now(),updatedAt:Date.now()};st.editing=null;await saveNoticeDoc(o);render()});
+    const o={id:n.id||uidGen(),title,text,pinned,matId,to:toIds,toNames,createdAt:n.createdAt||Date.now(),updatedAt:Date.now()};st.editing=null;st.ntSelFor=null;st.ntSelTouched=false;await saveNoticeDoc(o);render()});
+  const upd=()=>{const s2=new Set(st.ntSel);const all=R.length>0&&R.every(r=>s2.has(r.id));const a=$('#ntAll');if(a)a.checked=all;const c=$('#ntCount');if(c)c.textContent=`${s2.size}명 선택 · ${all?'전체 제자에게 보내요':'선택한 제자에게만 보여요'}`};
+  $$('[data-to]').forEach(c=>c.onchange=()=>{const s2=new Set(st.ntSel);if(c.checked)s2.add(c.dataset.to);else s2.delete(c.dataset.to);st.ntSel=[...s2];st.ntSelTouched=true;upd()});
+  const al=$('#ntAll');if(al)al.onchange=()=>{st.ntSel=al.checked?R.map(r=>r.id):[];st.ntSelTouched=true;$$('[data-to]').forEach(c=>c.checked=al.checked);upd()};
   on('#ntCancel',()=>{st.editing=null;render()});
   $$('[data-nted]').forEach(b=>b.onclick=()=>{st.editing=b.dataset.nted;render()});
   confirmDel('[data-ntdel]','ntdel',async id=>{const x=st.notices.find(v=>v.id===id);await delNotice(id);const m=x&&x.matId&&st.materials.find(v=>v.id===x.matId);if(m&&m.cat==='notice')await delMat(m)})}
