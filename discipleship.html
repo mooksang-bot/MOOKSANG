@@ -299,6 +299,8 @@ label.oxb:has(input:focus-visible){outline:3px solid var(--accent)}
 .lecview.fs .a4bar .btn{background:#2a2622;color:#f3ece2;border-color:#4a433b}
 .lecview.fs .a4bar .btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 body.lecfs{overflow:hidden}
+body.lecfs .shell{visibility:hidden}
+body.lecfs>.lecview.fs{visibility:visible}
 .lecview:fullscreen .a4stage{height:auto}
 .gvcard{gap:8px}
 .gvcard .a4stage.gvstage{flex:none;height:max(320px,min(calc(100vh - 320px),calc((100vw - 48px)*1.4142)))}
@@ -669,7 +671,7 @@ const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
 /* 마스터(편집자)라도 '제자들 입장'으로 들어오면 제자와 똑같은 화면만 보여요 ('2반 입장' 버튼) */
 const isM=()=>!!st.master&&st.view!=='app';
 function go(view){st.view=view;window.scrollTo(0,0);render()}
-function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster','lattfit','lcfit','lecfs');
+function render(){document.querySelectorAll('body>.lecview').forEach(e=>e.remove());if(!(st.view==='master'&&st.mtab==='lecture'))st.lecFs=false;document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster','lattfit','lcfit','lecfs');
   if(st.view==='master'&&!masterUnlocked())st.view='cover';
   if(st.view==='app'&&!canEnter())st.view='cover';
   if(st.view==='leader'&&!leaderUnlocked())st.view='cover';
@@ -1326,7 +1328,9 @@ function lecSize(){const stg=$('.a4stage'),pg=stg&&stg.querySelector('.a4page');
   let h=Math.min(H,W*1.4142);if(h<120)h=W*1.4142;const w=h/1.4142;pg.style.width=Math.floor(w)+'px';pg.style.height=Math.floor(h)+'px'}
 window.addEventListener('resize',()=>{if(st.view==='master'&&st.mtab==='lecture')lecSize()});
 /* 전체 화면: 화면을 꽉 채우는 방식(아이폰·삼성폰·앱 안에서도 됨) + 가능하면 브라우저 전체 화면도 함께 */
-function lecFs(on,quiet){const c=$('.lecview');st.lecFs=!!on;document.body.classList.toggle('lecfs',st.lecFs);if(c)c.classList.toggle('fs',st.lecFs);
+function lecFs(on,quiet){const c=$('.lecview');const was=!!st.lecFs;st.lecFs=!!on;document.body.classList.toggle('lecfs',st.lecFs);if(c)c.classList.toggle('fs',st.lecFs);
+  /* 아이폰: 스크롤 칸 안의 고정 화면은 위쪽 머리글에 가려져요 → 책 보기 칸을 body 바로 아래로 옮겨요 */
+  if(c){if(st.lecFs&&c.parentElement!==document.body){c._home=c.parentElement;c._next=c.nextSibling;document.body.appendChild(c)}else if(!st.lecFs&&c._home&&document.contains(c._home)){c._home.insertBefore(c,c._next&&c._next.parentElement===c._home?c._next:null);c._home=null}}
   const b=$('#lecFull');if(b)b.textContent=st.lecFs?'전체 화면 끝':'전체 화면';
   if(!quiet){try{if(st.lecFs){const el=document.documentElement;if(el.requestFullscreen&&!document.fullscreenElement)el.requestFullscreen().catch(()=>{})}else if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(e){}}
   setTimeout(lecSize,60);setTimeout(lecSize,350)}
