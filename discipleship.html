@@ -185,6 +185,9 @@ body.mfit .item{gap:4px}
 .cover .hint{font-size:.85rem;background:rgba(0,0,0,.35);border-radius:999px;padding:6px 14px}
 .who.btn-like{cursor:pointer}
 .head .mark.pm{width:52px;height:52px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 25%,transparent)}
+/* 마스터 창: 목사님 사진 2배, 20% 아래로 */
+body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21px}
+@media (max-width:420px){body.mfit .head .mark.pm{width:80px;height:80px;margin-top:16px}}
 .head .mark.pm img{width:100%;height:100%;object-fit:cover;display:block}
 /* 네온: 마우스(손가락)를 따라 빛나기 */
 #neonCv{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:15}
@@ -506,7 +509,7 @@ function lessonsTab(){let h='';
       <span class="chk ${done?'ok':''}">${done?'완료':'진행 전'}</span></button>
       ${open?`<div class="lb">${l.body?`<div class="blk"><span class="k">핵심 내용</span>${esc(l.body)}</div>`:''}${l.task?`<div class="blk"><span class="k">과제</span>${esc(l.task)}</div>`:''}
         ${mats.length?`<div class="blk" style="white-space:normal"><span class="k">이 과정의 자료</span>${mats.map(m=>bookable(m)?`<button class="linkbtn" data-read="${m.id}">${esc(m.title)} · 책으로 보기</button>`:`<a href="${esc(m.kind==='link'?safeLink(m.url):assetUrl(m))}" target="_blank" rel="noopener" style="display:block">${esc(m.title)}</a>`).join('')}</div>`:''}
-        ${st.master?'<p class="small muted">성도님 화면 미리보기예요. 고치기는 마스터 창에서 해요.</p>'
+        ${st.master?'<p class="small muted">제자 화면 미리보기예요. 고치기는 마스터 창에서 해요.</p>'
         :`<label>나의 나눔 (목사님만 볼 수 있어요) <textarea id="note_${l.id}" maxlength="2000" placeholder="이번 과정에서 받은 은혜와 적용을 적어 보세요.">${esc(st.prog.notes[l.id])}</textarea></label>
           <div class="row"><button class="btn" data-note="${l.id}">나눔 저장</button><button class="btn ${done?'':'pri'}" data-done="${l.id}">${done?'완료 취소':'과제 완료했어요'}</button></div>`}</div>`:''}</article>`}
   const b=$('#body');b.innerHTML=h;
@@ -517,7 +520,7 @@ function lessonsTab(){let h='';
 /* ---- 마스터 창 ---- */
 const MSECT=[['memo','메모하기'],['lessons','훈련 과정 입력'],['materials','자료 입력'],['pastor','목사님 사진'],['members','성도 명단'],['settings','설정']];
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
-  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<span class="mbadge">마스터 창</span><button class="who btn-like" id="toApp">성도 화면</button>`)}
+  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like" id="toApp">제자 화면</button><span class="mbadge">마스터 창</span>`)}
    <div class="mbar"><h2>${st.mtab==='memo'?'':cur[1]}</h2><div class="mmenu">
      ${st.mtab!=='memo'?'<button class="btn" id="toMemo">← 메모하기</button>':''}
      <button class="btn" id="mMenu" aria-expanded="${st.menuOpen}">${st.menuOpen?'닫기':'다른 기능'}</button>
