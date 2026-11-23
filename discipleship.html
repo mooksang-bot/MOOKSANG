@@ -226,6 +226,17 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 .linkbtn{display:block;border:0;background:none;padding:4px 0;color:var(--accent);text-decoration:underline;text-align:left;font-weight:500}
 #reader[hidden],[hidden]{display:none!important}
 .qbar{display:flex;gap:6px;flex-wrap:wrap;flex:none}
+/* 제자 화면: 자료를 한눈에 (카드 격자) */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.mtile{display:flex;flex-direction:column;gap:8px;text-align:left;border:1.5px solid var(--line);border-radius:14px;padding:10px;background:var(--card);color:var(--ink);text-decoration:none;min-width:0;cursor:pointer}
+.mt-th{aspect-ratio:4/3;width:100%;border-radius:10px;background:var(--soft);background-size:cover;background-position:center;display:grid;place-items:center;color:var(--accent);font-weight:700;font-size:1.1rem}
+.mt-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mt-tx strong{font-family:var(--serif);font-size:1rem;overflow-wrap:anywhere;line-height:1.35}
+.mt-tx span{font-size:.78rem;color:var(--muted)}
+em.by{font-style:normal;font-size:.72rem;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--gold);color:#fff;margin-right:4px;align-self:flex-start}
+em.by.lead{background:#3b8fc9}
+.mtile:hover,.mtile:active,.mtile:focus-visible{border-color:#3fe6d6;box-shadow:0 0 0 2px #5ff5e6,0 0 12px #5ff5e6,0 0 26px rgba(140,90,255,.5)}
+@media (max-width:420px){.mgrid{grid-template-columns:1fr 1fr}.tabs button{font-size:.72rem;letter-spacing:-.02em}.tabs button span{white-space:nowrap}.seg .btn{padding:8px 6px;font-size:.9rem}}
 /* 받는 제자 체크 목록: 마우스를 올리면 녹색 네온, 체크하면 녹색으로 빛남 */
 .rcpt{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .rhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -529,11 +540,11 @@ function regView(){root.innerHTML=`<div class="shell"><div class="reg">
   on('#rBack',()=>go('cover'))}
 
 /* ---- 성도 화면 ---- */
-const IC={home:'<path d="M3 11l9-7 9 7v9H4z"/><path d="M9 20v-6h6v6"/>',book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M9 7h6"/>',folder:'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'};
+const IC={bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/>',home:'<path d="M3 11l9-7 9 7v9H4z"/><path d="M9 20v-6h6v6"/>',book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M9 7h6"/>',folder:'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'};
 const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
 function headHtml(right,under){const ps=pastorSrc(st.cover);return `<header class="head">${ps?`<span class="mark pm"><img src="${esc(ps)}" alt="담당 목사님 사진"></span>`:`<span class="mark" aria-hidden="true" style='background:${bgCss(st.cover)};background-size:cover;background-position:center'></span>`}
   <div class="t"><h1>${esc(st.cover.title)}</h1><p>${esc(st.cover.sub)}</p>${under||''}</div>${right}</header>`}
-function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침','book'],['materials','자료실','folder']];
+function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침 보기','book'],['materials','제자들 보기','folder'],['notices','공지 보기','bell']];
   if(!tabs.some(t=>t[0]===st.tab))st.tab='home';
   const right=st.master?`<button class="who m btn-like" id="toMaster">마스터 창</button>`:`<span class="who">${st.me?esc(st.me.name)+' 성도님':'성도님'}</span>`;
   root.innerHTML=`<div class="shell"><div class="wrap">${headHtml(right)}
@@ -541,7 +552,7 @@ function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초�
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#toCover',()=>go('cover'));on('#toMaster',openMaster);
   $$('[data-tab]').forEach(b=>b.onclick=()=>{if(b.dataset.tab==='home'){st.tab='home';st.open=null;return go('cover')}st.tab=b.dataset.tab;st.open=null;window.scrollTo(0,0);render()});
-  ({home:homeTab,lessons:lessonsTab,materials:materialsTab})[st.tab]()}
+  ({home:homeTab,lessons:lessonsTab,materials:materialsTab,notices:noticesTab})[st.tab]()}
 function attHtml(n){const m=n.matId&&st.materials.find(x=>x.id===n.matId);if(!m)return '';
   return bookable(m)?`<div class="row"><button class="btn pri" data-read="${m.id}">첨부 자료 · 책으로 보기</button></div>`:`<div class="row"><a class="btn" href="${esc(assetUrl(m))}" target="_blank" rel="noopener">첨부 자료 열기</a></div>`}
 function noticeItem(n,isNew){return `<div class="item">${n.pinned?'<span class="pinned">중요</span>':''}
@@ -592,16 +603,26 @@ async function doUpload(fs,base){if(!fs.length){toast('파일을 골라 주세�
   return m}
 function bindUp(cat){const g=$('#upGo');if(!g)return;
   g.onclick=async()=>{const fs=[...$('#upFile').files];const t=$('#upTitle').value.trim()||(fs[0]?fs[0].name.replace(/\.[^.]+$/,''):'');
-    const m=await doUpload(fs,{id:uidGen(),title:t,desc:'',lessonId:'',cat,createdAt:Date.now()});if(m&&bookable(m))openReader(m)}}
+    const m=await doUpload(fs,{id:uidGen(),title:t,desc:'',lessonId:'',cat,by:'마스터',createdAt:Date.now()});if(m&&bookable(m))openReader(m)}}
 function bindDelMat(){$$('#body [data-delmat]').forEach(b=>b.onclick=()=>{const m=st.materials.find(x=>x.id===b.dataset.delmat);
   b.parentElement.innerHTML=`<span>삭제할까요?</span><button class="btn danger" id="yM">삭제</button><button class="btn" id="nM">취소</button>`;
   on('#yM',async()=>{await delMat(m);render()});on('#nM',()=>render())})}
+const byOf=m=>m.by||'마스터';
+function matTile(m){const img=m.kind==='file'&&/^image\//.test(m.contentType||'');const href=m.kind==='link'?safeLink(m.url):assetUrl(m);
+  const label=m.kind==='link'?'링크':(/pdf/.test(m.contentType||'')?'PDF':/^video\//.test(m.contentType||'')?'영상':img?'':'파일');
+  const inner=`<span class="mt-th" ${img?`style="background-image:url('${esc(href)}')"`:''}>${label}</span><span class="mt-tx"><strong>${esc(m.title)}</strong><span><em class="by ${byOf(m)==='반장'?'lead':''}">${byOf(m)}</em> ${fmtDate(m.createdAt)}</span></span>`;
+  return bookable(m)?`<button class="mtile" data-read="${m.id}">${inner}</button>`:`<a class="mtile" href="${esc(href)}" target="_blank" rel="noopener">${inner}</a>`}
+const matGrid=(list,empty)=>list.length?`<div class="mgrid">${list.map(matTile).join('')}</div>`:`<p class="muted">${empty}</p>`;
+function noticesTab(){const mine=st.notices.filter(forMe);
+  $('#body').innerHTML=`<section class="card"><p class="kicker">공지 보기 · ${mine.length}개</p>
+    ${mine.length?mine.map(n=>noticeItem(n,(n.createdAt||0)>st.seen).replace('<div class="item">',`<div class="item"><em class="by ${byOf(n)==='반장'?'lead':''}">${byOf(n)}</em>`)).join(''):'<p class="muted">마스터나 반장이 공지를 올리면 여기에 보여요.</p>'}</section>`}
 function materialsTab(){const lib=st.materials.filter(m=>m.cat!=='guide'&&m.cat!=='notice');
-  $('#body').innerHTML=`${upPanel('library')}<section class="card"><p class="kicker">자료실</p>
-  ${lib.length?lib.map(m=>matRow(m,st.master)).join(''):'<p class="muted">김병구 목사님이 자료를 올리면 여기에 보여요.</p>'}</section>`;
+  $('#body').innerHTML=`<section class="card"><p class="kicker">제자들 보기 · 자료 ${lib.length}개</p>${matGrid(lib,'마스터나 반장이 자료를 올리면 여기에 바로 보여요.')}</section>
+  ${upPanel('library')}${st.master&&lib.length?`<section class="card"><p class="kicker">자료 관리 (마스터)</p>${lib.map(m=>matRow(m,true)).join('')}</section>`:''}`;
   bindUp('library');bindDelMat()}
-function lessonsTab(){let h=upPanel('guide');const guides=st.materials.filter(m=>m.cat==='guide');
-  if(guides.length||st.master)h+=`<section class="card"><p class="kicker">기초반 지침 자료</p>${guides.length?guides.map(m=>matRow(m,st.master)).join(''):'<p class="muted">위에서 지침 자료를 올리면 여기에 보여요.</p>'}</section>`;
+function lessonsTab(){const guides=st.materials.filter(m=>m.cat==='guide');
+  let h=`<section class="card"><p class="kicker">기초반 지침 보기 · 자료 ${guides.length}개</p>${matGrid(guides,'마스터나 반장이 지침 자료를 올리면 여기에 바로 보여요.')}</section>`+upPanel('guide');
+  if(st.master&&guides.length)h+=`<section class="card"><p class="kicker">지침 자료 관리 (마스터)</p>${guides.map(m=>matRow(m,true)).join('')}</section>`;
   if(!st.lessons.length)h+=`<section class="card empty">김병구 목사님이 과정을 올리면 여기에 보여요.</section>`;
   for(const l of st.lessons){const done=!!st.prog.done[l.id],open=st.open===l.id;const mats=st.materials.filter(m=>m.lessonId===l.id);
     h+=`<article class="lesson"><button class="lh" data-open="${l.id}" aria-expanded="${open}"><span class="wk">${l.week?`<b>${esc(l.week)}</b>주차`:'과정'}</span>
@@ -652,13 +673,35 @@ function bindLpw(){on('#lpClose',()=>{st.lpwOpen=false;render()});$('#lpModal').
     else{st.lpwWrong++;if(st.lpwWrong>=5){st.lpwWait=Date.now()+30000;st.lpwWrong=0;st.lpwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else st.lpwMsg='비밀번호가 맞지 않아요.';render();const i=$('#lpIn');if(i)i.focus()}};
   on('#lpGo',go2);const i=$('#lpIn');if(i)i.onkeydown=e=>{if(e.key==='Enter')go2()}}
 function leaderView(){leadSub();if(!st.lmonth)st.lmonth=ymNow();
-  const T=[['att','출석 체크'],['dues','회비 납부'],['roster','제자 명단'],['memo','마스터에게 메모']];
+  const T=[['att','출석 체크'],['dues','회비 납부'],['roster','제자 명단'],['up','자료 올리기'],['memo','마스터에게 메모']];
   root.innerHTML=`<div class="shell"><div class="wrap lead">${headHtml(`<button class="who btn-like" id="lCover">표지</button><span class="mbadge lb">반장 창</span>`)}
    <nav class="mtabs" aria-label="반장 메뉴">${T.map(([k,l])=>`<button data-ltab="${k}" class="${st.ltab===k?'on':''}">${l}</button>`).join('')}</nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#lCover',()=>go('cover'));
   $$('[data-ltab]').forEach(b=>b.onclick=()=>{st.ltab=b.dataset.ltab;st.rEdit=null;render()});
-  ({att:lAtt,dues:lDues,roster:lRoster,memo:lMemo})[st.ltab]()}
+  ({att:lAtt,dues:lDues,roster:lRoster,up:lUp,memo:lMemo})[st.ltab]()}
+function lUp(){const c=st.lcat||'guide';const mine=st.materials.filter(m=>m.by==='반장').concat(st.notices.filter(n=>n.by==='반장').map(n=>({...n,_n:1}))).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  $('#body').innerHTML=`<section class="card"><p class="kicker">자료 올리기</p>
+    <p class="small muted">올린 자료는 제자 화면의 해당 칸에 바로 보여요.</p>
+    <div class="seg">${[['guide','기초반 지침'],['library','제자들 보기'],['notice','공지']].map(([k,l])=>`<button class="btn ${c===k?'on':''}" data-lcat="${k}">${l}</button>`).join('')}</div>
+    <label>제목 <input id="luTitle" maxlength="80" placeholder="${c==='notice'?'예: 이번 주 모임 안내':'예: 1주차 교재'}"></label>
+    ${c==='notice'?'<label>내용 <textarea id="luText" maxlength="3000"></textarea></label>':''}
+    <label>파일 (PDF·사진·영상, 한 파일 20MB까지${c==='notice'?' · 선택':''}) <input id="luFile" type="file" multiple accept="application/pdf,image/*,video/*"></label>
+    ${assets||isLocal()?'':'<p class="small" style="color:var(--danger)">파일을 올리려면 마스터가 반장님을 “참여자”로 초대해야 해요.</p>'}
+    <div class="row"><button class="btn pri" id="luGo" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':'올리기'}</button></div></section>
+   <section class="card"><p class="kicker">반장이 올린 자료 ${mine.length}개</p>
+    ${mine.length?mine.map(x=>`<div class="item"><span class="small muted">${x._n?'공지':x.cat==='guide'?'기초반 지침':'제자들 보기'}</span><h3>${esc(x.title||'(제목 없음)')}</h3><span class="date">${fmtDate(x.createdAt)}</span>
+      <div class="row">${!x._n&&bookable(x)?`<button class="btn" data-read="${x.id}">책으로 보기</button>`:''}<button class="btn danger" data-ludel="${x._n?'n:':'m:'}${x.id}">삭제</button></div></div>`).join(''):'<p class="muted">아직 올린 자료가 없어요.</p>'}</section>`;
+  $$('[data-lcat]').forEach(b=>b.onclick=()=>{st.lcat=b.dataset.lcat;render()});
+  on('#luGo',async()=>{const title=$('#luTitle').value.trim(),text=c==='notice'?$('#luText').value.trim():'',fs=[...$('#luFile').files];
+    if(c!=='notice'&&!fs.length){toast('파일을 골라 주세요.');return}
+    if(c==='notice'&&!title&&!text&&!fs.length){toast('내용을 적거나 파일을 골라 주세요.');return}
+    let m=null;if(fs.length){m=await doUpload(fs,{id:uidGen(),title:title||fs[0].name.replace(/\.[^.]+$/,''),desc:'',lessonId:'',cat:c,by:'반장',createdAt:Date.now()});if(!m)return}
+    if(c==='notice'){await saveNoticeDoc({id:uidGen(),title,text,pinned:false,matId:m?m.id:'',to:[],toNames:[],by:'반장',createdAt:Date.now(),updatedAt:Date.now()})}
+    render();if(m&&bookable(m)&&c!=='notice')openReader(m)});
+  confirmDel('[data-ludel]','ludel',async v=>{const [k,id]=[v.slice(0,1),v.slice(2)];
+    if(k==='n'){const n=st.notices.find(x=>x.id===id);await delNotice(id);const m=n&&n.matId&&st.materials.find(x=>x.id===n.matId);if(m)await delMat(m)}
+    else{const m=st.materials.find(x=>x.id===id);if(m)await delMat(m)}})}
 function monBar(){const [y,mo]=st.lmonth.split('-').map(Number);
   return `<div class="monbar"><button class="btn" id="mPrev">‹ 지난달</button><b>${y}년 ${mo}월</b><button class="btn" id="mNext">다음달 ›</button></div>`}
 function bindMon(){on('#mPrev',()=>{st.lmonth=shiftYm(st.lmonth,-1);render()});on('#mNext',()=>{st.lmonth=shiftYm(st.lmonth,1);render()})}
@@ -790,7 +833,7 @@ function mMaterials(){const k=st.matKind;
    <section class="card"><p class="kicker">올린 자료 ${st.materials.length}개</p>${st.materials.length?st.materials.map(m=>matRow(m,true)).join(''):'<p class="muted">아직 올린 자료가 없어요.</p>'}</section>`;
   $$('[data-kind]').forEach(b=>b.onclick=()=>{st.matKind=b.dataset.kind;render()});
   on('#mSave',async()=>{const title=$('#mTitle').value.trim();if(!title){toast('자료 제목을 적어 주세요.');return}
-    const base={id:uidGen(),title,desc:$('#mDesc').value.trim(),lessonId:$('#mLesson').value,createdAt:Date.now()};
+    const base={id:uidGen(),title,desc:$('#mDesc').value.trim(),lessonId:$('#mLesson').value,by:'마스터',createdAt:Date.now()};
     if(k==='link'){const u=$('#mUrl').value.trim();if(!u){toast('주소를 적어 주세요.');return}await saveMat({...base,kind:'link',url:u});return render()}
     const fs=[...$('#mFile').files];if(!fs.length){toast('파일을 골라 주세요.');return}
     if(fs.some(f=>f.size>20*1024*1024)){toast('20MB보다 작은 파일을 골라 주세요.');return}
@@ -887,8 +930,8 @@ function mNotice(){leadSub();const ed=st.editing&&st.notices.find(n=>n.id===st.e
     const pick=R.filter(r=>(st.ntSel||[]).includes(r.id));if(R.length&&!pick.length){toast('받을 제자를 한 명 이상 골라 주세요.');return}
     const everyone=!R.length||pick.length===R.length;const toIds=everyone?[]:pick.map(r=>r.id),toNames=everyone?[]:pick.map(r=>r.name);
     let matId=detach?'':(n.matId||'');
-    if(fs.length){const m=await doUpload(fs,{id:uidGen(),title:title||fs[0].name.replace(/\.[^.]+$/,''),desc:'',lessonId:'',cat:'notice',createdAt:Date.now()});if(!m)return;matId=m.id}
-    const o={id:n.id||uidGen(),title,text,pinned,matId,to:toIds,toNames,createdAt:n.createdAt||Date.now(),updatedAt:Date.now()};st.editing=null;st.ntSelFor=null;st.ntSelTouched=false;await saveNoticeDoc(o);render()});
+    if(fs.length){const m=await doUpload(fs,{id:uidGen(),title:title||fs[0].name.replace(/\.[^.]+$/,''),desc:'',lessonId:'',cat:'notice',by:'마스터',createdAt:Date.now()});if(!m)return;matId=m.id}
+    const o={id:n.id||uidGen(),by:n.by||'마스터',title,text,pinned,matId,to:toIds,toNames,createdAt:n.createdAt||Date.now(),updatedAt:Date.now()};st.editing=null;st.ntSelFor=null;st.ntSelTouched=false;await saveNoticeDoc(o);render()});
   const upd=()=>{const s2=new Set(st.ntSel);const all=R.length>0&&R.every(r=>s2.has(r.id));const a=$('#ntAll');if(a)a.checked=all;const c=$('#ntCount');if(c)c.textContent=`${s2.size}명 선택 · ${all?'전체 제자에게 보내요':'선택한 제자에게만 보여요'}`};
   $$('[data-to]').forEach(c=>c.onchange=()=>{const s2=new Set(st.ntSel);if(c.checked)s2.add(c.dataset.to);else s2.delete(c.dataset.to);st.ntSel=[...s2];st.ntSelTouched=true;upd()});
   const al=$('#ntAll');if(al)al.onchange=()=>{st.ntSel=al.checked?R.map(r=>r.id):[];st.ntSelTouched=true;$$('[data-to]').forEach(c=>c.checked=al.checked);upd()};
