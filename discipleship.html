@@ -130,6 +130,26 @@ body.app::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-i
 .item{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .item:first-child,.kicker+.item,.kicker+h2+.item{border-top:0;padding-top:0}
 #body{width:100%}
+/* 마스터 창: 한 화면에 맞추기 (내용은 칸 안에서만 스크롤) */
+body.mfit{height:100%;overflow:hidden}
+body.mfit .shell{height:100%;padding-block:0 calc(10px + env(safe-area-inset-bottom,0px))}
+body.mfit .shell>.wrap{height:100%;gap:8px}
+body.mfit .head{position:static;padding-block:10px 4px;flex:none}
+body.mfit .mtabs{flex:none}
+body.mfit #body{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:10px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border-radius:18px}
+body.mfit .card{padding:14px 16px;gap:10px}
+body.mfit textarea{min-height:76px}
+body.mfit label{gap:4px}
+body.mfit input,body.mfit textarea,body.mfit select{padding:8px 12px}
+@media (min-width:900px){
+  body.mfit #body{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr);overflow:hidden;align-items:start;align-content:stretch}
+  body.mfit #body>.card{max-height:100%;overflow:auto;overscroll-behavior:contain}
+  body.mfit #body>.card:only-child{grid-column:1/-1}
+  body.mfit textarea{min-height:110px}
+}
+@media (max-width:380px){body.mfit .head .t p{display:none}}
+body.mfit .item .btn{min-height:36px;padding:4px 12px;font-size:.9rem}
+body.mfit .item{gap:4px}
 .item h3{font-size:1.05rem;overflow-wrap:anywhere}
 .date{font-size:.8rem;color:var(--muted)}
 .pinned{color:var(--gold);font-weight:700;font-size:.8rem}
@@ -265,6 +285,7 @@ function go(view){st.view=view;window.scrollTo(0,0);render()}
 function render(){document.body.classList.toggle('app',st.view!=='cover');
   if(st.view==='master'&&!masterUnlocked())st.view='cover';
   if(st.view==='app'&&!canEnter())st.view='cover';
+  document.body.classList.toggle('mfit',st.view==='master');
   if(st.view==='cover')return coverView();
   if(st.view==='master')return masterView();
   if(needReg())return regView();
@@ -427,8 +448,7 @@ function lessonsTab(){let h='';
 
 /* ---- 마스터 창 ---- */
 function masterView(){const tabs=[['notice','공지 전달'],['lessons','훈련 과정 입력'],['materials','자료 입력'],['pastor','목사님 사진'],['members','성도 명단'],['settings','설정']];
-  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like" id="toApp">성도 화면 보기</button>`)}
-   <div class="row" style="justify-content:space-between"><h2 style="font-size:1.5rem">마스터 창</h2><span class="mbadge">김병구 목사</span></div>
+  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<span class="mbadge">마스터 창</span><button class="who btn-like" id="toApp">성도 화면</button>`)}
    <nav class="mtabs" aria-label="마스터 메뉴">${tabs.map(([k,l])=>`<button data-mtab="${k}" class="${st.mtab===k?'on':''}">${l}</button>`).join('')}</nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#toCover',()=>go('cover'));on('#toApp',()=>{st.tab='home';go('app')});
@@ -539,8 +559,8 @@ function mSettings(){$('#body').innerHTML=`<section class="card"><p class="kicke
     <p>마스터 창을 열 때 묻는 비밀번호예요. 앱을 닫았다 다시 열면 또 물어봐요.</p>
     <label>새 마스터 비밀번호 (4~20자) <input id="m1" type="password" autocomplete="new-password" maxlength="20"></label>
     <label>한 번 더 입력 <input id="m2" type="password" autocomplete="new-password" maxlength="20"></label>
-    <div class="row"><button class="btn pri" id="mSavePw">마스터 비밀번호 바꾸기</button><button class="btn" id="mLock">지금 마스터 창 잠그기</button></div></section>
-   <section class="card"><p class="kicker">표지</p><p>표지의 배경 사진, 제목, 말씀을 바꿀 수 있어요.</p><div class="row"><button class="btn" id="decor">표지 꾸미기 창 열기</button></div></section>`;
+    <div class="row"><button class="btn pri" id="mSavePw">마스터 비밀번호 바꾸기</button><button class="btn" id="mLock">지금 마스터 창 잠그기</button></div>
+    <p class="kicker" style="margin-top:10px">표지</p><p>표지의 배경 사진, 제목, 말씀을 바꿀 수 있어요.</p><div class="row"><button class="btn" id="decor">표지 꾸미기 창 열기</button></div></section>`;
   on('#pSave',async()=>{const a=$('#p1').value.trim(),b=$('#p2').value.trim();if(a.length<4){toast('비밀번호를 4자 이상 적어 주세요.');return}if(a!==b){toast('두 비밀번호가 달라요.');return}await savePw(a);render()});
   on('#decor',()=>{st.draft=plain(st.cover);go('cover')});
   on('#mSavePw',async()=>{const a=$('#m1').value.trim(),b=$('#m2').value.trim();if(a.length<4){toast('4자 이상 적어 주세요.');return}if(a!==b){toast('두 비밀번호가 달라요.');return}await saveMasterPw(a);render()});
