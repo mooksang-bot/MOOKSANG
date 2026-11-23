@@ -50,10 +50,24 @@ a{color:var(--violet)}
 .hero{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center;background:var(--card);border:3px solid var(--line);border-radius:28px;padding:18px}
 .hero>div{min-width:0}
 .mascot{width:150px;height:150px;animation:bob 3.2s ease-in-out infinite}
+.avatar{position:relative;width:150px;height:150px;flex:none}
+.avatar .mascot{width:100%;height:100%}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:5px solid var(--sun);display:block;animation:bob 3.2s ease-in-out infinite}
+.cam{position:absolute;right:0;bottom:0;width:38px;height:38px;border-radius:50%;padding:0;display:grid;place-items:center;background:var(--violet);color:#fff;border:3px solid var(--card)}
+.lockcard{align-items:center;text-align:center;justify-content:center;max-width:420px;width:100%;margin:0 auto}
+.lockcard .avatar{width:clamp(72px,16dvh,140px);height:clamp(72px,16dvh,140px)}
+.pins{display:flex;gap:12px;justify-content:center;min-height:22px}
+.pins i{width:18px;height:18px;border-radius:50%;border:3px solid var(--violet)}
+.pins i.on{background:var(--violet)}
+.pins.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.perr{color:var(--bad);min-height:1.5em;font-size:.95rem}
+.pad.pinpad{grid-template-columns:repeat(3,1fr);width:100%}
+.pad.pinpad button.go{grid-column:auto}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
 .bubble{background:var(--card2);border-radius:20px;padding:12px 16px;margin-top:8px;position:relative;font-size:1.05rem}
 .hero h1 span{color:var(--pri)}
-@media (max-width:520px){.hero{grid-template-columns:1fr;text-align:center;justify-items:center}.mascot{width:120px;height:120px}h1{font-size:1.8rem}}
+@media (max-width:520px){.hero{grid-template-columns:1fr;text-align:center;justify-items:center}.mascot,.avatar{width:120px;height:120px}h1{font-size:1.8rem}}
 
 /* tiles */
 .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
@@ -141,7 +155,8 @@ sup{font-size:.6em}
 /* 첫 화면: 스크롤 없이 한 화면에 맞추기 */
 body.home .topbar .chip{padding:2px 12px;font-size:.95rem}
 body.home .hero{grid-template-columns:auto minmax(0,1fr);text-align:left;justify-items:stretch;gap:12px;padding:10px 14px;border-radius:22px;flex:none}
-body.home .mascot{width:clamp(64px,13dvh,140px);height:clamp(64px,13dvh,140px)}
+body.home .avatar{width:clamp(64px,13dvh,140px);height:clamp(64px,13dvh,140px)}
+body.home .cam{width:clamp(28px,4.5dvh,38px);height:clamp(28px,4.5dvh,38px)}
 body.home .hero h1{font-size:clamp(1.3rem,3.6dvh,2.1rem)}
 body.home .bubble{font-size:clamp(.85rem,2.1dvh,1.05rem);line-height:1.45;padding:8px 12px;margin-top:4px}
 body.home .tiles{flex:1;min-height:0;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:8px}
@@ -366,6 +381,27 @@ const blank=()=>({v:1,updatedAt:0,skills:{},mistakes:{},review:{},history:[],dia
 let S=blank();
 try{const t=JSON.parse(localStorage.getItem(LS)||'null');if(t&&t.v===1)S=Object.assign(blank(),t)}catch(e){}
 let db=null,docRef=null,saveMode='local',saving=false,pending=false;
+/* 잠금(부모님 비밀번호)과 사진 */
+const LK='elisa-lock',LU='elisa-unlocked',LP='elisa-photo';
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+let lockHash=lsGet(LK),photo=lsGet(LP),memUnlocked=lsGet(LU),canSetPin=true,boot='loading';
+const unlocked=()=>!!lockHash&&memUnlocked===lockHash;
+function gate(){if(boot==='loading')return 'splash';if(!lockHash)return canSetPin?'setpin':'nopin';if(!unlocked())return 'lock';return null}
+async function hashPin(pin){const txt='elisa-math:'+pin;
+  try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+  catch(e){let h=5381;for(const c of txt)h=((h*33)^c.charCodeAt(0))>>>0;return 'h'+h.toString(16)}}
+async function savePin(pin){const h=await hashPin(pin);lockHash=h;memUnlocked=h;lsSet(LK,h);lsSet(LU,h);
+  if(db){try{await db.collection('settings').doc('lock').set({hash:h,updatedAt:Date.now()});return true}catch(e){return false}}return true}
+function lockDevice(){memUnlocked=null;lsSet(LU,null);pinBuf='';view='home';render()}
+async function setPhoto(file){if(!file||!/^image\//.test(file.type||'image/'))return;
+  const url=URL.createObjectURL(file);try{const img=new Image();img.src=url;await img.decode();
+    const sz=Math.min(img.naturalWidth,img.naturalHeight);const c=document.createElement('canvas');c.width=c.height=320;
+    c.getContext('2d').drawImage(img,(img.naturalWidth-sz)/2,(img.naturalHeight-sz)/2,sz,sz,0,0,320,320);
+    photo=c.toDataURL('image/jpeg',.82);lsSet(LP,photo);
+    if(db)db.collection('elisa').doc('photo').set({src:photo,updatedAt:Date.now()}).catch(()=>{});
+  }catch(e){}finally{URL.revokeObjectURL(url)}render()}
+function clearPhoto(){photo=null;lsSet(LP,null);if(db)db.collection('elisa').doc('photo').set({src:'',updatedAt:Date.now()}).catch(()=>{});render()}
 function sk(id){return S.skills[id]||(S.skills[id]={n:0,c:0,m:0})}
 const mastered=id=>{const s=S.skills[id];return !!s&&s.m>=.75&&s.n>=3};
 function curIndex(){for(const s of SKILLS)if(!mastered(s.id))return SK[s.id].i;return SKILLS.length-1}
@@ -373,11 +409,26 @@ const today=()=>new Date().toLocaleDateString('sv');
 function save(){S.updatedAt=Date.now();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}
   if(!docRef)return;if(saving){pending=true;return}saving=true;
   docRef.set(JSON.parse(JSON.stringify(S))).then(()=>{saveMode='cloud'}).catch(()=>{saveMode='local'}).finally(()=>{saving=false;updateSave();if(pending){pending=false;save()}})}
-function updateSave(){const el=document.getElementById('save');if(el)el.textContent=saveMode==='cloud'?'기록이 계정에 안전하게 저장되고 있어요.':'기록이 이 기기에만 저장되고 있어요. (claude.ai에 로그인하면 계정에 저장돼요)'}
-(async()=>{try{if(!window.claude)return;const [d,u]=await Promise.all([claude.use('db'),claude.use('user')]);if(!d||!u)return;const id=await u.id();if(!id)return;
-  db=d;docRef=db.collection('data/users/'+id).doc('progress');const snap=await docRef.get();
-  if(snap.exists){const r=snap.data();if(r&&r.v===1&&(r.updatedAt||0)>=(S.updatedAt||0)){S=Object.assign(blank(),r);try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}if(view==='home')render()}else save()}
-  else if(S.updatedAt)save();saveMode='cloud';updateSave()}catch(e){}})();
+function updateSave(){const el=document.getElementById('save');if(el)el.textContent=saveMode==='cloud'?'기록이 claude.ai에 저장돼서 어느 기기에서든 이어서 할 수 있어요.':'기록이 이 기기에만 저장되고 있어요. (claude.ai에 로그인하면 어느 기기에서든 이어져요)'}
+(async()=>{await new Promise(r=>setTimeout(r,0));const t=setTimeout(()=>{if(boot==='loading'){boot='ready';render()}},3000);
+  try{if(window.claude){const [d,u]=await Promise.all([claude.use('db'),claude.use('user')]);
+    if(d){db=d;canSetPin=u?!!(await u.isOwner()):false;
+      const [lk,ph,pr]=await Promise.all([db.collection('settings').doc('lock').get(),db.collection('elisa').doc('photo').get(),db.collection('elisa').doc('progress').get()]);
+      const before=gate();
+      if(lk.exists&&lk.data().hash)lockHash=lk.data().hash;
+      else if(lockHash&&canSetPin){db.collection('settings').doc('lock').set({hash:lockHash,updatedAt:Date.now()}).catch(()=>{})}
+      else lockHash=null;
+      lsSet(LK,lockHash);
+      if(ph.exists){photo=ph.data().src||null;lsSet(LP,photo)}
+      docRef=db.collection('elisa').doc('progress');
+      let remote=pr.exists?pr.data():null;
+      if(!remote&&u){const id=await u.id();if(id){const old=await db.collection('data/users/'+id).doc('progress').get();if(old.exists)remote=old.data()}}
+      if(remote&&remote.v===1&&(remote.updatedAt||0)>=(S.updatedAt||0)){S=Object.assign(blank(),remote);try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+      if(!pr.exists&&S.updatedAt)save();
+      saveMode='cloud';
+      if(boot==='ready'&&(before!==gate()||view==='home'))render();
+    }}}catch(e){}
+  clearTimeout(t);if(boot==='loading'){boot='ready';render()}else updateSave()})();
 
 /* ================= 화면 ================= */
 const app=document.getElementById('app');
@@ -405,9 +456,13 @@ const IC={
 function topBar(title){return `<div class="topbar">${title?`<button class="back" data-go="home">← 처음으로</button><h2>${title}</h2>`:`<span class="chip">⭐ 별 <b>${S.stars}</b>개</span>`}<span class="chip">오늘 <b>${S.daily.date===today()?S.daily.count:0}</b>문제</span></div>`}
 
 function render(){window.scrollTo(0,0);
-  document.body.classList.toggle('home',view==='home');
-  document.body.classList.toggle('fit',view==='home'||view==='quiz'&&!!sess&&!!sess.prob&&sess.mode!=='result'&&sess.mode!=='empty');
-  if(view==='home')home();else if(view==='road')road();else if(view==='report')report();else if(view==='quiz')quiz();
+  const g=gate(),v=g||view;
+  document.body.classList.toggle('home',v==='home');
+  document.body.classList.toggle('fit',!!g||v==='setpin'||v==='home'||v==='quiz'&&!!sess&&!!sess.prob&&sess.mode!=='result'&&sess.mode!=='empty');
+  if(v==='splash')splash();else if(v==='lock')lockScreen();else if(v==='setpin')setPinScreen();else if(v==='nopin')noPin();
+  else if(v==='home')home();else if(v==='road')road();else if(v==='report')report();else if(v==='quiz')quiz();
+  const pi=document.getElementById('photoIn');if(pi)pi.onchange=()=>{setPhoto(pi.files[0]);pi.value=''};
+  app.querySelectorAll('[data-photo]').forEach(b=>b.onclick=()=>{const i=document.getElementById('photoIn');if(i)i.click()});
   app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==='diag')startDiag();else if(g==='practice')startPractice(false);else if(g==='review')startPractice(true);else{view=g;render()}});
   updateSave()}
 
@@ -417,7 +472,7 @@ function home(){const ci=curIndex(),cur=SKILLS[ci],revN=Object.values(S.review).
   else msg=`지금 단계는 <b>${cur.g} · ${cur.name}</b>이야. 오늘도 10문제 같이 풀어 보자!`;
   let path='',lastG='';SKILLS.forEach((s,i)=>{if(s.g!==lastG&&i)path+='<span class="gsep"></span>';lastG=s.g;path+=`<span class="dot ${mastered(s.id)?'ok':i===ci?'now':''}" title="${s.g} ${s.name}">${i+1}</span>`});
   app.innerHTML=`${topBar()}
-  <section class="hero">${MASCOT}<div><h1><span>엘리사</span>의 수학 교실</h1><p class="bubble">${msg}</p></div></section>
+  <section class="hero">${avatar(true)}<div><h1><span>엘리사</span>의 수학 교실</h1><p class="bubble">${msg}</p></div></section>
   <section class="tiles">
    <button class="tile big" data-go="${S.diag?'practice':'diag'}"><span class="ic">${S.diag?IC.play:IC.diag}</span><span><span class="t">${S.diag?'오늘의 연습 시작':'실력 진단 테스트'}</span><br><span class="d">${S.diag?`${cur.g} · ${cur.name}부터 10문제. 틀리면 비슷한 문제가 다시 나와요.`:'초6부터 중3까지 한 문제씩 풀면서 출발점을 찾아요. 약 10분.'}</span></span></button>
    <button class="tile" data-go="${S.diag?'diag':'practice'}"><span class="ic" style="background:var(--card2);color:var(--violet)">${S.diag?IC.diag:IC.play}</span><span class="t">${S.diag?'실력 진단 다시 하기':'바로 연습하기'}</span><span class="d">${S.diag?`지난 진단: ${S.diag.date}`:'초6 분수부터 차근차근'}</span></button>
@@ -471,7 +526,8 @@ function key(k){if(view!=='quiz'||!sess||sess.answered||!sess.prob||sess.prob.ty
   if(k==='⌫')sess.input=sess.input.slice(0,-1);else if(k==='−'||k==='-'){sess.input=sess.input.startsWith('-')?sess.input.slice(1):'-'+sess.input}
   else if(sess.input.length<9)sess.input+=k;
   const a=document.getElementById('ans');a.className='ansbox'+(sess.input?'':' empty');a.textContent=sess.input?sess.input.replace(/-/g,M):'아래 숫자판으로 답을 입력해요'}
-document.addEventListener('keydown',e=>{if(view!=='quiz'||!sess||!sess.prob)return;
+document.addEventListener('keydown',e=>{const g=gate();if(g==='lock'||g==='setpin'||(!g&&view==='setpin')){if(/^[0-9]$/.test(e.key))pinKey(e.key);else if(e.key==='Backspace')pinKey('⌫');else if(e.key==='Enter')pinKey('ok');return}
+  if(g||view!=='quiz'||!sess||!sess.prob)return;
   if(sess.answered&&e.key==='Enter'){const nx=document.getElementById('next');if(nx){e.preventDefault();nx.click()}return}
   if(/^[0-9./]$/.test(e.key))key(e.key);else if(e.key==='-')key('-');else if(e.key==='Backspace')key('⌫');else if(e.key==='Enter')key('ok')});
 function parse(s){s=s.replace(/−/g,'-').trim();if(s.includes('/')){const [a,b]=s.split('/');const x=+a,y=+b;return (a===''||b===''||!y)?NaN:x/y}return s===''||s==='-'?NaN:+s}
@@ -561,11 +617,51 @@ function report(){const tn=S.total.n,acc=tn?Math.round(S.total.c/tn*100):0;
    ${SKILLS.map(s=>{const k=S.skills[s.id]||{n:0,c:0,m:0};return `<div class="skillrow"><span>${s.g} · ${s.name}</span><div class="progress"><i style="width:${Math.round(k.m*100)}%"></i></div><span>${k.c}/${k.n}</span></div>`}).join('')}</section>
   <section class="card"><h3>자주 하는 실수</h3>${ms.length?ms.map(([t,c])=>`<div class="tip"><b>${TAGS[t][0]} · ${c}번</b><br>${TAGS[t][1]}</div>`).join(''):'<p class="muted">아직 기록된 실수가 없어요.</p>'}</section>
   <section class="card"><h3>최근 틀린 문제</h3>${wrong.length?wrong.map(h=>`<div class="wrongitem"><span class="tag" style="align-self:flex-start">${SK[h.skill]?SK[h.skill].g+' · '+SK[h.skill].name:''}</span><div style="font-family:var(--display);font-size:1.2rem">${h.q}</div><p>엘리사: <b>${h.given}</b> · 정답: <b>${h.ans}</b> · ${TAGS[h.tag]?TAGS[h.tag][0]:''}</p></div>`).join(''):'<p class="muted">아직 틀린 문제가 없어요.</p>'}</section>
+  <section class="card"><h3>비밀번호와 사진</h3>
+   <p>${canSetPin?'엘리사에게 비밀번호를 알려 주면, 엘리사는 그 번호로 수학 교실에 들어와요. 한 번 들어온 기기는 "이 기기 잠그기"를 누르거나 비밀번호를 바꾸기 전까지 열려 있어요.':'비밀번호는 부모님만 바꿀 수 있어요.'}</p>
+   <div class="row">${canSetPin?'<button class="btn pri" id="chgPin">비밀번호 바꾸기</button>':''}<button class="btn" id="lockNow">이 기기 잠그기</button></div>
+   <div class="row"><button class="btn" data-photo>${photo?'사진 바꾸기':'사진 올리기'}</button>${photo?'<button class="btn ghost" id="delPhoto">사진 지우고 루미로 돌아가기</button>':''}</div>
+   <input type="file" id="photoIn" accept="image/*" hidden></section>
   <section class="card"><h3>기록 지우기</h3><p class="muted">진단과 모든 기록을 처음 상태로 돌려요. 되돌릴 수 없어요.</p><div class="row" id="resetRow"><button class="btn" id="reset">기록 지우기</button></div></section>
   <p class="save" id="save"></p>`;
+  const cp=document.getElementById('chgPin');if(cp)cp.onclick=()=>{pinBuf='';pinFirst=null;pinMsg='';view='setpin';render()};
+  document.getElementById('lockNow').onclick=lockDevice;
+  const dp=document.getElementById('delPhoto');if(dp)dp.onclick=clearPhoto;
   document.getElementById('reset').onclick=()=>{document.getElementById('resetRow').innerHTML='<span>정말 지울까요?</span><button class="btn pri" id="yes">네, 지워요</button><button class="btn" id="no">아니요</button>';
     document.getElementById('yes').onclick=()=>{S=blank();save();view='home';render()};document.getElementById('no').onclick=()=>report()}}
 
+/* ---- 사진 / 잠금 화면 ---- */
+const CAM=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>`;
+function avatar(editable){const face=photo?`<img src="${photo}" alt="엘리사 사진">`:MASCOT;
+  return `<div class="avatar">${face}${editable?`<button class="cam" data-photo aria-label="${photo?'사진 바꾸기':'사진 올리기'}" title="${photo?'사진 바꾸기':'사진 올리기'}">${CAM}</button><input type="file" id="photoIn" accept="image/*" hidden>`:''}</div>`}
+let pinBuf='',pinFirst=null,pinMsg='',pinWrong=0,pinWait=0;
+function pinPad(){return `<div class="pad pinpad" id="pinpad">${['1','2','3','4','5','6','7','8','9','⌫','0','ok'].map(k=>`<button class="${k==='ok'?'go':k==='⌫'?'op':''}" data-p="${k}" aria-label="${k==='⌫'?'지우기':k==='ok'?'확인':k}">${k==='ok'?'확인':k}</button>`).join('')}</div>`}
+function pinDots(){let d='';for(let i=0;i<Math.max(4,pinBuf.length);i++)d+=`<i class="${i<pinBuf.length?'on':''}"></i>`;return `<div class="pins" aria-label="${pinBuf.length}자리 입력">${d}</div>`}
+function lockCard(title,sub,extra){app.innerHTML=`<section class="qcard lockcard">${avatar(false)}<h2>${title}</h2><p class="muted">${sub}</p>${pinDots()}<p class="perr" id="perr" aria-live="polite">${pinMsg}</p>${pinPad()}${extra||''}</section>`;
+  document.getElementById('pinpad').onclick=e=>{const b=e.target.closest('button');if(b)pinKey(b.dataset.p)}}
+function splash(){app.innerHTML=`<section class="qcard lockcard">${avatar(false)}<h2>엘리사의 수학 교실</h2><p class="muted">루미가 준비하고 있어요…</p></section>`}
+function noPin(){app.innerHTML=`<section class="qcard lockcard">${avatar(false)}<h2>아직 비밀번호가 없어요</h2><p>부모님이 이 수학 교실을 열어 비밀번호를 만들면, 그 번호로 들어올 수 있어요.</p></section>`}
+function lockScreen(){lockCard('비밀번호를 입력해요','부모님께 받은 번호로 수학 교실에 들어와요.')}
+function setPinScreen(){const changing=!!lockHash;
+  lockCard(pinFirst===null?(changing?'새 비밀번호 만들기':'부모님 비밀번호 만들기'):'한 번 더 입력해요',
+    pinFirst===null?'숫자 4~6자리로 만들어요. 만든 번호를 엘리사에게 알려 주세요.':'같은 번호를 다시 눌러 확인해요.',
+    changing?'<button class="btn ghost" id="pinCancel">취소</button>':'');
+  const c=document.getElementById('pinCancel');if(c)c.onclick=()=>{pinBuf='';pinFirst=null;pinMsg='';view='report';render()}}
+async function pinKey(k){const g=gate();const mode=g==='lock'?'lock':(g==='setpin'||view==='setpin')?'set':null;if(!mode)return;
+  if(k==='⌫'){pinBuf=pinBuf.slice(0,-1);pinMsg=''}
+  else if(k!=='ok'){if(pinBuf.length<6)pinBuf+=k;pinMsg=''}
+  if(k!=='ok'){render();return}
+  if(pinBuf.length<4){pinMsg='숫자를 4자리 이상 눌러요.';render();return}
+  if(mode==='lock'){if(Date.now()<pinWait){pinMsg='잠깐 쉬었다가 다시 해요.';render();return}
+    const h=await hashPin(pinBuf);pinBuf='';
+    if(h===lockHash){memUnlocked=h;lsSet(LU,h);pinWrong=0;pinMsg='';view='home';render();confetti(24)}
+    else{pinWrong++;if(pinWrong>=5){pinWait=Date.now()+30000;pinWrong=0;pinMsg='5번 틀렸어요. 30초 뒤에 다시 해요.'}else pinMsg='번호가 달라요. 다시 눌러 봐요.';render();shake()}
+    return}
+  if(pinFirst===null){pinFirst=pinBuf;pinBuf='';pinMsg='';render();return}
+  if(pinBuf!==pinFirst){pinFirst=null;pinBuf='';pinMsg='두 번호가 달라요. 처음부터 다시 만들어요.';render();shake();return}
+  const changing=view==='setpin';const ok=await savePin(pinBuf);pinBuf='';pinFirst=null;pinMsg='';view=changing?'report':'home';
+  render();if(!ok){const el=document.getElementById('save');if(el)el.textContent='비밀번호를 claude.ai에 저장하지 못해서 이 기기에만 적용됐어요.'}confetti(30)}
+function shake(){const c=app.querySelector('.pins');if(c){c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}}
 function confetti(nn){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const c=document.getElementById('confetti');const cols=['#ff6f4f','#ffc23c','#6c55e0','#22a88a','#ff7a8a'];
   for(let i=0;i<nn;i++){const e=document.createElement('i');e.style.left=Math.random()*100+'vw';e.style.background=pick(cols);e.style.animationDelay=Math.random()*.4+'s';c.appendChild(e);setTimeout(()=>e.remove(),2200)}}
 render();
