@@ -250,12 +250,17 @@ em.by.lead{background:#3b8fc9}
 @media (max-width:420px){.mgrid{grid-template-columns:1fr 1fr}.tabs button{font-size:.72rem;letter-spacing:-.02em}.tabs button span{white-space:nowrap}.seg .btn{padding:8px 6px;font-size:.9rem}}
 /* 받는 제자 체크 목록: 마우스를 올리면 녹색 네온, 체크하면 녹색으로 빛남 */
 .gtext{white-space:pre-wrap;line-height:1.75;font-size:1rem;color:var(--ink)}
-.gview .gbox{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--soft) 55%,transparent);max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:10px}
-.gview .gfiles{border-top:1px dashed var(--line);padding-top:6px}
+.gview .gbox{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--soft) 55%,transparent);max-height:70vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.gfile{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.gfh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gfh strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gfh .btn{min-height:34px;padding:4px 12px;font-size:.9rem}
+.gimg{display:block;width:100%;height:auto;border-radius:8px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.gpdf{display:flex;flex-direction:column;gap:10px}
 .gview textarea#gText{min-height:140px}
 .gup .gdrop{border:2px dashed var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,box-shadow .15s}
 .gup .gdrop:hover,.gup .gdrop:focus-within{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
-@media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)}.gview .gbox{max-height:none;flex:1;min-height:120px}.gview{display:flex;flex-direction:column;height:100%}}
+@media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,.75fr) minmax(0,2fr)}.gview .gbox{max-height:none;flex:1;min-height:120px}.gview textarea#gText{min-height:84px;height:84px}.gview{display:flex;flex-direction:column;height:100%}}
 .rcpt{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .rhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;max-height:230px;overflow:auto;padding:4px}
@@ -995,19 +1000,34 @@ function mLessons(){const ed=st.editing&&st.lessons.find(l=>l.id===st.editing);
     st.editing=null;await saveLesson(l);render()});
   $$('[data-led]').forEach(b=>b.onclick=()=>{st.editing=b.dataset.led;render();window.scrollTo(0,0)});
   confirmDel('[data-ldel]','ldel',id=>delLesson(id))}
+/* 지침서 파일을 '지침서 보기' 칸 안에서 크게 보여 주기 */
+const GPDF={};
+function gFileHtml(m){const ct=m.contentType||'';let body='';
+  if(m.kind==='link')body=`<a class="btn" href="${esc(safeLink(m.url))}" target="_blank" rel="noopener">링크 열기</a>`;
+  else if(/^image\//.test(ct)){const n=m.pages?m.pages.length:(m.pageCount||(LOCALURLS[m.id]||[1]).length);body=Array.from({length:n},(_,i)=>`<img class="gimg" src="${esc(assetUrl(m,i))}" alt="${esc(m.title)} ${i+1}쪽" loading="lazy">`).join('')}
+  else if(/pdf/.test(ct))body=`<div class="gpdf" data-gpdf="${m.id}">${GPDF[m.id]?GPDF[m.id].map((u,i)=>`<img class="gimg" src="${u}" alt="${esc(m.title)} ${i+1}쪽">`).join(''):'<p class="muted">지침서를 펼치는 중…</p>'}</div>`;
+  else if(/^video\//.test(ct))body=`<video class="gimg" src="${esc(assetUrl(m))}" controls playsinline></video>`;
+  else body=`<a class="btn" href="${esc(assetUrl(m))}" target="_blank" rel="noopener">파일 열기</a>`;
+  return `<div class="gfile"><div class="gfh"><strong>${esc(m.title)}</strong><button class="btn danger" data-delmat="${m.id}">삭제</button></div>${body}</div>`}
+async function gFillPdfs(){for(const el of $$('[data-gpdf]')){const id=el.dataset.gpdf;if(GPDF[id])continue;const m=st.materials.find(x=>x.id===id);if(!m)continue;
+  try{const lib=await loadPdfJs();const doc=await lib.getDocument({url:assetUrl(m)}).promise;const out=[];const W=Math.min(1400,Math.max(600,Math.round((el.clientWidth||600)*(devicePixelRatio||1))));
+    for(let i=1;i<=Math.min(doc.numPages,40);i++){const pg=await doc.getPage(i);const v0=pg.getViewport({scale:1});const v=pg.getViewport({scale:W/v0.width});const c=document.createElement('canvas');c.width=v.width;c.height=v.height;
+      await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise;out.push(c.toDataURL('image/jpeg',.85))}
+    GPDF[id]=out;const cur=document.querySelector(`[data-gpdf="${id}"]`);if(cur)cur.innerHTML=out.map((u,i)=>`<img class="gimg" src="${u}" alt="${esc(m.title)} ${i+1}쪽">`).join('')}
+  catch(e){const cur=document.querySelector(`[data-gpdf="${id}"]`);if(cur)cur.innerHTML='<p class="muted">PDF를 열지 못했어요. 다시 올려 보세요.</p>'}}}
 function mGuide(){const gs=st.materials.filter(m=>m.cat==='guide');
   $('#body').innerHTML=`<section class="card gup"><p class="kicker">기초반 지침서</p>
     <label class="gdrop">파일 올리기 <span class="small muted">PDF·사진·영상 · 한 파일 20MB까지</span><input id="gFile" type="file" multiple accept="application/pdf,image/*,video/*,.txt"></label>
     <div class="row"><button class="btn pri" id="gUp" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':'파일 올리기'}</button></div></section>
    <section class="card gview"><p class="kicker">지침서 보기</p>
     <div class="gbox">${st.guideText?`<div class="gtext">${esc(st.guideText)}</div>`:'<p class="muted">아래 입력창에 지침서 내용을 적고 저장하면 여기에 보여요.</p>'}
-      ${gs.length?`<div class="gfiles">${gs.map(m=>matRow(m,true)).join('')}</div>`:''}</div>
+      ${gs.map(gFileHtml).join('')}</div>
     <label class="gedit">지침서 내용 수정 <textarea id="gText" maxlength="20000" placeholder="기초반 지침서 내용을 적어 주세요">${esc(st.guideText||'')}</textarea></label>
     <div class="row"><button class="btn pri" id="gSave">저장</button><button class="btn" id="gReset">되돌리기</button></div></section>`;
-  on('#gUp',async()=>{const fs=[...$('#gFile').files];const m=await doUpload(fs,{id:uidGen(),title:fs.length?fs[0].name.replace(/\.[^.]+$/,''):'',desc:'',lessonId:'',cat:'guide',by:'마스터',createdAt:Date.now()});if(m){render();if(bookable(m))openReader(m)}});
+  on('#gUp',async()=>{const fs=[...$('#gFile').files];const m=await doUpload(fs,{id:uidGen(),title:fs.length?fs[0].name.replace(/\.[^.]+$/,''):'',desc:'',lessonId:'',cat:'guide',by:'마스터',createdAt:Date.now()});if(m)render()});
   on('#gSave',async()=>{await saveGuideText($('#gText').value.replace(/\s+$/,''));render()});
   on('#gReset',()=>{$('#gText').value=st.guideText||''});
-  bindDelMat()}
+  bindDelMat();gFillPdfs()}
 function mMaterials(G){const k=st.matKind;const list=st.materials.filter(m=>G?m.cat==='guide':m.cat!=='guide');
   $('#body').innerHTML=`<section class="card"><p class="kicker">${G?'기초반 지침서 올리기':'자료 입력'}</p>
     ${G?'<p class="small muted">여기에 올린 자료는 제자 화면의 <b>“기초반 지침 보기”</b>에 바로 보여요.</p>':''}
