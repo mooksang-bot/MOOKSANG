@@ -43,6 +43,33 @@ a{color:var(--violet)}
 /* top bar */
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .chips{display:inline-flex;gap:6px;align-items:center}
+button.chip{cursor:pointer}
+.chip.mchip{background:var(--sun);border-color:var(--sun);color:#3b2a00}
+.minput{width:100%;font-size:18px;padding:10px 12px;border-radius:14px;border:3px solid var(--line);background:var(--card);color:var(--ink);font-family:var(--body);text-align:center;letter-spacing:.1em}
+.minput:focus{outline:none;border-color:var(--violet)}
+.mlabel{display:flex;flex-direction:column;gap:4px;font-family:var(--display)}
+.devlog{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px;font-size:.98rem}
+/* 표지 */
+body.ecover{height:100%;overflow:hidden;margin:0;padding-block:0}
+body.ecover .wrap{height:100%}
+.cv{flex:1;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding-block:20px}
+.cv-face{width:clamp(130px,26dvh,220px);height:clamp(130px,26dvh,220px);display:grid;place-items:center}
+.cv-face .mascot{width:100%;height:100%}
+.cv-photo{width:100%;height:100%;object-fit:cover;border-radius:50%;border:6px solid var(--sun);box-shadow:0 12px 40px #00000033;animation:bob 3.2s ease-in-out infinite}
+.cv-eye{font-family:var(--display);letter-spacing:.4em;color:var(--violet);font-size:1rem}
+.cv-title{font-size:clamp(2.2rem,8vw,3.6rem);text-shadow:0 3px 0 var(--card),0 6px 18px #00000022}
+.cv-title span{color:var(--pri)}
+.cv-sub{color:var(--muted);font-size:clamp(1rem,3.6vw,1.2rem)}
+.cv-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.cvb{font-family:var(--display);font-size:1.25rem;padding:12px 26px;border-radius:999px;border:2px solid #ffd0c2;color:#fff;cursor:pointer;position:relative;
+  background:linear-gradient(180deg,#ff9b7f 0%,#ff6f4f 55%,#e8502f 100%);text-shadow:0 1px 0 #00000033;
+  box-shadow:inset 0 2px 0 #ffffffaa,inset 0 -3px 0 #00000026,0 5px 0 #b33a1f,0 12px 20px #00000040;transition:transform .12s,box-shadow .12s}
+.cvb.alt{background:linear-gradient(180deg,#8f7bff 0%,#6c55e0 55%,#5440c4 100%);border-color:#cfc4ff;box-shadow:inset 0 2px 0 #ffffff88,inset 0 -3px 0 #00000026,0 5px 0 #35279a,0 12px 20px #00000040}
+.cvb:hover,.cvb:focus-visible{transform:translateY(-2px);box-shadow:inset 0 2px 0 #ffffffaa,inset 0 -3px 0 #00000026,0 7px 0 #b33a1f,0 16px 26px #00000040,0 0 18px #5ff5e6}
+.cvb.alt:hover,.cvb.alt:focus-visible{box-shadow:inset 0 2px 0 #ffffff88,inset 0 -3px 0 #00000026,0 7px 0 #35279a,0 16px 26px #00000040,0 0 18px #5ff5e6}
+.cvb:active{transform:translateY(4px);box-shadow:inset 0 2px 0 #ffffffaa,0 1px 0 #b33a1f,0 3px 8px #00000040}
+.cvb.alt:active{box-shadow:inset 0 2px 0 #ffffff88,0 1px 0 #35279a,0 3px 8px #00000040}
+.perr{color:var(--bad);min-height:1.3em;font-size:.95rem}
 .resetbtn{cursor:pointer;color:var(--bad);border-color:var(--bad)}
 .resetbtn:hover{background:var(--bad-bg)}
 .rmodal{position:fixed;inset:0;z-index:70;background:#00000059;display:grid;place-items:center;padding:16px}
@@ -459,8 +486,13 @@ const LK='elisa-lock',LU='elisa-unlocked',LP='elisa-photo';
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
 let lockHash=lsGet(LK),photo=lsGet(LP),memUnlocked=lsGet(LU),canSetPin=true,boot='loading';
+const LMK='elisa-master',LMO='elisa-master-ok';
+const ssGet=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
+const ssSet=(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}};
+let masterHash=lsGet(LMK),masterOk=ssGet(LMO),mpwOpen=false,mpwMsg='',mpwWrong=0,mpwWait=0;
+const masterUnlocked=()=>canSetPin&&!!masterHash&&masterOk===masterHash;
 const unlocked=()=>!!lockHash&&memUnlocked===lockHash;
-function gate(){if(boot==='loading')return 'splash';if(!lockHash)return canSetPin?'setpin':'nopin';if(!unlocked())return 'lock';return null}
+function gate(){if(boot==='loading')return 'splash';if(view==='cover'||view==='report')return null;if(!lockHash)return canSetPin?'setpin':'nopin';if(!unlocked())return 'lock';return null}
 async function hashPin(pin){const txt='elisa-math:'+pin;
   try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
   catch(e){let h=5381;for(const c of txt)h=((h*33)^c.charCodeAt(0))>>>0;return 'h'+h.toString(16)}}
@@ -486,7 +518,9 @@ function updateSave(){const el=document.getElementById('save');if(el)el.textCont
 (async()=>{await new Promise(r=>setTimeout(r,0));const t=setTimeout(()=>{if(boot==='loading'){boot='ready';render()}},3000);
   try{if(window.claude){const [d,u]=await Promise.all([claude.use('db'),claude.use('user')]);
     if(d){db=d;canSetPin=u?!!(await u.isOwner()):false;
-      const [lk,ph,pr]=await Promise.all([db.collection('settings').doc('lock').get(),db.collection('elisa').doc('photo').get(),db.collection('elisa').doc('progress').get()]);
+      const [lk,ph,pr,mk]=await Promise.all([db.collection('settings').doc('lock').get(),db.collection('elisa').doc('photo').get(),db.collection('elisa').doc('progress').get(),db.collection('settings').doc('master').get()]);
+      if(mk.exists&&mk.data().hash)masterHash=mk.data().hash;else if(masterHash&&canSetPin){db.collection('settings').doc('master').set({hash:masterHash,updatedAt:Date.now()}).catch(()=>{})}else masterHash=null;
+      lsSet(LMK,masterHash);
       const before=gate();
       if(lk.exists&&lk.data().hash)lockHash=lk.data().hash;
       else if(lockHash&&canSetPin){db.collection('settings').doc('lock').set({hash:lockHash,updatedAt:Date.now()}).catch(()=>{})}
@@ -505,7 +539,7 @@ function updateSave(){const el=document.getElementById('save');if(el)el.textCont
 
 /* ================= 화면 ================= */
 const app=document.getElementById('app');
-let view='home',sess=null;
+let view='cover',sess=null;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MASCOT=`<svg class="mascot" viewBox="0 0 160 160" aria-hidden="true">
  <defs><radialGradient id="mg" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fff6c9"/><stop offset="1" stop-color="#ffc23c"/></radialGradient></defs>
@@ -526,7 +560,7 @@ const IC={
  map:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M4 9l10-4 12 4 10-4v26l-10 4-12-4-10 4z"/><path d="M14 5v26M26 9v26"/></svg>`,
  rep:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 34h28M10 28V18M18 28V10M26 28v-6M34 28V14"/></svg>`
 };
-function topBar(title){return `<div class="topbar">${title?`<button class="back" data-go="home">← 처음으로</button><h2>${title}</h2>`:`<span class="chip">⭐ 별 <b>${S.stars}</b>개</span>`}<span class="chips"><span class="chip">오늘 <b>${S.daily.date===today()?S.daily.count:0}</b>문제</span><button class="chip resetbtn" data-reset>초기화</button></span></div>`}
+function topBar(title){return `<div class="topbar">${title?`<button class="back" data-go="home">← 처음으로</button><h2>${title}</h2>`:`<span class="chips"><button class="chip" data-go="cover">표지</button><span class="chip">⭐ 별 <b>${S.stars}</b>개</span></span>`}<span class="chips"><span class="chip">오늘 <b>${S.daily.date===today()?S.daily.count:0}</b>문제</span><button class="chip resetbtn" data-reset>초기화</button></span></div>`}
 function openReset(){closeReset();const d=document.createElement('div');d.className='rmodal';d.id='rmodal';
   d.innerHTML=`<div class="rbox" role="dialog" aria-label="초기화"><h3>푼 문제 초기화</h3>
     <p>어떤 기록을 지울까요? 지운 기록은 되돌릴 수 없어요.</p>
@@ -544,14 +578,17 @@ function openReset(){closeReset();const d=document.createElement('div');d.classN
 function closeReset(){const d=document.getElementById('rmodal');if(d)d.remove()}
 
 function render(){window.scrollTo(0,0);
+  if(view==='report'&&!masterUnlocked())view='cover';
   const g=gate(),v=g||view;
+  document.body.classList.toggle('ecover',v==='cover');
   document.body.classList.toggle('home',v==='home');
   document.body.classList.toggle('fit',!!g||v==='setpin'||v==='home'||v==='quiz'&&!!sess&&!!sess.prob&&sess.mode!=='result'&&sess.mode!=='empty');
-  if(v==='splash')splash();else if(v==='lock')lockScreen();else if(v==='setpin')setPinScreen();else if(v==='nopin')noPin();
+  if(v==='splash')splash();else if(v==='cover')coverScreen();else if(v==='lock')lockScreen();else if(v==='setpin')setPinScreen();else if(v==='nopin')noPin();
   else if(v==='home')home();else if(v==='road')road();else if(v==='report')report();else if(v==='quiz')quiz();
   const pi=document.getElementById('photoIn');if(pi)pi.onchange=()=>{setPhoto(pi.files[0]);pi.value=''};
   app.querySelectorAll('[data-photo]').forEach(b=>b.onclick=()=>{const i=document.getElementById('photoIn');if(i)i.click()});
   app.querySelectorAll('[data-reset]').forEach(b=>b.onclick=openReset);
+  app.querySelectorAll('[data-master]').forEach(b=>b.onclick=openMaster);
   app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==='diag')startDiag();else if(g==='practice')startPractice(false);else if(g==='review')startPractice(true);else{view=g;render()}});
   updateSave()}
 
@@ -567,7 +604,7 @@ function home(){const ci=curIndex(),cur=SKILLS[ci],revN=Object.values(S.review).
    <button class="tile" data-go="${S.diag?'diag':'practice'}"><span class="ic" style="background:var(--card2);color:var(--violet)">${S.diag?IC.diag:IC.play}</span><span class="t">${S.diag?'실력 진단 다시 하기':'바로 연습하기'}</span><span class="d">${S.diag?`지난 진단: ${S.diag.date}`:'초6 분수부터 차근차근'}</span></button>
    <button class="tile" data-go="review"><span class="ic" style="background:var(--bad-bg);color:var(--bad)">${IC.rev}</span><span class="t">오답 복습</span><span class="d">틀린 문제와 비슷한 문제를 다시 풀어요</span>${revN?`<span class="badge">${revN}</span>`:''}</button>
    <button class="tile" data-go="road"><span class="ic" style="background:var(--good-bg);color:var(--mint)">${IC.map}</span><span class="t">학습 로드맵</span><span class="d">초6 → 중1 → 중2 → 중3 공부 순서와 추천 강의</span></button>
-   <button class="tile" data-go="report"><span class="ic" style="background:var(--card2);color:var(--pri)">${IC.rep}</span><span class="t">부모님 리포트</span><span class="d">단원별 실력과 자주 하는 실수</span></button>
+   <button class="tile" data-master><span class="ic" style="background:var(--card2);color:var(--pri)">${IC.rep}</span><span class="t">부모님 리포트</span><span class="d">단원별 실력과 자주 하는 실수</span></button>
   </section>
   <section class="card"><h3>엘리사의 수학 여행</h3><div class="path">${path}</div>
    <div class="legend"><span><span class="dot ok" style="display:inline-grid;width:18px;height:18px"></span> 통과</span><span><span class="dot now" style="display:inline-grid;width:18px;height:18px;animation:none"></span> 지금 단계</span><span>초6 · 중1 · 중2 · 중3 순서</span></div></section>
@@ -783,9 +820,50 @@ function road(){app.innerHTML=`${topBar('학습 로드맵')}
   <section class="card"><h3>강의 고르는 방법</h3><p>위 링크는 유튜브 <b>검색 결과</b>로 연결돼요. 특정 채널을 확인하지 않고 추천하지 않으려고 검색어로 안내했어요. 무료 공식 강의로는 EBS 중학 강의도 있으니 함께 찾아보세요. 15분 이내의 개념 영상 1개를 본 뒤 여기서 10문제를 풀면 가장 효과적이에요.</p></section>`}
 
 /* ---- 부모님 리포트 ---- */
+const DEVLOG=['첫 판: 실력 진단(초6~중3, 18단원), 오늘의 연습, 실수 유형 분석, 틀리면 비슷한 문제 다시 출제, 오답 복습, 학습 로드맵, 부모님 리포트',
+ '문제·진단 화면과 첫 화면을 스크롤 없이 한 화면에 맞춤',
+ '사진 올리기, 엘리사 입장 비밀번호, 부모님과 엘리사가 같은 기록 보기',
+ '확인을 누르면 정답·오답 도장, 답 칸 색 바뀜. 결과를 문제 카드 안에 표시',
+ '오류 수정: 저장된 기록을 불러온 뒤 결과가 안 나오던 문제',
+ '오늘 푼 문제 초기화 버튼',
+ '풀이 보기 네온 박스, 숫자판·버튼 네온 빛',
+ '풀이 과정 사진 첨부: 루미 선생님(Claude)이 손글씨 풀이를 검사하고 비슷한 문제로 이어서 연습',
+ '표지와 마스터 창: 마스터 비밀번호로 들어가 리포트·설정·개발 기록 보기'];
+async function saveMaster(pw){const h=await hashPin('master:'+pw);masterHash=h;masterOk=h;lsSet(LMK,h);ssSet(LMO,h);
+  if(db){try{await db.collection('settings').doc('master').set({hash:h,updatedAt:Date.now()})}catch(e){}}}
+function openMaster(){if(masterUnlocked()){view='report';return render()}mpwOpen=true;mpwMsg='';view='cover';render();const i=document.getElementById('mp1');if(i)i.focus()}
+function coverScreen(){const face=photo?`<img class="cv-photo" src="${photo}" alt="엘리사 사진">`:MASCOT;
+  app.innerHTML=`<section class="cv"><div class="cv-face">${face}</div>
+    <p class="cv-eye">ELISA MATH</p><h1 class="cv-title"><span>엘리사</span>의 수학 교실</h1>
+    <p class="cv-sub">초6부터 중3까지, 루미 선생님과 한 걸음씩</p>
+    <div class="cv-btns"><button class="cvb alt" id="cvMaster">${masterUnlocked()?'마스터 창':'마스터 입장'}</button><button class="cvb" id="cvEnter">엘리사 입장</button></div>
+    </section>${mpwOpen?mpwPanel():''}`;
+  document.getElementById('cvEnter').onclick=()=>{view='home';render()};
+  document.getElementById('cvMaster').onclick=openMaster;
+  if(mpwOpen)bindMpw()}
+function mpwPanel(){const create=!masterHash;
+  return `<div class="rmodal" id="mpModal"><div class="rbox" role="dialog" aria-label="마스터 입장">
+   ${!canSetPin?`<h3>마스터 창은 부모님만 열 수 있어요</h3><p>이 페이지 주인(부모님) 계정으로 열어 주세요.</p><button class="btn" id="mpClose">닫기</button>`
+   :`<h3>${create?'마스터 비밀번호 만들기':'마스터 입장'}</h3>
+     <p class="muted">${create?'마스터 창을 열 때 쓸 비밀번호를 정해 주세요. 엘리사 입장 비밀번호와 다르게 정해 주세요.':'마스터 비밀번호를 입력해 주세요.'}</p>
+     <input id="mp1" class="minput" type="password" autocomplete="${create?'new-password':'current-password'}" maxlength="20" aria-label="마스터 비밀번호" placeholder="비밀번호">
+     ${create?'<input id="mp2" class="minput" type="password" autocomplete="new-password" maxlength="20" aria-label="한 번 더 입력" placeholder="한 번 더">':''}
+     <p class="perr">${esc(mpwMsg)}</p>
+     <button class="btn pri" id="mpGo">${create?'정하고 마스터 창 열기':'마스터 창 열기'}</button><button class="btn ghost" id="mpClose">닫기</button>`}</div></div>`}
+function bindMpw(){const close=()=>{mpwOpen=false;render()};document.getElementById('mpClose').onclick=close;
+  document.getElementById('mpModal').onclick=e=>{if(e.target.id==='mpModal')close()};
+  const go=async()=>{const a=document.getElementById('mp1').value.trim();
+    if(!masterHash){const b=document.getElementById('mp2').value.trim();if(a.length<4){mpwMsg='4자 이상 적어 주세요.';return render()}if(a!==b){mpwMsg='두 비밀번호가 달라요.';return render()}
+      await saveMaster(a);mpwOpen=false;view='report';return render()}
+    if(Date.now()<mpwWait){mpwMsg='잠시 뒤에 다시 해 주세요.';return render()}
+    const h=await hashPin('master:'+a);
+    if(h===masterHash){masterOk=h;ssSet(LMO,h);mpwOpen=false;mpwWrong=0;view='report';render()}
+    else{mpwWrong++;if(mpwWrong>=5){mpwWait=Date.now()+30000;mpwWrong=0;mpwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else mpwMsg='비밀번호가 맞지 않아요.';render();const i=document.getElementById('mp1');if(i)i.focus()}};
+  const g=document.getElementById('mpGo');if(g)g.onclick=go;
+  ['mp1','mp2'].forEach(id=>{const i=document.getElementById(id);if(i)i.onkeydown=e=>{if(e.key==='Enter')go()}})}
 function report(){const tn=S.total.n,acc=tn?Math.round(S.total.c/tn*100):0;
   const ms=Object.entries(S.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,5);const wrong=S.history.filter(h=>!h.ok).slice(0,8);
-  app.innerHTML=`${topBar('부모님 리포트')}
+  app.innerHTML=`<div class="topbar"><button class="back" data-go="cover">← 표지</button><h2>마스터 창</h2><span class="chips"><span class="chip mchip">부모님</span><button class="chip" data-go="home">엘리사 화면</button></span></div>
   <section class="stat"><div><b>${tn}</b>푼 문제</div><div><b>${acc}%</b>정답률</div><div><b>${SKILLS.filter(s=>mastered(s.id)).length}/${SKILLS.length}</b>통과 단원</div></section>
   <section class="card"><h3>단원별 실력</h3><p class="muted" style="font-size:.95rem">막대는 최근 결과에 더 큰 비중을 둔 숙련도예요. 75% 이상, 3문제 이상이면 통과.</p>
    ${SKILLS.map(s=>{const k=S.skills[s.id]||{n:0,c:0,m:0};return `<div class="skillrow"><span>${s.g} · ${s.name}</span><div class="progress"><i style="width:${Math.round(k.m*100)}%"></i></div><span>${k.c}/${k.n}</span></div>`}).join('')}</section>
@@ -796,10 +874,22 @@ function report(){const tn=S.total.n,acc=tn?Math.round(S.total.c/tn*100):0;
    <div class="row">${canSetPin?'<button class="btn pri" id="chgPin">비밀번호 바꾸기</button>':''}<button class="btn" id="lockNow">이 기기 잠그기</button></div>
    <div class="row"><button class="btn" data-photo>${photo?'사진 바꾸기':'사진 올리기'}</button>${photo?'<button class="btn ghost" id="delPhoto">사진 지우고 루미로 돌아가기</button>':''}</div>
    <input type="file" id="photoIn" accept="image/*" hidden></section>
+  <section class="card"><h3>마스터 비밀번호</h3>
+   <p class="muted">마스터 창을 열 때 묻는 비밀번호예요. 앱을 닫았다 열면 다시 물어봐요. 엘리사 입장 비밀번호와 다르게 정해 주세요.</p>
+   <label class="mlabel">새 마스터 비밀번호 (4~20자) <input id="m1" class="minput" type="password" autocomplete="new-password" maxlength="20"></label>
+   <label class="mlabel">한 번 더 입력 <input id="m2" class="minput" type="password" autocomplete="new-password" maxlength="20"></label>
+   <p class="perr" id="mMsg"></p>
+   <div class="row"><button class="btn pri" id="mSave">마스터 비밀번호 바꾸기</button><button class="btn" id="mLock">지금 마스터 창 잠그기</button></div></section>
+  <section class="card"><h3>개발 기록</h3><p class="muted">엘리사 수학 교실을 지금까지 만든 내용이에요.</p>
+   <ol class="devlog">${DEVLOG.map(x=>`<li>${x}</li>`).join('')}</ol></section>
   <section class="card"><h3>기록 지우기</h3><p class="muted">진단과 모든 기록을 처음 상태로 돌려요. 되돌릴 수 없어요.</p><div class="row" id="resetRow"><button class="btn" id="reset">기록 지우기</button></div></section>
   <p class="save" id="save"></p>`;
   const cp=document.getElementById('chgPin');if(cp)cp.onclick=()=>{pinBuf='';pinFirst=null;pinMsg='';view='setpin';render()};
   document.getElementById('lockNow').onclick=lockDevice;
+  document.getElementById('mLock').onclick=()=>{masterOk=null;ssSet(LMO,null);view='cover';render()};
+  document.getElementById('mSave').onclick=async()=>{const a=document.getElementById('m1').value.trim(),b=document.getElementById('m2').value.trim(),m=document.getElementById('mMsg');
+    if(a.length<4){m.textContent='4자 이상 적어 주세요.';return}if(a!==b){m.textContent='두 비밀번호가 달라요.';return}
+    await saveMaster(a);m.textContent='';document.getElementById('m1').value='';document.getElementById('m2').value='';m.style.color='var(--good)';m.textContent='마스터 비밀번호를 바꿨어요.'};
   const dp=document.getElementById('delPhoto');if(dp)dp.onclick=clearPhoto;
   document.getElementById('reset').onclick=()=>{document.getElementById('resetRow').innerHTML='<span>정말 지울까요?</span><button class="btn pri" id="yes">네, 지워요</button><button class="btn" id="no">아니요</button>';
     document.getElementById('yes').onclick=()=>{S=blank();save();view='home';render()};document.getElementById('no').onclick=()=>report()}}
