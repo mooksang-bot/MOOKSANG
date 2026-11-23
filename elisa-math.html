@@ -124,6 +124,16 @@ sup{font-size:.6em}
 
 .fb{border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:10px;animation:pop .3s ease-out}
 @keyframes pop{from{transform:scale(.94);opacity:.4}to{transform:none;opacity:1}}
+.stamp{position:fixed;inset:0;z-index:60;display:grid;place-items:center;pointer-events:none}
+.stamp>div{width:min(190px,48vw);aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  background:var(--card);border:8px solid currentColor;box-shadow:0 18px 50px rgba(0,0,0,.3);animation:stampin 1.4s ease forwards}
+.stamp.ok{color:var(--good)} .stamp.no{color:var(--bad)}
+.stamp span{font-family:var(--display);font-size:clamp(3.2rem,14vw,5rem);line-height:1}
+.stamp b{font-family:var(--display);font-weight:400;font-size:clamp(1.6rem,7vw,2.3rem);line-height:1.1}
+@keyframes stampin{0%{transform:scale(1.8) rotate(-12deg);opacity:0}18%{transform:scale(.92) rotate(-6deg);opacity:1}28%{transform:scale(1) rotate(-6deg)}78%{opacity:1}100%{transform:scale(1) rotate(-6deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.stamp>div{animation:none}}
+.ansbox.right{border-style:solid;border-color:var(--good);background:var(--good-bg);color:var(--good)}
+.ansbox.wrong{border-style:solid;border-color:var(--bad);background:var(--bad-bg);color:var(--bad)}
 .fb.good{background:var(--good-bg);color:var(--ink);border:3px solid var(--good)}
 .fb.bad{background:var(--bad-bg);color:var(--ink);border:3px solid var(--bad)}
 .fb h3 .mark{color:var(--good)} .fb.bad h3 .mark{color:var(--bad)}
@@ -522,7 +532,7 @@ function quiz(){
   if(P.type==='num'){document.getElementById('pad').onclick=e=>{const b=e.target.closest('button');if(b)key(b.dataset.k)}}
   else app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>answer(+b.dataset.c))}
 function key(k){if(view!=='quiz'||!sess||sess.answered||!sess.prob||sess.prob.type!=='num')return;
-  if(k==='ok'){if(sess.input)answer(sess.input);return}
+  if(k==='ok'){if(sess.input)answer(sess.input);else tipSheet('먼저 답을 입력한 다음 <b>확인</b>을 눌러요.');return}
   if(k==='⌫')sess.input=sess.input.slice(0,-1);else if(k==='−'||k==='-'){sess.input=sess.input.startsWith('-')?sess.input.slice(1):'-'+sess.input}
   else if(sess.input.length<9)sess.input+=k;
   const a=document.getElementById('ans');a.className='ansbox'+(sess.input?'':' empty');a.textContent=sess.input?sess.input.replace(/-/g,M):'아래 숫자판으로 답을 입력해요'}
@@ -553,11 +563,14 @@ function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill
   else{sess.count++;if(ok)sess.correct++;else sess.forceSkill=sess.skill}
   save();
   const praise=pick(['정답! 최고야!','맞았어! 대단해!','완벽해! 이 느낌 그대로!','정답! 실력이 쑥쑥 크고 있어!']);
+  const ab=document.getElementById('ans');if(ab)ab.classList.add(ok?'right':'wrong');
+  stamp(ok);
   const fb=document.getElementById('fb');fb.hidden=false;
-  fb.innerHTML=ok?`<div class="fb good"><h3><span class="mark">○</span> ${praise}</h3>${levelUp?`<div class="tip"><b>레벨 업!</b> “${s.name}” 단원을 통과했어요. 다음 단원으로 넘어가요!</div>`:''}
+  fb.innerHTML=ok?`<div class="fb good"><h3><span class="mark">○</span> 정답이에요! ${praise}</h3>
+    <p>엘리사의 답: <b>${givenH}</b> — 맞았어요.</p>${levelUp?`<div class="tip"><b>레벨 업!</b> “${s.name}” 단원을 통과했어요. 다음 단원으로 넘어가요!</div>`:''}
     <details><summary>풀이 보기</summary><ol class="steps">${P.steps.map(x=>`<li>${x}</li>`).join('')}</ol></details>
     <button class="btn pri" id="next">다음 문제 →</button></div>`
-   :`<div class="fb bad"><h3><span class="mark">✕</span> ${given===null?'괜찮아, 같이 풀어 보자!':'아쉬워! 어디서 틀렸는지 보자'}</h3>
+   :`<div class="fb bad"><h3><span class="mark">✕</span> ${given===null?'괜찮아, 같이 풀어 보자!':'오답이에요. 어디서 틀렸는지 보자'}</h3>
     ${given===null?'':`<p>엘리사의 답: <b>${givenH}</b> · 정답: <b>${P.ansH}</b></p>`}
     <div class="tip"><b>루미가 찾은 실수: ${TAGS[tag][0]}</b><br>${TAGS[tag][1]}</div>
     <ol class="steps">${P.steps.map(x=>`<li>${x}</li>`).join('')}</ol>
@@ -565,6 +578,8 @@ function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill
   if(ok)confetti(levelUp?60:18);
   document.getElementById('next').onclick=()=>{if(sess.mode==='diag')sess.i++;nextQ()};
 }
+function stamp(ok){const d=document.createElement('div');d.className='stamp '+(ok?'ok':'no');d.setAttribute('role','status');
+  d.innerHTML=`<div><span>${ok?'○':'✕'}</span><b>${ok?'정답':'오답'}</b></div>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1400)}
 function tipSheet(h){const f=document.getElementById('fb');f.hidden=false;f.innerHTML=`<div class="tip">${h}<button class="btn pri" id="closeTip">알겠어요</button></div>`;document.getElementById('closeTip').onclick=()=>{f.hidden=true;f.innerHTML=''}}
 
 function finishDiag(){const res=sess.res;let start=res.findIndex(r=>!r.ok);if(start<0)start=Math.min(res.length,SKILLS.length-1);
