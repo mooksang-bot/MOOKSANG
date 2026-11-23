@@ -136,6 +136,13 @@ body.fit .qcard{overflow-y:auto;overscroll-behavior:contain}
 .inlfb{display:flex;flex-direction:column;gap:10px}
 .inlfb>.fb{animation:pop .3s ease-out}
 .workbox{display:flex;flex-direction:column;gap:6px}
+.workbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;padding:10px 16px;border-radius:18px;
+  border:3px solid var(--violet);background:var(--card2);color:var(--violet);font-family:var(--display);font-size:1.2rem;cursor:pointer;flex:none;
+  transition:box-shadow .2s,border-color .2s,transform .15s}
+.workbtn:hover,.workbtn:focus-visible,.workbtn:active{border-color:#3fe6d6;box-shadow:0 0 0 2px #5ff5e6,0 0 14px #5ff5e6,0 0 30px rgba(140,90,255,.55);transform:translateY(-1px)}
+.workbtn[aria-expanded="true"]{background:var(--card);color:var(--muted);border-style:dashed}
+body.fit .workbtn{margin-top:auto}
+body.fit .workbtn+.ansbox,body.fit .workbtn+.choices{margin-top:0}
 .workbox label{font-family:var(--display);font-size:1rem}
 .workbox textarea,.review textarea{width:100%;font-family:var(--body);font-size:17px;line-height:1.6;color:var(--ink);background:var(--card);border:3px solid var(--line);border-radius:16px;padding:10px 12px;resize:vertical;min-height:84px}
 .workbox textarea:focus,.review textarea:focus{outline:none;border-color:var(--violet)}
@@ -584,13 +591,14 @@ function quiz(){
    <div class="q">${P.q}</div>
    <div class="workbox" id="workBox" ${sess.workOpen?'':'hidden'}><label for="work">내 풀이 과정 <span class="muted">(어떻게 풀었는지 한 줄씩)</span></label>
      <textarea id="work" rows="3" placeholder="예: 통분하면 8/12 + 3/12&#10;분자끼리 더하면 11/12">${esc(sess.work||'')}</textarea></div>
+   <button class="workbtn" id="workT" aria-expanded="${!!sess.workOpen}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>${sess.workOpen?'풀이 과정 접기':'풀이 과정 입력하기'}</span></button>
    ${body}
-   <div class="row"><button class="btn ghost" id="idk">잘 모르겠어요</button><button class="btn ghost" id="hint">개념 힌트</button><button class="btn ghost" id="workT">${sess.workOpen?'풀이 접기':'풀이 쓰기'}</button></div>
+   <div class="row"><button class="btn ghost" id="idk">잘 모르겠어요</button><button class="btn ghost" id="hint">개념 힌트</button></div>
    <div id="fb" class="inlfb" hidden></div></section>`;
   document.getElementById('hint').onclick=()=>tipSheet(`<b>루미의 힌트</b>${s.concept}`);
   const wt=document.getElementById('work');if(wt)wt.oninput=()=>{sess.work=wt.value};
   document.getElementById('workT').onclick=()=>{sess.workOpen=!sess.workOpen;const wb=document.getElementById('workBox');wb.hidden=!sess.workOpen;
-    document.getElementById('workT').textContent=sess.workOpen?'풀이 접기':'풀이 쓰기';if(sess.workOpen)wt.focus()};
+    const wb2=document.getElementById('workT');wb2.querySelector('span').textContent=sess.workOpen?'풀이 과정 접기':'풀이 과정 입력하기';wb2.setAttribute('aria-expanded',sess.workOpen);if(sess.workOpen)wt.focus()};
   document.getElementById('idk').onclick=()=>answer(null);
   if(P.type==='num'){document.getElementById('pad').onclick=e=>{const b=e.target.closest('button');if(b)key(b.dataset.k)}}
   else app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>answer(+b.dataset.c))}
