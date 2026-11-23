@@ -440,7 +440,7 @@ function updateSave(){const el=document.getElementById('save');if(el)el.textCont
       docRef=db.collection('elisa').doc('progress');
       let remote=pr.exists?pr.data():null;
       if(!remote&&u){const id=await u.id();if(id){const old=await db.collection('data/users/'+id).doc('progress').get();if(old.exists)remote=old.data()}}
-      if(remote&&remote.v===1&&(remote.updatedAt||0)>=(S.updatedAt||0)){S=Object.assign(blank(),remote);try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+      if(remote&&remote.v===1&&(remote.updatedAt||0)>=(S.updatedAt||0)){S=Object.assign(blank(),JSON.parse(JSON.stringify(remote)));try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
       if(!pr.exists&&S.updatedAt)save();
       saveMode='cloud';
       if(boot==='ready'&&(before!==gate()||view==='home'))render();
