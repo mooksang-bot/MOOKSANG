@@ -317,6 +317,21 @@ table.rtab td.mng .btn.sm{min-height:24px;padding:1px 8px;font-size:.78rem}
 .cell.ptu.vU{background:#ef4444;border-color:#ef4444;color:#fff;box-shadow:0 0 10px rgba(239,68,68,.55)}
 .cell.ptu.ro{width:28px;height:24px;font-size:.85rem;cursor:default}
 button.cell.ptu:hover,button.cell.ptu:focus-visible{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
+.ptuin{width:34px;height:30px;border-radius:8px;border:2px solid #6b7a74;background:var(--card);color:var(--ink);text-align:center;font-weight:800;font-size:1rem;padding:0;text-transform:uppercase;font-family:var(--sans);caret-color:#39ff88;transition:box-shadow .15s,border-color .15s}
+.ptuin:focus{outline:none;border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
+.ptuin:hover{border-color:#39ff88}
+.ptuin.vP{background:#22c55e;border-color:#22c55e;color:#06210f}
+.ptuin.vT{background:#f59e0b;border-color:#f59e0b;color:#2a1700}
+.ptuin.vU{background:#ef4444;border-color:#ef4444;color:#fff}
+td.sumc{white-space:nowrap;text-align:left}
+.sm-s{display:inline-block;font-size:.75rem;font-weight:700;border-radius:999px;padding:1px 7px;margin-right:3px}
+.sm-s.sP{background:color-mix(in srgb,#22c55e 22%,transparent);color:#4ade80}
+.sm-s.sT{background:color-mix(in srgb,#f59e0b 22%,transparent);color:#fbbf24}
+.sm-s.sU{background:color-mix(in srgb,#ef4444 22%,transparent);color:#f87171}
+th.sumh{font-size:.8rem}
+th.wkh .sh{display:none}
+@media (max-width:600px){th.wkh .lg{display:none}th.wkh .sh{display:inline}}
+@media (max-width:600px){.ptuin{width:30px;height:28px;font-size:.92rem}.sm-s{font-size:.66rem;padding:0 4px;margin-right:1px}td.sumc{padding:2px 2px}}
 .ptu-legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.9rem}
 .ptu-legend .cell.ptu{width:24px;height:22px;font-size:.8rem;box-shadow:none}
 .ok-mark{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#22c55e;color:#06210f;font-weight:700;box-shadow:0 0 10px rgba(57,255,136,.55)}
@@ -610,7 +625,7 @@ function noticeItem(n,isNew){return `<div class="item">${n.pinned?'<span class="
 function attView(){const W=rosterWeeks();const meN=st.me&&st.me.name;
   return `<section class="card"><div class="rtop"><p class="kicker">출석 현황 · ${st.roster.length}명</p>
      <div class="row"><button class="btn sm" id="hwPrev" aria-label="이전 4주">‹ 4주</button><button class="btn sm" id="hwNext" aria-label="다음 4주">4주 ›</button></div></div>
-    ${st.roster.length?`<div class="tblwrap"><table class="att rtab hatt"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">직분</th>${W.map(w=>`<th scope="col" class="wkh">${w.label}</th>`).join('')}</tr></thead><tbody>
+    ${st.roster.length?`<div class="tblwrap"><table class="att rtab hatt"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">직분</th>${W.map(w=>`<th scope="col" class="wkh"><span class="lg">${w.label}</span><span class="sh">${w.label.replace(/월0?/,"/").replace("일","")}</span></th>`).join('')}</tr></thead><tbody>
       ${st.roster.map((x,i)=>`<tr class="${meN&&x.name===meN?'meRow':''}"><td class="no">${i+1}</td><th scope="row" class="nm2">${esc(x.name)}</th><td>${esc(x.role||'')}</td>
         ${W.map(w=>{const v=attV(w,x.id);return v?`<td><span class="cell ptu v${v} ro" aria-label="${PTU[v]}">${v}</span></td>`:'<td><span class="no-mark" aria-label="기록 없음">·</span></td>'}).join('')}</tr>`).join('')}</tbody>
       <tfoot><tr><td></td><th scope="row">출석</th><td></td>${W.map(w=>`<td>${st.roster.filter(x=>isIn(w,x.id)).length}</td>`).join('')}</tr></tfoot></table></div>
@@ -768,14 +783,14 @@ function curAtt(){return plain(st.att[st.lmonth]||{days:{},dues:{}})}
 function lAtt(){const days=sundays(st.lmonth),mo=+st.lmonth.split('-')[1],A=curAtt(),D=A.days||{};
   let h=`<section class="card"><p class="kicker">출석 체크 · 주일 기준</p>${monBar()}`;
   if(!st.roster.length){$('#body').innerHTML=h+'</section>'+noRoster();bindMon();on('#goRoster',()=>{st.ltab='roster';st.rEdit='new';render()});return}
-  h+=`<div class="tblwrap"><table class="att"><thead><tr><th scope="col">이름</th>${days.map(d=>`<th scope="col">${mo}/${d}</th>`).join('')}<th scope="col">출석</th></tr></thead><tbody>
+  h+=`<div class="tblwrap"><table class="att"><thead><tr><th scope="col">이름</th>${days.map(d=>`<th scope="col">${mo}/${d}</th>`).join('')}<th scope="col">${mo}월 출결</th></tr></thead><tbody>
     ${st.roster.map(r=>{const c=days.filter(d=>attOf(st.lmonth,d,r.id)==='P').length;return `<tr><th scope="row" class="nm">${esc(r.name)}${r.role?`<span>${esc(r.role)}</span>`:''}</th>
-      ${days.map(d=>`<td>${ptuBtn(st.lmonth+'|'+d+'|'+r.id,attOf(st.lmonth,d,r.id),esc(r.name)+' '+mo+'월 '+d+'일')}</td>`).join('')}
-      <td class="cnt">${c}/${days.length}</td></tr>`}).join('')}</tbody>
-    <tfoot><tr><th scope="row">출석 인원</th>${days.map(d=>`<td>${st.roster.filter(r=>attOf(st.lmonth,d,r.id)==='P').length}</td>`).join('')}<td></td></tr></tfoot></table></div>
+      ${days.map((d,i)=>`<td>${ptuIn(st.lmonth+'|'+d+'|'+r.id,attOf(st.lmonth,d,r.id),esc(r.name)+' '+mo+'월 '+d+'일',i)}</td>`).join('')}
+      <td class="sumc">${sumHtml(days.map(d=>attOf(st.lmonth,d,r.id)))}</td></tr>`}).join('')}</tbody>
+    <tfoot><tr><th scope="row">출석 인원</th>${days.map((d,i)=>`<td data-colsum="${i}">${st.roster.filter(r=>attOf(st.lmonth,d,r.id)==='P').length}</td>`).join('')}<td></td></tr></tfoot></table></div>
     ${ptuLegend}</section>`;
   $('#body').innerHTML=h;bindMon();
-  $$('[data-ptu]').forEach(b=>b.onclick=()=>cyclePtu(b.dataset.ptu))}
+  bindPtuIn()}
 function lDues(){const A=curAtt(),P=A.dues||{};const mo=+st.lmonth.split('-')[1];
   let h=`<section class="card"><p class="kicker">회비 납부 · 한 달 단위</p>${monBar()}`;
   if(!st.roster.length){$('#body').innerHTML=h+'<p class="muted">제자 명단이 비어 있어요. 이름을 추가하면 여기에 체크 목록이 나와요.</p></section>'+noRoster();bindMon();on('#goRoster',()=>{st.ltab='roster';st.rEdit='new';render()});return}
@@ -801,7 +816,25 @@ const isIn=(w,rid)=>attV(w,rid)==='P';
 const ptuBtn=(key,v,label)=>`<button class="cell ptu ${v?'v'+v:''}" data-ptu="${key}" aria-label="${label} ${v?PTU[v]:'기록 없음'} (누를 때마다 P → T → U → 빈칸)">${v}</button>`;
 async function cyclePtu(key){const [ym,day,rid]=key.split('|');const A=plain(st.att[ym]||{days:{},dues:{}});A.days=A.days||{};A.days[day]=A.days[day]||{};
   const nv=NEXT[normV(A.days[day][rid])];if(nv)A.days[day][rid]=nv;else delete A.days[day][rid];st.att[ym]=A;render();await saveAtt(ym)}
-const ptuLegend='<p class="ptu-legend"><span class="cell ptu vP">P</span> 출석 <span class="cell ptu vT">T</span> 지각 <span class="cell ptu vU">U</span> 무단 결석 <span class="small muted">· 칸을 누를 때마다 P → T → U → 빈칸</span></p>';
+const ptuIn=(key,v,label,col)=>`<input class="ptuin ${v?'v'+v:''}" data-ptuin="${key}" data-col="${col}" value="${v}" maxlength="1" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="${label} 출결 (P 출석, T 지각, U 무단 결석)">`;
+const sumHtml=vals=>{const c={P:0,T:0,U:0};vals.forEach(v=>{if(c[v]!==undefined)c[v]++});return `<span class="sm-s sP">P ${c.P}</span><span class="sm-s sT">T ${c.T}</span><span class="sm-s sU">U ${c.U}</span>`};
+const KO={'ㅔ':'P','ㅅ':'T','ㅕ':'U','ㅆ':'T'};
+function bindPtuIn(){$$('input.ptuin').forEach(inp=>{
+  inp.onfocus=()=>inp.select();
+  inp.oninput=async()=>{let raw=inp.value.slice(-1);raw=KO[raw]||raw.toUpperCase();
+    const old=inp.dataset.v!==undefined?inp.dataset.v:(inp.defaultValue||'');
+    if(raw!==''&&!PTU[raw]){inp.value=old;toast('P(출석) · T(지각) · U(무단 결석) 중 하나를 입력해 주세요.');return}
+    inp.value=raw;inp.dataset.v=raw;inp.className='ptuin'+(raw?' v'+raw:'');
+    const tr=inp.closest('tr');const sc=tr&&tr.querySelector('.sumc');if(sc)sc.innerHTML=sumHtml([...tr.querySelectorAll('input.ptuin')].map(x=>x.value));
+    const col=inp.dataset.col,tb=inp.closest('table');const fc=tb&&tb.querySelector(`tfoot [data-colsum="${col}"]`);if(fc)fc.textContent=[...tb.querySelectorAll(`input.ptuin[data-col="${col}"]`)].filter(x=>x.value==='P').length;
+    const [ym,day,rid]=inp.dataset.ptuin.split('|');const A=plain(st.att[ym]||{days:{},dues:{}});A.days=A.days||{};A.days[day]=A.days[day]||{};
+    if(raw)A.days[day][rid]=raw;else delete A.days[day][rid];st.att[ym]=A;
+    if(raw){const all=[...tb.querySelectorAll(`input.ptuin[data-col="${col}"]`)];const nx=all[all.indexOf(inp)+1];if(nx)nx.focus()}
+    await saveAtt(ym)};
+  inp.onkeydown=e=>{const tb=inp.closest('table'),col=+inp.dataset.col;
+    const go=(dc,dr)=>{const rows=[...tb.querySelectorAll('tbody tr')];const ri=rows.indexOf(inp.closest('tr'));const r2=rows[ri+dr];if(!r2)return;const t=r2.querySelector(`input.ptuin[data-col="${col+dc}"]`);if(t){e.preventDefault();t.focus()}};
+    if(e.key==='ArrowDown'||e.key==='Enter')go(0,1);else if(e.key==='ArrowUp')go(0,-1);else if(e.key==='ArrowRight'&&!inp.value)go(1,0);else if(e.key==='ArrowLeft'&&!inp.value)go(-1,0)}})}
+const ptuLegend='<p class="ptu-legend"><span class="cell ptu vP">P</span> 출석 <span class="cell ptu vT">T</span> 지각 <span class="cell ptu vU">U</span> 무단 결석 <span class="small muted">· 칸에 P·T·U를 입력하면 아래 사람으로 넘어가요. 지우면 빈칸</span></p>';
 function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.rEdit!=='new'?st.roster.find(r=>r.id===st.rEdit):null;const r=ed||{};const W=rosterWeeks();const E=!!st.rManage;
   let h='';
   if(st.rEdit)h+=`<section class="card rform"><p class="kicker">${ed?'제자 정보 수정':'제자 추가'}</p>
@@ -815,11 +848,11 @@ function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.
       <div class="row"><button class="btn sm" id="wPrev" aria-label="이전 4주">‹ 4주</button><button class="btn sm" id="wNext" aria-label="다음 4주">4주 ›</button>
       ${st.rEdit?'':'<button class="btn sm pri" id="rAdd">+ 추가</button>'}<button class="btn sm ${E?'on':''}" id="rMng">${E?'관리 끝':'수정·삭제'}</button></div></div>
     ${st.roster.length?`<div class="tblwrap"><table class="att rtab"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">직분</th><th scope="col" class="ph">연락처</th>
-      ${W.map(w=>`<th scope="col" class="wkh">${w.label}</th>`).join('')}${E?'<th scope="col">관리</th>':''}</tr></thead><tbody>
+      ${W.map(w=>`<th scope="col" class="wkh"><span class="lg">${w.label}</span><span class="sh">${w.label.replace(/월0?/,"/").replace("일","")}</span></th>`).join('')}<th scope="col" class="sumh">한 달 출결</th>${E?'<th scope="col">관리</th>':''}</tr></thead><tbody>
       ${st.roster.map((x,i)=>`<tr><td class="no">${i+1}</td><th scope="row" class="nm2">${esc(x.name)}</th><td>${esc(x.role||'')}${x.sex?`<span class="sx ${x.sex==='남'?'m':'f'}">${x.sex}</span>`:''}</td><td class="ph">${esc(x.phone||'')}</td>
-        ${W.map(w=>`<td>${ptuBtn(w.ym+'|'+w.day+'|'+x.id,attV(w,x.id),esc(x.name)+' '+w.label)}</td>`).join('')}
+        ${W.map((w,i)=>`<td>${ptuIn(w.ym+'|'+w.day+'|'+x.id,attV(w,x.id),esc(x.name)+' '+w.label,i)}</td>`).join('')}<td class="sumc">${sumHtml(W.map(w=>attV(w,x.id)))}</td>
         ${E?`<td class="mng"><button class="btn sm" data-red="${x.id}">수정</button><button class="btn sm danger" data-rdel="${x.id}">삭제</button></td>`:''}</tr>`).join('')}</tbody>
-      <tfoot><tr><td></td><th scope="row">출석</th><td></td><td class="ph"></td>${W.map(w=>`<td>${st.roster.filter(x=>isIn(w,x.id)).length}</td>`).join('')}${E?'<td></td>':''}</tr></tfoot></table></div>
+      <tfoot><tr><td></td><th scope="row">출석</th><td></td><td class="ph"></td>${W.map((w,i)=>`<td data-colsum="${i}">${st.roster.filter(x=>isIn(w,x.id)).length}</td>`).join('')}<td></td>${E?'<td></td>':''}</tr></tfoot></table></div>
       ${ptuLegend}`
     :'<p class="muted">아직 제자가 없어요. “+ 제자 추가”를 눌러 주세요.</p>'}</section>`;
   $('#body').innerHTML=h;
@@ -830,7 +863,7 @@ function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.
     const sx=document.querySelector('input[name="rSex"]:checked');const o={id:ed?ed.id:uidGen(),name,role:$('#rRole').value.trim(),phone:$('#rPhone').value.trim(),sex:sx?sx.value:'',createdAt:ed?ed.createdAt:Date.now(),updatedAt:Date.now()};st.rEdit=null;await saveRoster(o);render()});
   $$('[data-red]').forEach(b=>b.onclick=()=>{st.rEdit=b.dataset.red;render();window.scrollTo(0,0)});
   confirmDel('[data-rdel]','rdel',id=>delRoster(id));
-  $$('[data-ptu]').forEach(b=>b.onclick=()=>cyclePtu(b.dataset.ptu))}
+  bindPtuIn()}
 function lMemo(){const D=st.lDraft;
   $('#body').innerHTML=`<section class="card"><p class="kicker">마스터에게 메모 보내기</p>
     <textarea id="lmText" maxlength="2000" ${D.locked?'readonly':''} placeholder="마스터(김병구 목사님)에게 전할 내용을 적어 주세요.">${esc(D.text)}</textarea>
