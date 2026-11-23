@@ -304,8 +304,9 @@ body.lecfs{overflow:hidden}
   body.lecfs .lecview.fs{padding-top:max(64px,calc(env(safe-area-inset-top,0px) + 12px));padding-bottom:max(30px,calc(env(safe-area-inset-bottom,0px) + 12px))}
   body.lecfs .lecview.fs>.kicker{display:none}
 }
-@media (pointer:coarse) and (min-width:768px){body.lecfs .lecview.fs{padding-top:max(96px,calc(env(safe-area-inset-top,0px) + 24px));padding-bottom:max(40px,calc(env(safe-area-inset-bottom,0px) + 16px))}}
+@media (pointer:coarse) and (min-width:768px){body.lecfs .lecview.fs{padding-top:max(88px,calc(env(safe-area-inset-top,0px) + 24px));padding-bottom:max(40px,calc(env(safe-area-inset-bottom,0px) + 16px))}}
 body.lecfs .lecview.fs{height:var(--vvh,100dvh)}
+body.lecfs .lecview.fs .a4page{aspect-ratio:auto;border-radius:2px}
 /* 아이패드(터치 화면 768px 이상): 화면을 넓게 쓰기 */
 @media (min-width:768px) and (pointer:coarse){
   .wrap{max-width:min(1140px,100%)}
@@ -1340,7 +1341,7 @@ function lecInner(m,src){const ct=m.contentType||'';
   if(/^video\//.test(ct))return `<video src="${esc(assetUrl(m))}" controls playsinline></video>`;
   if(!/^image\//.test(ct)&&!/pdf/.test(ct)){const href=m.kind==='link'?safeLink(m.url):assetUrl(m);return `<div class="a4msg"><p><b>${esc(m.title)}</b></p><a class="btn pri" href="${esc(href)}" target="_blank" rel="noopener">${m.kind==='link'?'링크 열기':'파일 열기'}</a></div>`}
   return src?`<img src="${src}" alt="${esc(m.title)}">`:'<div class="a4msg"><p class="muted">펼치는 중…</p></div>'}
-function lecSize(){const stg=$('.a4stage'),pg=stg&&stg.querySelector('.a4page');if(!pg)return;const W=stg.clientWidth,H=stg.clientHeight;
+function lecSize(){const stg=$('.a4stage'),pg=stg&&stg.querySelector('.a4page');if(!pg)return;const W=stg.clientWidth,H=stg.clientHeight;if(st.lecFs&&W&&H){pg.style.width=W+'px';pg.style.height=H+'px';return}
   let h=Math.min(H,W*1.4142);if(h<120)h=W*1.4142;const w=h/1.4142;pg.style.width=Math.floor(w)+'px';pg.style.height=Math.floor(h)+'px'}
 window.addEventListener('resize',()=>{if(st.view==='master'&&st.mtab==='lecture')lecSize()});
 /* 전체 화면: 화면을 꽉 채우는 방식(아이폰·삼성폰·앱 안에서도 됨) + 가능하면 브라우저 전체 화면도 함께 */
@@ -1351,11 +1352,22 @@ function lecFs(on,quiet){vvh();const c=$('.lecview');const was=!!st.lecFs;st.lec
   if(c){if(st.lecFs&&c.parentElement!==document.body){c._home=c.parentElement;c._next=c.nextSibling;document.body.appendChild(c)}else if(!st.lecFs&&c._home&&document.contains(c._home)){c._home.insertBefore(c,c._next&&c._next.parentElement===c._home?c._next:null);c._home=null}}
   const b=$('#lecFull');if(b)b.textContent=st.lecFs?'전체 화면 끝':'전체 화면';
   if(!quiet){try{if(st.lecFs){const el=document.documentElement;if(el.requestFullscreen&&!document.fullscreenElement)el.requestFullscreen().catch(()=>{})}else if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(e){}}
-  setTimeout(lecSize,60);setTimeout(lecSize,350)}
+  setTimeout(lecSize,60);setTimeout(lecSize,350);if(!quiet||on)setTimeout(()=>lecShow(0),80)}
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&st.lecFs)lecFs(false,true);setTimeout(lecSize,60)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.lecFs)lecFs(false)});
+/* 전체 화면: 자료 둘레의 흰 여백을 잘라 내용이 화면을 가득 채우게 */
+const TRIM={};
+function trimSrc(src){if(!src)return Promise.resolve(src);if(TRIM[src])return TRIM[src];
+  TRIM[src]=new Promise(res=>{const im=new Image();im.onload=()=>{try{const k=Math.min(1,1800/Math.max(im.naturalWidth,im.naturalHeight));const w=Math.round(im.naturalWidth*k),h=Math.round(im.naturalHeight*k);
+      const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);const d=x.getImageData(0,0,w,h).data;
+      let t=h,l=w,r=-1,b=-1;const st2=2;for(let y=0;y<h;y+=st2)for(let xx=0;xx<w;xx+=st2){const i=(y*w+xx)*4;if(d[i]<235||d[i+1]<235||d[i+2]<235){if(y<t)t=y;if(y>b)b=y;if(xx<l)l=xx;if(xx>r)r=xx}}
+      if(r<0){res(src);return}const pad=Math.round(Math.max(w,h)*0.02);l=Math.max(0,l-pad);t=Math.max(0,t-pad);r=Math.min(w,r+pad);b=Math.min(h,b+pad);
+      if((r-l)*(b-t)>w*h*0.93){res(src);return}
+      const o=document.createElement('canvas');o.width=r-l;o.height=b-t;const ox=o.getContext('2d');ox.fillStyle='#fff';ox.fillRect(0,0,o.width,o.height);ox.drawImage(c,l,t,r-l,b-t,0,0,r-l,b-t);res(o.toDataURL('image/jpeg',.92))}
+    catch(e){res(src)}};im.onerror=()=>res(src);im.src=src});
+  return TRIM[src]}
 async function lecShow(dir){const m=lecList().find(x=>x.id===st.lecSel);const pg=$('.a4page');if(!m||!pg)return;
-  const ct=m.contentType||'';let src='';try{src=(/^image\//.test(ct)||/pdf/.test(ct))?await lecSrc(m,st.lecP):''}catch(e){pg.innerHTML='<div class="a4msg"><p class="muted">자료를 열지 못했어요. 다시 올려 보세요.</p></div>';return}
+  const ct=m.contentType||'';let src='';try{src=(/^image\//.test(ct)||/pdf/.test(ct))?await lecSrc(m,st.lecP):'';if(src&&st.lecFs)src=await trimSrc(src)}catch(e){pg.innerHTML='<div class="a4msg"><p class="muted">자료를 열지 못했어요. 다시 올려 보세요.</p></div>';return}
   const n=lecCount(m)||1;if(st.lecP>n-1){st.lecP=n-1;return lecShow(0)}
   const html=lecInner(m,src);const lab=$('#lecNo');if(lab)lab.textContent=`${st.lecP+1} / ${n}`;
   const pv=$('#lecPrev'),nx=$('#lecNext');if(pv)pv.disabled=st.lecP<=0;if(nx)nx.disabled=st.lecP>=n-1;
