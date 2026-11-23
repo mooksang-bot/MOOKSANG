@@ -226,7 +226,8 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 .linkbtn{display:block;border:0;background:none;padding:4px 0;color:var(--accent);text-decoration:underline;text-align:left;font-weight:500}
 #reader[hidden],[hidden]{display:none!important}
 .qbar{display:flex;gap:6px;flex-wrap:wrap;flex:none}
-@media (max-width:520px){body.mfit .head .t{display:none}body.mfit .head{flex-wrap:wrap;justify-content:flex-end}body.mfit .head .mark{margin-right:auto}}
+.mbadge.under{display:inline-block;margin-top:6px;white-space:nowrap}
+@media (max-width:520px){body.mfit .head{flex-wrap:wrap}body.mfit .head .t{flex:1 1 150px}body.mfit .head .t h1,body.mfit .head .t>p{white-space:normal}}
 .qbar .btn{min-height:40px;padding:6px 14px;font-size:.95rem}
 .qbar .btn.on{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:700}
 /* 모든 버튼: 마우스를 올리거나 누르면 네온 빛 */
@@ -519,8 +520,8 @@ function regView(){root.innerHTML=`<div class="shell"><div class="reg">
 /* ---- 성도 화면 ---- */
 const IC={home:'<path d="M3 11l9-7 9 7v9H4z"/><path d="M9 20v-6h6v6"/>',book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M9 7h6"/>',folder:'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'};
 const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
-function headHtml(right){const ps=pastorSrc(st.cover);return `<header class="head">${ps?`<span class="mark pm"><img src="${esc(ps)}" alt="담당 목사님 사진"></span>`:`<span class="mark" aria-hidden="true" style='background:${bgCss(st.cover)};background-size:cover;background-position:center'></span>`}
-  <div class="t"><h1>${esc(st.cover.title)}</h1><p>${esc(st.cover.sub)}</p></div>${right}</header>`}
+function headHtml(right,under){const ps=pastorSrc(st.cover);return `<header class="head">${ps?`<span class="mark pm"><img src="${esc(ps)}" alt="담당 목사님 사진"></span>`:`<span class="mark" aria-hidden="true" style='background:${bgCss(st.cover)};background-size:cover;background-position:center'></span>`}
+  <div class="t"><h1>${esc(st.cover.title)}</h1><p>${esc(st.cover.sub)}</p>${under||''}</div>${right}</header>`}
 function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침','book'],['materials','자료실','folder']];
   if(!tabs.some(t=>t[0]===st.tab))st.tab='home';
   const right=st.master?`<button class="who m btn-like" id="toMaster">마스터 창</button>`:`<span class="who">${st.me?esc(st.me.name)+' 성도님':'성도님'}</span>`;
@@ -710,7 +711,7 @@ function lMemo(){const D=st.lDraft;
 /* ---- 마스터 창 ---- */
 const MSECT=[['memo','메모하기'],['notice','제자들에게 메모 보내기'],['lessons','훈련 과정 입력'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
-  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like memo-ic ${lmUnread()?'blink':''}" id="lmIc" aria-label="반장이 보낸 메모 ${lmUnread()}개">${LENV}반장 메모<b class="n">${lmUnread()||''}</b></button><button class="who btn-like" id="toApp">제자 화면</button><span class="mbadge">마스터 창</span>`)}
+  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like memo-ic ${lmUnread()?'blink':''}" id="lmIc" aria-label="반장이 보낸 메모 ${lmUnread()}개">${LENV}반장 메모<b class="n">${lmUnread()||''}</b></button><button class="who btn-like" id="toApp">제자 화면</button>`,`<span class="mbadge under">마스터 창</span>`)}
    <div class="qbar"><button class="btn" id="qHome">홈으로 가기</button><button class="btn ${st.mtab==='materials'?'on':''}" id="qUp">자료 올리기</button><button class="btn ${st.mtab==='notice'?'on':''}" id="qMsg">제자들에게 메모 보내기</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
    <div class="mbar"><h2>${st.mtab==='memo'?'':cur[1]}</h2><div class="mmenu">
      ${st.mtab!=='memo'?'<button class="btn" id="toMemo">← 메모하기</button>':''}
