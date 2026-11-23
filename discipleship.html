@@ -225,7 +225,11 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 }
 .linkbtn{display:block;border:0;background:none;padding:4px 0;color:var(--accent);text-decoration:underline;text-align:left;font-weight:500}
 #reader[hidden],[hidden]{display:none!important}
-.qbar{display:flex;gap:6px;flex-wrap:wrap;flex:none}
+.qbar{display:flex;gap:6px;flex-wrap:wrap;flex:none;align-items:flex-start}
+.qcol{display:flex;flex-direction:column;gap:6px}
+.qbar .btn.lecbtn{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.qbar .btn.lecbtn.on{background:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 2px #5ff5e6,0 0 12px #5ff5e6}
+.lec-h{font-size:1.05rem;margin-top:4px}
 /* 제자 화면: 자료를 한눈에 (카드 격자) */
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .mtile{display:flex;flex-direction:column;gap:8px;text-align:left;border:1.5px solid var(--line);border-radius:14px;padding:10px;background:var(--card);color:var(--ink);text-decoration:none;min-width:0;cursor:pointer}
@@ -763,10 +767,10 @@ function lMemo(){const D=st.lDraft;
   $$('[data-lmed]').forEach(b=>b.onclick=()=>{const m=st.lmemos.find(x=>x.id===b.dataset.lmed);if(!m)return;st.lDraft={id:m.id,text:m.text,locked:false};st.lNote='고친 다음 보내기를 눌러 주세요.';render();window.scrollTo(0,0);$('#lmText').focus()})}
 
 /* ---- 마스터 창 ---- */
-const MSECT=[['memo','메모하기'],['notice','제자들에게 메모 보내기'],['lessons','훈련 과정 입력'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
+const MSECT=[['memo','메모하기'],['lecture','강의 시작'],['notice','제자들에게 메모 보내기'],['lessons','훈련 과정 입력'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
   root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like memo-ic ${lmUnread()?'blink':''}" id="lmIc" aria-label="반장이 보낸 메모 ${lmUnread()}개">${LENV}반장 메모<b class="n">${lmUnread()||''}</b></button><button class="who btn-like" id="toApp">제자 화면</button>`,`<span class="mbadge under">마스터 창</span>`)}
-   <div class="qbar"><button class="btn" id="qHome">홈으로 가기</button><button class="btn ${st.mtab==='materials'?'on':''}" id="qUp">자료 올리기</button><button class="btn ${st.mtab==='notice'?'on':''}" id="qMsg">제자들에게 메모 보내기</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
+   <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button></div><button class="btn ${st.mtab==='materials'?'on':''}" id="qUp">자료 올리기</button><button class="btn ${st.mtab==='notice'?'on':''}" id="qMsg">제자들에게 메모 보내기</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
    <div class="mbar"><h2>${st.mtab==='memo'?'':cur[1]}</h2><div class="mmenu">
      ${st.mtab!=='memo'?'<button class="btn" id="toMemo">← 메모하기</button>':''}
      <button class="btn" id="mMenu" aria-expanded="${st.menuOpen}">${st.menuOpen?'닫기':'다른 기능'}</button>
@@ -776,10 +780,10 @@ function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur
   on('#lmIc',async()=>{st.mtab='memo';st.menuOpen=false;render();const c=$('#lmCard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});await lmMarkRead()});
   on('#qHome',()=>{st.menuOpen=false;go('cover')});
   const qGo=t=>{st.mtab=t;st.editing=null;st.menuOpen=false;render()};
-  on('#qUp',()=>qGo('materials'));on('#qMsg',()=>qGo('notice'));on('#qPw',()=>qGo('pw'));
+  on('#qLec',()=>qGo('lecture'));on('#qUp',()=>qGo('materials'));on('#qMsg',()=>qGo('notice'));on('#qPw',()=>qGo('pw'));
   on('#mMenu',()=>{st.menuOpen=!st.menuOpen;render()});on('#toMemo',()=>{st.mtab='memo';st.editing=null;render()});
   $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;st.menuOpen=false;render()});
-  ({memo:mMemo,notice:mNotice,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
+  ({lecture:mLecture,memo:mMemo,notice:mNotice,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
 function mMemo(){const ed=st.editing&&st.memos.find(n=>n.id===st.editing);const n=ed||{};
   $('#body').innerHTML=`<section class="card" style="order:2"><p class="kicker">${ed?'메모 수정':'메모하기'}</p>
     <label>제목 <input id="nTitle" maxlength="60" value="${esc(n.title)}"></label>
@@ -878,6 +882,13 @@ function mMembers(){const ids=Object.keys(st.members).sort((a,b)=>(st.members[a]
     h+=`<div class="member"><div><span class="nm">${esc(m.name)}</span> ${m.group?`<span class="muted small">· ${esc(m.group)}</span>`:''}</div><span class="chk ${total&&d===total?'ok':''}">${d} / ${total} 완료</span>
       ${notes.length?`<details class="notes"><summary class="small muted">나눔 ${notes.length}개 보기</summary>${notes.map(l=>`<div><b>${esc(l.title)}</b><br>${esc(p.notes[l.id])}</div>`).join('')}</details>`:''}</div>`}
   $('#body').innerHTML=h+'</section>'}
+function mLecture(){const files=st.materials.filter(m=>m.kind==='file');
+  const groups=[['기초반 지침',files.filter(m=>m.cat==='guide')],['제자들 보기 자료',files.filter(m=>!m.cat||m.cat==='library')],['공지 첨부 자료',files.filter(m=>m.cat==='notice')]].filter(g=>g[1].length);
+  $('#body').innerHTML=`<section class="card lec"><p class="kicker">강의 자료 · ${files.length}개</p>
+    <p class="small muted">강의할 자료를 누르면 A4 책으로 펼쳐져요. PC에서는 책 화면의 “전체 화면”으로 크게 보여 주세요. 넘기기: 버튼, 화면 누르기, ← → 키.</p>
+    ${groups.length?groups.map(([t,l])=>`<h3 class="lec-h">${t} <span class="small muted">${l.length}개</span></h3>${matGrid(l,'')}`).join('')
+      :`<p class="muted">아직 올린 강의 자료가 없어요.</p><div class="row"><button class="btn pri" id="lecUp">자료 올리기</button></div>`}</section>`;
+  on('#lecUp',()=>{st.mtab='materials';render()})}
 function mPw(){$('#body').innerHTML=`<section class="card"><p class="kicker">제자들 입장 비밀번호</p>
     <span class="status ${st.pwHash?'ok':'no'}">${st.pwHash?'● 제자 비밀번호가 정해져 있어요':'● 아직 비밀번호가 없어요 (제자들이 들어올 수 없어요)'}</span>
     <p>표지에서 “제자들 입장”을 누르면 이 비밀번호를 물어봐요. 정한 비밀번호를 제자들에게 알려 주세요. 앱을 다시 열면 또 물어봐요.</p>
