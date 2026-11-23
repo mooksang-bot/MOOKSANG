@@ -1,0 +1,338 @@
+<title>제자 훈련</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: a full-bleed cover over a chosen background, then one 760px column of cards with a tab bar (bottom on phones, top on PC). */
+:root{
+  --bg:#f2f4f0; --card:#ffffff; --ink:#1c2925; --muted:#5d6b65; --line:#dbe2da;
+  --accent:#2d6a55; --accent-ink:#ffffff; --gold:#a97b22; --soft:#e7efe9; --danger:#b4413c;
+  --serif:"Gowun Batang","Nanum Myeongjo","AppleMyungjo",serif;
+  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111714; --card:#1a231f; --ink:#e8efeb; --muted:#a2b1aa; --line:#2b3732;
+  --accent:#6cc3a1; --accent-ink:#0f1a15; --gold:#e1b75e; --soft:#22302a; --danger:#f08a84; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111714; --card:#1a231f; --ink:#e8efeb; --muted:#a2b1aa; --line:#2b3732;
+  --accent:#6cc3a1; --accent-ink:#0f1a15; --gold:#e1b75e; --soft:#22302a; --danger:#f08a84; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;-webkit-text-size-adjust:100%}
+h1,h2,h3{font-family:var(--serif);font-weight:700;margin:0;line-height:1.3;text-wrap:balance}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font:inherit;font-size:17px;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+textarea{min-height:110px;resize:vertical;line-height:1.6}
+input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+label{display:flex;flex-direction:column;gap:6px;font-size:.92rem;color:var(--muted)}
+.btn{border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:10px 16px;min-height:46px;font-weight:500}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+
+/* ---- cover ---- */
+.cover{position:fixed;inset:0;display:flex;flex-direction:column;color:#fff;overflow:hidden}
+.cover .bgl{position:absolute;inset:0;background-size:cover;background-position:center}
+.cover .hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:38%}
+.cover .dim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,calc(var(--dim)*.6)) 0%,rgba(0,0,0,var(--dim)) 100%)}
+.cover .inner{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:18px;
+  padding:calc(env(safe-area-inset-top,0px) + 24px) max(24px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 32px) max(24px,env(safe-area-inset-left,0px))}
+.eyebrow{font-size:.85rem;letter-spacing:.35em;text-transform:uppercase;opacity:.85}
+.cover h1{font-size:clamp(2.6rem,9vw,4.6rem);letter-spacing:.06em;text-shadow:0 2px 24px rgba(0,0,0,.35)}
+.cover .sub{font-family:var(--serif);font-size:clamp(1.1rem,3.6vw,1.45rem);opacity:.95}
+.cover .rule{width:56px;height:2px;background:#f3d79a}
+.cover .verse{font-family:var(--serif);font-size:clamp(.95rem,3vw,1.1rem);max-width:30em;opacity:.9;line-height:1.8}
+.cover .enter{margin-top:10px;background:#fff;color:#1c2925;border:0;border-radius:999px;padding:14px 38px;font-weight:700;font-size:1.05rem;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.cover .tools{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:max(14px,env(safe-area-inset-right,0px));z-index:2}
+.cover .tools button{background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:8px 16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+/* ---- modal (표지 꾸미기 창) ---- */
+.modal{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.35)}
+.panel{background:var(--card);color:var(--ink);width:100%;max-width:520px;max-height:88%;overflow:auto;border-radius:22px 22px 0 0;
+  padding:20px max(18px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px}
+@media (min-width:760px){.modal{align-items:center;justify-content:flex-end;padding:24px}.panel{border-radius:22px;max-height:calc(100% - 48px)}}
+.panel h2{font-size:1.35rem}
+.swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.sw{aspect-ratio:3/4;border-radius:12px;border:2px solid var(--line);padding:0;position:relative;overflow:hidden;max-width:100%}
+.sw span{position:absolute;left:0;right:0;bottom:0;font-size:.75rem;color:#fff;background:rgba(0,0,0,.35);padding:2px 0}
+.sw.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.sw.up{background:var(--soft);display:grid;place-items:center;color:var(--accent);font-size:.8rem;line-height:1.3}
+input[type=range]{padding:0;border:0;accent-color:var(--accent)}
+
+/* ---- app shell ---- */
+.shell{min-height:100%;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(90px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.head{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 10px;display:flex;align-items:center;gap:10px}
+body.app::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.head .mark{width:42px;height:42px;border-radius:12px;background-size:cover;background-position:center;flex:none;border:0;padding:0}
+.head .t{flex:1;min-width:0}
+.head .t h1{font-size:1.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.head .t p{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who{font-size:.85rem;border:1.5px solid var(--line);border-radius:999px;padding:4px 12px;white-space:nowrap;background:var(--card)}
+.who.m{border-color:var(--gold);color:var(--gold)}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.tabs .in{display:flex;width:100%;max-width:760px}
+.tabs button{flex:1;border:0;background:none;padding:8px 4px;border-radius:10px;font-size:.9rem;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button svg{width:24px;height:24px}
+.tabs button.on{color:var(--accent);font-weight:700}
+@media (min-width:900px){
+  .shell{padding-block:0 40px}
+  .tabs{position:static;background:none;border:0;padding:0 0 4px}
+  .tabs .in{gap:6px}
+  .tabs button{flex:none;flex-direction:row;gap:8px;padding:8px 16px;border:1.5px solid var(--line);background:var(--card);font-size:.95rem}
+  .tabs button.on{border-color:var(--accent);background:var(--soft)}
+  .tabs button svg{width:18px;height:18px}
+}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h2{font-size:1.25rem}
+.kicker{font-size:.78rem;letter-spacing:.12em;color:var(--gold);font-weight:700}
+.notice{white-space:pre-wrap;overflow-wrap:anywhere}
+.bar{height:10px;border-radius:999px;background:var(--soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.lesson{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.lesson>button.lh{width:100%;text-align:left;border:0;background:none;padding:14px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.wk{font-family:var(--serif);font-weight:700;width:48px;height:48px;border-radius:12px;background:var(--soft);color:var(--accent);display:grid;place-items:center;line-height:1.1;font-size:.8rem;text-align:center}
+.wk b{font-size:1.15rem;display:block}
+.lh .tt{min-width:0}
+.lh .tt strong{display:block;font-family:var(--serif);font-size:1.08rem;overflow-wrap:anywhere}
+.lh .tt span{font-size:.85rem;color:var(--muted)}
+.chk{font-size:.8rem;border-radius:999px;padding:3px 10px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.chk.ok{background:var(--accent);color:var(--accent-ink)}
+.lb{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+.blk{border-left:3px solid var(--gold);padding-left:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.blk .k{display:block;font-size:.8rem;color:var(--gold);font-weight:700}
+.member{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 0;border-top:1px solid var(--line)}
+.member:first-of-type{border-top:0}
+.member .nm{font-weight:700}
+.member .notes{grid-column:1/-1;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.member .notes div{background:var(--soft);border-radius:10px;padding:8px 10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.empty{text-align:center;color:var(--muted);padding:20px 8px}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;z-index:30;font-size:.92rem;max-width:calc(100% - 32px);text-align:center}
+.reg{max-width:440px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:16px;padding-block:32px}
+@media (prefers-reduced-motion:no-preference){.cover .inner>*{animation:rise .8s ease-out both}.cover .inner>*:nth-child(2){animation-delay:.08s}.cover .inner>*:nth-child(3){animation-delay:.16s}.cover .inner>*:nth-child(4){animation-delay:.24s}.cover .inner>*:nth-child(5){animation-delay:.32s}.cover .inner>*:nth-child(6){animation-delay:.4s}}
+@keyframes rise{from{transform:translateY(10px);opacity:.3}to{transform:none;opacity:1}}
+</style>
+
+<div id="root"></div>
+
+<script>
+/* ================= 기본값 ================= */
+const PRESETS={
+  dawn:{name:'새벽',css:'linear-gradient(165deg,#1d3557 0%,#6d4a6b 45%,#d9825b 76%,#f4c27a 100%)',hill:'#22303f'},
+  field:{name:'들판',css:'linear-gradient(170deg,#23413a 0%,#4f7d5c 48%,#a9c27f 80%,#ead9a0 100%)',hill:'#1e3a2f'},
+  sea:{name:'바다',css:'linear-gradient(170deg,#0d2b45 0%,#1f5f7a 50%,#4fa3a5 80%,#cfe8df 100%)',hill:'#0f2a3a'},
+  night:{name:'밤하늘',css:'linear-gradient(175deg,#070b1f 0%,#1c2450 55%,#4a3f74 85%,#8a6a8f 100%)',hill:'#0a0d1f'}
+};
+const DEF_COVER={bg:{type:'preset',value:'dawn'},dim:25,title:'제자 훈련',sub:'인도 · 김병구 목사',verse:'“그러므로 너희는 가서 모든 민족을 제자로 삼아”\n— 마태복음 28:19'};
+const LSK='disciple-v1';
+let db=null,assets=null;
+const st={mode:'loading',master:false,canWrite:true,uid:null,cover:{...DEF_COVER},notice:'',lessons:[],members:{},progAll:{},
+  me:null,meLoaded:false,prog:{done:{},notes:{}},view:'cover',tab:'home',open:null,editing:null,draft:null,busy:false};
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=s=>document.querySelector(s);
+const uidGen=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2600)}
+function bgCss(c){const b=c.bg||{};if(b.type==='asset')return `url("${b.url||('/_blob/'+b.value)}")`;if(b.type==='data')return `url("${b.value}")`;return (PRESETS[b.value]||PRESETS.dawn).css}
+const hillSvg=c=>{const b=c.bg||{};if(b.type!=='preset')return '';const h=(PRESETS[b.value]||PRESETS.dawn).hill;
+  return `<svg class="hills" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true"><path d="M0 190 C180 120 330 150 470 175 C640 205 760 110 930 120 C1050 128 1130 160 1200 150 L1200 300 L0 300Z" fill="${h}" opacity=".55"/><path d="M0 240 C220 190 380 230 560 225 C760 220 900 175 1200 215 L1200 300 L0 300Z" fill="${h}" opacity=".85"/></svg>`};
+
+/* ================= 저장 (로컬 미리보기용) ================= */
+function lsLoad(){try{const d=JSON.parse(localStorage.getItem(LSK)||'null');if(d){Object.assign(st,{cover:{...DEF_COVER,...d.cover},notice:d.notice||'',lessons:d.lessons||[],prog:d.prog||{done:{},notes:{}}})}}catch(e){}}
+function lsSave(){try{localStorage.setItem(LSK,JSON.stringify({cover:st.cover,notice:st.notice,lessons:st.lessons,prog:st.prog}))}catch(e){}}
+const isLocal=()=>st.mode==='local';
+
+/* ================= 쓰기 ================= */
+async function write(fn,okMsg){try{await fn();if(okMsg)toast(okMsg);return true}catch(e){toast(e&&e.code==='invalid_argument'?'저장할 권한이 없어요. 목사님께 “참여자” 권한을 요청해 주세요.':'저장하지 못했어요. 잠시 뒤 다시 해 주세요.');return false}}
+async function saveCover(c){st.cover=c;if(isLocal()){lsSave();return true}return write(()=>db.collection('board').doc('cover').set(JSON.parse(JSON.stringify(c))),'표지를 저장했어요.')}
+async function saveNotice(t){st.notice=t;if(isLocal()){lsSave();return true}return write(()=>db.collection('board').doc('notice').set({text:t,updatedAt:Date.now()}),'공지를 올렸어요.')}
+async function saveLesson(l){const i=st.lessons.findIndex(x=>x.id===l.id);if(i>=0)st.lessons[i]=l;else st.lessons.push(l);sortLessons();
+  if(isLocal()){lsSave();return true}const {id,...body}=l;return write(()=>db.collection('lessons').doc(id).set(body),'과정을 저장했어요.')}
+async function delLesson(id){st.lessons=st.lessons.filter(x=>x.id!==id);if(isLocal()){lsSave();return true}return write(()=>db.collection('lessons').doc(id).delete(),'과정을 지웠어요.')}
+async function saveProg(){if(isLocal()){lsSave();return true}return write(()=>db.collection('progress').doc(st.uid).set(JSON.parse(JSON.stringify(st.prog))))}
+async function saveMe(m){if(isLocal()){st.me=m;return true}const ok=await write(()=>db.collection('members').doc(st.uid).set(m),'등록했어요. 환영합니다!');if(ok)st.me=m;return ok}
+const sortLessons=()=>st.lessons.sort((a,b)=>(a.week||0)-(b.week||0)||(a.createdAt||0)-(b.createdAt||0));
+
+/* ================= 화면 ================= */
+const root=document.getElementById('root');
+const typing=()=>{const a=document.activeElement;return a&&root.contains(a)&&/^(INPUT|TEXTAREA)$/.test(a.tagName)};
+function soft(){if(!typing())render()}
+function render(){document.body.classList.toggle('app',st.view!=='cover');
+  if(st.view==='cover')return coverView();
+  if(needReg())return regView();
+  mainView()}
+const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
+
+/* ---- 표지 ---- */
+function coverView(){const c=st.draft||st.cover;
+  root.innerHTML=`<section class="cover" style="--dim:${(c.dim??25)/100}">
+   <div class="bgl" style='background:${bgCss(c)};background-size:cover;background-position:center'></div>${hillSvg(c)}<div class="dim"></div>
+   ${st.master&&!st.draft?`<div class="tools"><button id="decor">표지 꾸미기</button></div>`:''}
+   <div class="inner">
+     <p class="eyebrow">Discipleship</p>
+     <h1>${esc(c.title)}</h1>
+     <div class="rule"></div>
+     <p class="sub">${esc(c.sub)}</p>
+     <p class="verse">${esc(c.verse).replace(/\n/g,'<br>')}</p>
+     ${st.draft?'':`<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'들어가기'}</button>`}
+   </div></section>${st.draft?decorPanel():''}`;
+  const en=$('#enter');if(en)en.onclick=()=>{if(st.mode==='loading')return;st.view='app';window.scrollTo(0,0);render()};
+  const d=$('#decor');if(d)d.onclick=()=>{st.draft=JSON.parse(JSON.stringify(st.cover));render()};
+  if(st.draft)bindDecor()}
+function decorPanel(){const c=st.draft,b=c.bg||{};
+  return `<div class="modal" id="modal"><div class="panel" role="dialog" aria-label="표지 꾸미기">
+   <div class="row" style="justify-content:space-between"><h2>표지 꾸미기</h2><button class="btn ghost" id="dClose">닫기</button></div>
+   <div><p class="small muted" style="margin-bottom:8px">배경</p><div class="swatches">
+     <button class="sw up ${b.type!=='preset'?'on':''}" id="dUp">${b.type!=='preset'?'<span style="position:static;background:none;color:var(--accent)">사진<br>바꾸기</span>':'사진<br>올리기'}</button>
+     ${Object.entries(PRESETS).map(([k,p])=>`<button class="sw ${b.type==='preset'&&b.value===k?'on':''}" data-pre="${k}" style="background:${p.css}"><span>${p.name}</span></button>`).join('')}
+   </div><input type="file" id="dFile" accept="image/*" hidden>
+   <p class="small muted" id="dMsg" style="margin-top:6px">${st.busy?'사진을 올리는 중이에요…':'휴대폰 사진첩이나 PC의 사진을 고를 수 있어요.'}</p></div>
+   <label>사진 어둡게 (글씨가 잘 보이도록) <input type="range" id="dDim" min="0" max="70" value="${c.dim??25}"></label>
+   <label>제목 <input id="dTitle" value="${esc(c.title)}" maxlength="30"></label>
+   <label>부제 <input id="dSub" value="${esc(c.sub)}" maxlength="40"></label>
+   <label>말씀 <textarea id="dVerse" maxlength="200" style="min-height:80px">${esc(c.verse)}</textarea></label>
+   <div class="row"><button class="btn pri" id="dSave" style="flex:1">저장하고 모두에게 보이기</button><button class="btn" id="dReset">처음 표지로</button></div>
+  </div></div>`}
+function bindDecor(){const c=st.draft;
+  $('#dClose').onclick=()=>{st.draft=null;render()};
+  $('#modal').onclick=e=>{if(e.target.id==='modal'){st.draft=null;render()}};
+  document.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{c.bg={type:'preset',value:b.dataset.pre};render()});
+  $('#dUp').onclick=()=>$('#dFile').click();
+  $('#dFile').onchange=e=>{const f=e.target.files[0];if(f)pickImage(f)};
+  $('#dDim').oninput=e=>{c.dim=+e.target.value;$('.cover').style.setProperty('--dim',c.dim/100)};
+  const live=(id,key)=>$(id).oninput=e=>{c[key]=e.target.value;const m={title:'.cover h1',sub:'.cover .sub'}[key];if(m)$(m).textContent=e.target.value;else $('.cover .verse').innerHTML=esc(e.target.value).replace(/\n/g,'<br>')};
+  live('#dTitle','title');live('#dSub','sub');live('#dVerse','verse');
+  $('#dReset').onclick=()=>{st.draft=JSON.parse(JSON.stringify(DEF_COVER));render()};
+  $('#dSave').onclick=async()=>{const d=st.draft;d.title=d.title.trim()||DEF_COVER.title;st.draft=null;const ok=await saveCover(d);if(isLocal())toast('표지를 저장했어요.');render()}}
+function loadImg(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const i=new Image();i.onload=()=>res({i,u});i.onerror=()=>{URL.revokeObjectURL(u);rej()};i.src=u})}
+function scaled(i,max){const r=Math.min(1,max/Math.max(i.naturalWidth,i.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(i.naturalWidth*r);c.height=Math.round(i.naturalHeight*r);c.getContext('2d').drawImage(i,0,0,c.width,c.height);return c}
+async function pickImage(file){st.busy=true;render();let img;
+  try{img=await loadImg(file)}catch(e){st.busy=false;render();toast('이 사진은 열 수 없어요. 다른 사진을 골라 주세요.');return}
+  try{
+    if(assets){const cv=scaled(img.i,2000);const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.85));
+      try{const r=await assets.upload(blob);if(st.draft)st.draft.bg={type:'asset',value:r.id,url:r.url};return}catch(e){}}
+    let cv=scaled(img.i,1280),d=cv.toDataURL('image/jpeg',.72);
+    if(d.length>230000){cv=scaled(img.i,960);d=cv.toDataURL('image/jpeg',.6)}
+    if(st.draft)st.draft.bg={type:'data',value:d};
+  }finally{URL.revokeObjectURL(img.u);st.busy=false;if(st.draft)render()}}
+
+/* ---- 성도 등록 ---- */
+function regView(){root.innerHTML=`<div class="shell"><div class="reg">
+  <p class="kicker">성도 등록</p><h1 style="font-size:1.8rem">${esc(st.cover.title)}에 오신 것을 환영합니다</h1>
+  <p class="muted">처음 한 번만 이름을 등록하면, 김병구 목사님이 훈련 과정과 나눔을 함께 볼 수 있어요.</p>
+  <label>이름 <input id="rName" maxlength="20" autocomplete="name" placeholder="예: 홍길동"></label>
+  <label>소속 (구역·목장, 선택) <input id="rGroup" maxlength="30" placeholder="예: 3구역"></label>
+  <button class="btn pri" id="rGo">등록하고 시작하기</button>
+  <button class="btn ghost" id="rBack">표지로 돌아가기</button></div></div>`;
+  $('#rGo').onclick=async()=>{const name=$('#rName').value.trim();if(!name){toast('이름을 적어 주세요.');return}
+    if(await saveMe({name,group:$('#rGroup').value.trim(),joinedAt:Date.now()}))render()};
+  $('#rBack').onclick=()=>{st.view='cover';render()}}
+
+/* ---- 본 화면 ---- */
+const IC={home:'<path d="M3 11l9-7 9 7v9H4z"/><path d="M9 20v-6h6v6"/>',book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M9 7h6"/>',people:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14c2.8 0 5 2.2 5 5"/>'};
+const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
+function mainView(){const tabs=[['home','홈','home'],['lessons','훈련 과정','book']];if(st.master)tabs.push(['members','성도','people']);
+  if(!tabs.some(t=>t[0]===st.tab))st.tab='home';
+  const me=st.master?'김병구 목사 · 마스터':(st.me?esc(st.me.name)+' 성도님':'성도님');
+  root.innerHTML=`<div class="shell"><div class="wrap">
+   <header class="head"><button class="mark" id="toCover" aria-label="표지 보기" style='background:${bgCss(st.cover)};background-size:cover;background-position:center'></button>
+     <div class="t"><h1>${esc(st.cover.title)}</h1><p>${esc(st.cover.sub)}</p></div><span class="who ${st.master?'m':''}">${me}</span></header>
+   <nav class="tabs"><div class="in">${tabs.map(([k,l,i])=>`<button data-tab="${k}" class="${st.tab===k?'on':''}">${ic(i)}<span>${l}</span></button>`).join('')}</div></nav>
+   <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
+  $('#toCover').onclick=()=>{st.view='cover';render()};
+  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{st.tab=b.dataset.tab;st.open=null;st.editing=null;window.scrollTo(0,0);render()});
+  ({home:homeTab,lessons:lessonsTab,members:membersTab})[st.tab]()}
+
+function homeTab(){const total=st.lessons.length,done=st.lessons.filter(l=>st.prog.done[l.id]).length;const next=st.lessons.find(l=>!st.prog.done[l.id])||st.lessons[st.lessons.length-1];
+  const body=$('#body');
+  body.innerHTML=`<section class="card"><p class="kicker">공지</p>
+    ${st.editing==='notice'?`<textarea id="nText" maxlength="1500" placeholder="성도님들께 전할 말씀을 적어 주세요.">${esc(st.notice)}</textarea><div class="row"><button class="btn pri" id="nSave">올리기</button><button class="btn" id="nCancel">취소</button></div>`
+     :(st.notice?`<p class="notice">${esc(st.notice)}</p>`:`<p class="muted">${st.master?'아직 공지가 없어요. 성도님들께 첫 인사를 남겨 보세요.':'아직 공지가 없어요.'}</p>`)}
+    ${st.master&&st.editing!=='notice'?`<div class="row"><button class="btn" id="nEdit">${st.notice?'공지 고치기':'공지 쓰기'}</button></div>`:''}</section>
+   ${st.master?`<section class="card"><p class="kicker">함께 쓰기</p><h2>성도님 초대하는 방법</h2>
+     <p>이 페이지 오른쪽 위의 <b>공유</b> 메뉴에서 성도님을 초대해 주세요. 성도님이 과제 완료와 나눔을 저장하려면 권한을 <b>“참여자(Contributor)”</b>로 정해야 해요.</p>
+     <p class="muted small">아이폰·삼성폰·PC 어디서든 같은 주소로 열 수 있어요.</p></section>`
+    :`<section class="card"><p class="kicker">나의 훈련</p><h2>${done} / ${total} 과정 완료</h2><div class="bar"><i style="width:${total?done/total*100:0}%"></i></div></section>`}
+   <section class="card"><p class="kicker">${st.master?'최근 과정':'이번에 할 과정'}</p>
+    ${next?`<h2>${next.week?esc(next.week)+'주차 · ':''}${esc(next.title)}</h2>${next.scripture?`<p class="muted">본문: ${esc(next.scripture)}</p>`:''}<div class="row"><button class="btn pri" id="goLesson">과정 보기</button></div>`
+     :`<p class="muted">${st.master?'아직 올린 과정이 없어요. “훈련 과정” 탭에서 첫 과정을 올려 주세요.':'김병구 목사님이 과정을 올리면 여기에 보여요.'}</p>${st.master?'<div class="row"><button class="btn pri" id="goAdd">첫 과정 올리기</button></div>':''}`}</section>
+   <p class="small muted" style="text-align:center">${st.mode==='db'?'모든 내용은 함께 쓰는 성도님들과 실시간으로 공유돼요.':'미리보기: 이 기기에만 저장돼요.'}</p>`;
+  const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
+  on('#nEdit',()=>{st.editing='notice';render();$('#nText').focus()});
+  on('#nCancel',()=>{st.editing=null;render()});
+  on('#nSave',async()=>{const t=$('#nText').value.trim();st.editing=null;await saveNotice(t);render()});
+  on('#goLesson',()=>{st.tab='lessons';st.open=next.id;render()});
+  on('#goAdd',()=>{st.tab='lessons';st.editing='new';render()})}
+
+function lessonForm(l){l=l||{};return `<section class="card"><p class="kicker">${l.id?'과정 고치기':'새 과정 올리기'}</p>
+  <div class="row" style="flex-wrap:nowrap"><label style="width:110px;flex:none">주차 <input id="fWeek" inputmode="numeric" value="${esc(l.week??(st.lessons.length+1))}"></label><label style="flex:1;min-width:0">제목 <input id="fTitle" maxlength="60" value="${esc(l.title)}" placeholder="예: 구원의 확신"></label></div>
+  <label>성경 본문 <input id="fScr" maxlength="80" value="${esc(l.scripture)}" placeholder="예: 요한복음 3:16"></label>
+  <label>핵심 내용 <textarea id="fBody" maxlength="4000" placeholder="이번 과정에서 함께 나눌 내용">${esc(l.body)}</textarea></label>
+  <label>과제 <textarea id="fTask" maxlength="1500" style="min-height:80px" placeholder="예: 요한복음 3장 읽고 한 구절 암송하기">${esc(l.task)}</textarea></label>
+  <div class="row"><button class="btn pri" id="fSave">저장</button><button class="btn" id="fCancel">취소</button></div></section>`}
+function lessonsTab(){const body=$('#body');let h='';
+  if(st.master){h+=st.editing==='new'?lessonForm():`<div class="row"><button class="btn pri" id="addL">+ 새 과정 올리기</button></div>`}
+  if(!st.lessons.length&&st.editing!=='new')h+=`<section class="card empty">${st.master?'아직 과정이 없어요. 위 버튼으로 첫 과정을 올려 주세요.':'김병구 목사님이 과정을 올리면 여기에 보여요.'}</section>`;
+  for(const l of st.lessons){if(st.editing===l.id){h+=lessonForm(l);continue}
+    const done=!!st.prog.done[l.id],open=st.open===l.id;
+    const cnt=st.master?Object.values(st.progAll).filter(p=>p&&p.done&&p.done[l.id]).length:0;
+    h+=`<article class="lesson"><button class="lh" data-open="${l.id}" aria-expanded="${open}"><span class="wk">${l.week?`<b>${esc(l.week)}</b>주차`:'과정'}</span>
+      <span class="tt"><strong>${esc(l.title)}</strong>${l.scripture?`<span>${esc(l.scripture)}</span>`:''}</span>
+      ${st.master?`<span class="chk">${cnt}명 완료</span>`:`<span class="chk ${done?'ok':''}">${done?'완료':'진행 전'}</span>`}</button>
+      ${open?`<div class="lb">${l.body?`<div class="blk"><span class="k">핵심 내용</span>${esc(l.body)}</div>`:''}${l.task?`<div class="blk"><span class="k">과제</span>${esc(l.task)}</div>`:''}
+        ${st.master?`<div class="row"><button class="btn" data-edit="${l.id}">고치기</button><button class="btn danger" data-del="${l.id}">지우기</button></div>`
+        :`<label>나의 나눔 (목사님만 볼 수 있어요) <textarea id="note_${l.id}" maxlength="2000" placeholder="이번 과정에서 받은 은혜와 적용을 적어 보세요.">${esc(st.prog.notes[l.id])}</textarea></label>
+          <div class="row"><button class="btn" data-note="${l.id}">나눔 저장</button><button class="btn ${done?'':'pri'}" data-done="${l.id}">${done?'완료 취소':'과제 완료했어요'}</button></div>`}</div>`:''}</article>`}
+  body.innerHTML=h;
+  const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
+  on('#addL',()=>{st.editing='new';render();$('#fTitle').focus()});
+  on('#fCancel',()=>{st.editing=null;render()});
+  on('#fSave',async()=>{const t=$('#fTitle').value.trim();if(!t){toast('제목을 적어 주세요.');return}
+    const old=st.lessons.find(x=>x.id===st.editing)||{};const wk=$('#fWeek').value.trim();
+    const l={id:old.id||uidGen(),week:wk===''?'':(isNaN(+wk)?wk:+wk),title:t,scripture:$('#fScr').value.trim(),body:$('#fBody').value.trim(),task:$('#fTask').value.trim(),createdAt:old.createdAt||Date.now(),updatedAt:Date.now()};
+    st.editing=null;st.open=l.id;await saveLesson(l);render()});
+  body.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{st.open=st.open===b.dataset.open?null:b.dataset.open;render()});
+  body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{st.editing=b.dataset.edit;render()});
+  body.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const id=b.dataset.del;b.parentElement.innerHTML=`<span>이 과정을 지울까요?</span><button class="btn danger" id="yDel">지우기</button><button class="btn" id="nDel">취소</button>`;
+    $('#yDel').onclick=async()=>{st.open=null;await delLesson(id);render()};$('#nDel').onclick=()=>render()});
+  body.querySelectorAll('[data-done]').forEach(b=>b.onclick=async()=>{const id=b.dataset.done;if(st.prog.done[id])delete st.prog.done[id];else st.prog.done[id]=Date.now();render();if(await saveProg()&&st.prog.done[id])toast('수고하셨어요! 완료로 표시했어요.')});
+  body.querySelectorAll('[data-note]').forEach(b=>b.onclick=async()=>{const id=b.dataset.note;st.prog.notes[id]=$('#note_'+id).value.trim();if(await saveProg())toast('나눔을 저장했어요.')})}
+
+function membersTab(){const body=$('#body');const ids=Object.keys(st.members).sort((a,b)=>(st.members[a].joinedAt||0)-(st.members[b].joinedAt||0));const total=st.lessons.length;
+  let h=`<section class="card"><p class="kicker">등록 성도</p><h2>${ids.length}명</h2>`;
+  if(!ids.length)h+=`<p class="muted">${st.mode==='db'?'아직 등록한 성도님이 없어요. 공유 메뉴에서 성도님을 초대하면, 처음 들어올 때 이름을 등록해요.':'미리보기에서는 성도 명단이 비어 있어요. 게시된 페이지에서 성도님이 등록하면 여기에 보여요.'}</p>`;
+  for(const id of ids){const m=st.members[id],p=st.progAll[id]||{done:{},notes:{}};const d=st.lessons.filter(l=>p.done&&p.done[l.id]).length;
+    const notes=st.lessons.filter(l=>p.notes&&p.notes[l.id]);
+    h+=`<div class="member"><div><span class="nm">${esc(m.name)}</span> ${m.group?`<span class="muted small">· ${esc(m.group)}</span>`:''}</div><span class="chk ${total&&d===total?'ok':''}">${d} / ${total} 완료</span>
+      ${notes.length?`<details class="notes"><summary class="small muted">나눔 ${notes.length}개 보기</summary>${notes.map(l=>`<div><b>${esc(l.title)}</b><br>${esc(p.notes[l.id])}</div>`).join('')}</details>`:''}</div>`}
+  body.innerHTML=h+'</section>'}
+
+/* ================= 시작 ================= */
+lsLoad();render();
+(async()=>{await new Promise(r=>setTimeout(r,0));
+  let d=null,u=null;
+  try{if(window.claude){[d,u,assets]=await Promise.all([claude.use('db'),claude.use('user'),claude.use('assets')])}}catch(e){}
+  if(!d){st.mode='local';st.master=true;st.meLoaded=true;render();return}
+  db=d;st.mode='db';
+  try{st.uid=u?await u.id():null;st.master=u?!!(await u.canEdit()):false}catch(e){}
+  if(!st.uid&&!st.master){st.meLoaded=true}
+  const timer=setTimeout(()=>{st.meLoaded=true;soft()},8000);
+  db.collection('board').doc('cover').onSnapshot(s=>{st.cover=s.exists?{...DEF_COVER,...s.data()}:{...DEF_COVER};soft()},()=>{});
+  db.collection('board').doc('notice').onSnapshot(s=>{st.notice=s.exists?(s.data().text||''):'';soft()},()=>{});
+  db.collection('lessons').onSnapshot(q=>{st.lessons=q.docs.map(x=>({id:x.id,...x.data()}));sortLessons();soft()},()=>{});
+  if(st.uid){
+    db.collection('members').doc(st.uid).onSnapshot(s=>{st.me=s.exists?s.data():null;st.meLoaded=true;clearTimeout(timer);soft()},()=>{st.meLoaded=true;soft()});
+    db.collection('progress').doc(st.uid).onSnapshot(s=>{if(s.exists&&!s.metadata.hasPendingWrites){const p=s.data();st.prog={done:{...(p.done||{})},notes:{...(p.notes||{})}}}soft()},()=>{});
+  }
+  if(st.master){
+    db.collection('members').onSnapshot(q=>{st.members=Object.fromEntries(q.docs.map(x=>[x.id,x.data()]));soft()},()=>{});
+    db.collection('progress').onSnapshot(q=>{st.progAll=Object.fromEntries(q.docs.map(x=>[x.id,x.data()]));soft()},()=>{});
+  }
+  render()})();
+</script>
