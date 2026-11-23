@@ -520,6 +520,8 @@ function soft(){if(!typing())render()}
 const entryOk=()=>!!st.pwHash&&st.unlocked===st.pwHash;
 const canEnter=()=>entryOk()||masterUnlocked();
 const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
+/* 마스터(편집자)라도 '제자들 입장'으로 들어오면 제자와 똑같은 화면만 보여요 */
+const isM=()=>!!st.master&&st.view!=='app';
 function go(view){st.view=view;window.scrollTo(0,0);render()}
 function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster');
   if(st.view==='master'&&!masterUnlocked())st.view='cover';
@@ -638,7 +640,7 @@ function headHtml(right,under){const ps=pastorSrc(st.cover);return `<header clas
   <div class="t"><h1>${esc(st.cover.title)}</h1><p>${esc(st.cover.sub)}</p>${under||''}</div>${right}</header>`}
 function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침 보기','book'],['materials','제자들 보기','folder'],['notices','공지 보기','bell']];
   if(!tabs.some(t=>t[0]===st.tab))st.tab='home';
-  const right=st.master?`<button class="who m btn-like" id="toMaster">마스터 창</button>`:`<span class="who">${st.me?esc(st.me.name)+' 성도님':'성도님'}</span>`;
+  const right=isM()?`<button class="who m btn-like" id="toMaster">마스터 창</button>`:`<span class="who">${st.me?esc(st.me.name)+' 성도님':'성도님'}</span>`;
   root.innerHTML=`<div class="shell"><div class="wrap">${headHtml(right)}
    <nav class="tabs"><div class="in">${tabs.map(([k,l,i])=>`<button data-tab="${k}" class="${st.tab===k?'on':''}">${ic(i)}<span>${l}</span></button>`).join('')}</div></nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
@@ -678,7 +680,7 @@ function matRow(m,admin){const img=m.kind==='file'&&/^image\//.test(m.contentTyp
     ${m.desc?`<p class="small" style="white-space:pre-wrap">${esc(m.desc)}</p>`:''}
     ${admin?`<div class="row"><button class="btn danger" data-delmat="${m.id}">삭제</button></div>`:''}</div>`}
 /* ---- 제자 화면에서 바로 자료 올리기 (마스터) ---- */
-function upPanel(cat){if(!st.master)return '';const g=cat==='guide';
+function upPanel(cat){if(!isM())return '';const g=cat==='guide';
   return `<section class="card upcard"><p class="kicker">${g?'기초반 지침 자료 올리기':'자료실에 자료 올리기'}</p>
     <label>자료 제목 <input id="upTitle" maxlength="80" placeholder="${g?'예: 기초반 1주차 지침':'예: 1주차 교재'}"></label>
     <label>파일 (PDF·사진·영상, 한 파일 20MB까지) <input id="upFile" type="file" multiple accept="application/pdf,image/*,video/*"></label>
@@ -715,11 +717,11 @@ function noticesTab(){const mine=st.notices.filter(forMe);
     ${mine.length?mine.map(n=>noticeItem(n,(n.createdAt||0)>st.seen).replace('<div class="item">',`<div class="item"><em class="by ${byOf(n)==='반장'?'lead':''}">${byOf(n)}</em>`)).join(''):'<p class="muted">마스터나 반장이 공지를 올리면 여기에 보여요.</p>'}</section>`}
 function materialsTab(){const lib=st.materials.filter(m=>m.cat!=='guide'&&m.cat!=='notice');
   $('#body').innerHTML=`<section class="card"><p class="kicker">제자들 보기 · 자료 ${lib.length}개</p>${matGrid(lib,'마스터나 반장이 자료를 올리면 여기에 바로 보여요.')}</section>
-  ${upPanel('library')}${st.master&&lib.length?`<section class="card"><p class="kicker">자료 관리 (마스터)</p>${lib.map(m=>matRow(m,true)).join('')}</section>`:''}`;
+  ${upPanel('library')}${isM()&&lib.length?`<section class="card"><p class="kicker">자료 관리 (마스터)</p>${lib.map(m=>matRow(m,true)).join('')}</section>`:''}`;
   bindUp('library');bindDelMat()}
 function lessonsTab(){const guides=st.materials.filter(m=>m.cat==='guide');
   let h=`<section class="card"><p class="kicker">기초반 지침 보기 · 자료 ${guides.length}개</p>${matGrid(guides,'마스터나 반장이 지침 자료를 올리면 여기에 바로 보여요.')}</section>`+upPanel('guide');
-  if(st.master&&guides.length)h+=`<section class="card"><p class="kicker">지침 자료 관리 (마스터)</p>${guides.map(m=>matRow(m,true)).join('')}</section>`;
+  if(isM()&&guides.length)h+=`<section class="card"><p class="kicker">지침 자료 관리 (마스터)</p>${guides.map(m=>matRow(m,true)).join('')}</section>`;
   if(!st.lessons.length)h+=`<section class="card empty">김병구 목사님이 과정을 올리면 여기에 보여요.</section>`;
   for(const l of st.lessons){const done=!!st.prog.done[l.id],open=st.open===l.id;const mats=st.materials.filter(m=>m.lessonId===l.id);
     h+=`<article class="lesson"><button class="lh" data-open="${l.id}" aria-expanded="${open}"><span class="wk">${l.week?`<b>${esc(l.week)}</b>주차`:'과정'}</span>
@@ -727,7 +729,7 @@ function lessonsTab(){const guides=st.materials.filter(m=>m.cat==='guide');
       <span class="chk ${done?'ok':''}">${done?'완료':'진행 전'}</span></button>
       ${open?`<div class="lb">${l.body?`<div class="blk"><span class="k">핵심 내용</span>${esc(l.body)}</div>`:''}${l.task?`<div class="blk"><span class="k">과제</span>${esc(l.task)}</div>`:''}
         ${mats.length?`<div class="blk" style="white-space:normal"><span class="k">이 과정의 자료</span>${mats.map(m=>bookable(m)?`<button class="linkbtn" data-read="${m.id}">${esc(m.title)} · 책으로 보기</button>`:`<a href="${esc(m.kind==='link'?safeLink(m.url):assetUrl(m))}" target="_blank" rel="noopener" style="display:block">${esc(m.title)}</a>`).join('')}</div>`:''}
-        ${st.master?'<p class="small muted">제자 화면 미리보기예요. 고치기는 마스터 창에서 해요.</p>'
+        ${isM()?'<p class="small muted">제자 화면 미리보기예요. 고치기는 마스터 창에서 해요.</p>'
         :`<label>나의 나눔 (목사님만 볼 수 있어요) <textarea id="note_${l.id}" maxlength="2000" placeholder="이번 과정에서 받은 은혜와 적용을 적어 보세요.">${esc(st.prog.notes[l.id])}</textarea></label>
           <div class="row"><button class="btn" data-note="${l.id}">나눔 저장</button><button class="btn ${done?'':'pri'}" data-done="${l.id}">${done?'완료 취소':'과제 완료했어요'}</button></div>`}</div>`:''}</article>`}
   const b=$('#body');b.innerHTML=h;bindUp('guide');bindDelMat();
@@ -1077,7 +1079,7 @@ function mSettings(){$('#body').innerHTML=`<section class="card"><p class="kicke
   on('#decor',()=>{st.draft=plain(st.cover);go('cover')});
   on('#mSavePw',async()=>{const a=$('#m1').value.trim(),b=$('#m2').value.trim();if(a.length<4){toast('4자 이상 적어 주세요.');return}if(a!==b){toast('두 비밀번호가 달라요.');return}await saveMasterPw(a);render()});
   on('#mLock',lockMaster)}
-const forMe=n=>st.master||!n.to||!n.to.length||(!!st.me&&Array.isArray(n.toNames)&&n.toNames.includes(st.me.name));
+const forMe=n=>isM()||!n.to||!n.to.length||(!!st.me&&Array.isArray(n.toNames)&&n.toNames.includes(st.me.name));
 function toLabel(x){return !x.to||!x.to.length?'전체 제자':x.toNames&&x.toNames.length?x.toNames.join(', '):x.to.length+'명'}
 
 /* ================= 책 보기 (A4, 책장 넘기기) ================= */
