@@ -955,7 +955,7 @@ function lMemo(){const D=st.lDraft;
 /* ---- 마스터 창 ---- */
 const MSECT=[['memo','메모하기'],['lecture','강의 시작'],['att','출석부'],['lessons','훈련 과정 입력'],['guide','기초반 지침서'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
-  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like memo-ic ${lmUnread()?'blink':''}" id="lmIc" aria-label="반장이 보낸 메모 ${lmUnread()}개">${LENV}반장 메모<b class="n">${lmUnread()||''}</b></button><button class="who btn-like" id="toApp">제자 화면</button>`,`<span class="mbadge under">마스터 창</span>`)}
+  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml('',`<span class="mbadge under">마스터 창</span>`)}
    <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button></div><button class="btn ${st.mtab==='guide'?'on':''}" id="qUp">기초반 지침서</button><button class="btn ${st.mtab==='att'?'on':''}" id="qAtt">출석부</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
    ${st.mtab==='memo'?'':`<div class="mbar"><h2>${cur[1]}</h2></div>`}
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
