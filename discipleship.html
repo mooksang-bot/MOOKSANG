@@ -256,6 +256,10 @@ label.oxb:has(input:focus-visible){outline:3px solid var(--accent)}
 .qn{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:.9rem}
 .qtag{font-size:.75rem;border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--muted)}
 .qtext{white-space:pre-wrap;font-weight:600;margin:0}
+.qbr{color:#39ffe0;font-weight:800;white-space:pre;text-shadow:0 0 2px #39ffe0,0 0 8px rgba(57,255,224,.85),0 0 18px rgba(57,255,224,.55);padding:0 2px;border-radius:6px;background:rgba(57,255,224,.10)}
+:root[data-theme="light"] .qbr{color:#007a6b;text-shadow:0 0 6px rgba(0,200,170,.55);background:rgba(0,200,170,.12)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .qbr{color:#007a6b;text-shadow:0 0 6px rgba(0,200,170,.55);background:rgba(0,200,170,.12)}}
+.qprev{white-space:pre-wrap;font-weight:600;font-size:1.05rem;line-height:1.7;border:1px dashed var(--line);border-radius:12px;padding:8px 12px;min-height:44px;overflow-wrap:anywhere}
 .qol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:2px}
 .qol li.ok{color:#4ade80;font-weight:700}
 .qol li.ok::after{content:" ✓"}
@@ -1348,19 +1352,23 @@ function mLecture(){const L=lecList();if(!L.some(m=>m.id===st.lecSel)){st.lecSel
 /* ================= 퀴즈: 문제 만들기 ================= */
 const QT={mc:'객관식',ox:'O / X',short:'단답형'};
 function quizAnsLabel(q){if(q.type==='mc'){const i=+q.answer;return (i+1)+'번 · '+((q.choices||[])[i]||'')}if(q.type==='ox')return q.answer;return q.answer||''}
+/* 문제 속 괄호 [ ] 부분을 네온으로 */
+const qHi=t=>esc(t).replace(/\[[^\]\n]*\]/g,m=>`<span class="qbr">${m}</span>`);
 function mQuiz(){const ed=st.qEdit&&st.quizzes.find(x=>x.id===st.qEdit);const q=ed||{};const T=st.qType||(ed&&ed.type)||'mc';const ch=(q.choices||['','','','']).concat(['','','','']).slice(0,4);
   const L=st.quizzes;
   $('#body').innerHTML=`<section class="card qform"><p class="kicker">${ed?'퀴즈 문제 고치기':'퀴즈 문제 만들기'}</p>
-    <label>문제 <textarea id="qQ" maxlength="1000" placeholder="예: 예수님을 믿으면 얻는 것은 무엇인가요?">${esc(q.q||'')}</textarea></label>
+    <label>문제 <textarea id="qQ" maxlength="1000" placeholder="예: 하나님이 세상을 이처럼 [    ] 하사">${esc(q.q||'')}</textarea></label>
+    <div class="qprev" id="qPrev" aria-live="polite">${q.q?qHi(q.q):'<span class="muted small">미리 보기 · 문제에 [    ] 괄호를 넣으면 네온 색으로 보여요</span>'}</div>
     <label>정답 (선택) <input id="qShort" maxlength="200" value="${esc(q.type==='mc'?quizAnsLabel(q):q.answer||'')}" placeholder="예: 영생"></label>
     <label>해설 (선택) <textarea id="qEx" maxlength="1000" style="min-height:60px" placeholder="정답 풀이나 성경 구절을 적어 두세요">${esc(q.explain||'')}</textarea></label>
     <div class="row"><button class="btn pri" id="qSave">${ed?'고친 문제 저장':'문제 저장'}</button>${ed?'<button class="btn" id="qCancel">취소</button>':'<button class="btn" id="qClear">새로 쓰기</button>'}</div></section>
    <section class="card qlist"><p class="kicker">만든 퀴즈 ${L.length}문제</p>
     ${L.length?L.map((x,i)=>`<div class="item qitem ${x.id===st.qEdit?'qed':''}"><div class="qh"><span class="qn">${i+1}</span></div>
-      <p class="qtext">${esc(x.q)}</p>
+      <p class="qtext">${qHi(x.q)}</p>
       ${x.type==='mc'?`<ol class="qol">${(x.choices||[]).map((c,j)=>`<li class="${String(j)===String(x.answer)?'ok':''}">${esc(c)}</li>`).join('')}</ol>`:''}
       ${quizAnsLabel(x)?`<p class="qans">정답: <b>${esc(quizAnsLabel(x))}</b></p>`:''}${x.explain?`<p class="small muted">해설: ${esc(x.explain)}</p>`:''}
       <div class="row"><button class="btn" data-qed="${x.id}">수정</button><button class="btn danger" data-qdel="${x.id}">삭제</button></div></div>`).join(''):'<p class="muted">아직 만든 퀴즈가 없어요. 왼쪽에서 문제를 만들어 저장하세요.</p>'}</section>`;
+  const qq=$('#qQ');if(qq)qq.oninput=()=>{const v=qq.value;$('#qPrev').innerHTML=v.trim()?qHi(v):'<span class="muted small">미리 보기 · 문제에 [    ] 괄호를 넣으면 네온 색으로 보여요</span>'};
   on('#qSave',async()=>{const text=$('#qQ').value.trim();if(!text){toast('문제를 적어 주세요.');return}
     const answer=$('#qShort').value.trim(),choices=[];
     const o={id:ed?ed.id:uidGen(),type:'short',q:text,choices,answer,explain:$('#qEx').value.trim(),createdAt:ed?ed.createdAt:Date.now(),updatedAt:Date.now()};
