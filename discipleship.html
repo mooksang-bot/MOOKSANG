@@ -151,6 +151,10 @@ body.app::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-i
 .status.ok{color:var(--accent)} .status.no{color:var(--danger)}
 .cover .hint{font-size:.85rem;background:rgba(0,0,0,.35);border-radius:999px;padding:6px 14px}
 .who.btn-like{cursor:pointer}
+.cover .pastor img{width:clamp(92px,15dvh,140px);height:clamp(92px,15dvh,140px);border-radius:50%;object-fit:cover;border:3px solid #f3d79a;box-shadow:0 6px 24px rgba(0,0,0,.35);display:block}
+@media (max-height:720px){.cover .inner{gap:12px}.cover h1{font-size:clamp(2.2rem,8vw,3.2rem)}}
+.pphoto{width:110px;height:110px;flex:none;border-radius:50%;overflow:hidden;background:var(--soft);display:grid;place-items:center;text-align:center;color:var(--muted);font-size:.85rem;border:3px solid var(--gold)}
+.pphoto img{width:100%;height:100%;object-fit:cover}
 </style>
 <div id="root"></div>
 
@@ -167,8 +171,12 @@ const LSK='disciple-v2',LUN='disciple-unlocked',LSEEN='disciple-seen';
 let db=null,assets=null;
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+const LMS='disciple-master-ok';
+const ssGet=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
+const ssSet=(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}};
 const st={mode:'loading',master:false,uid:null,cover:{...DEF_COVER},notices:[],lessons:[],materials:[],members:{},progAll:{},
   me:null,meLoaded:false,prog:{done:{},notes:{}},pwHash:null,unlocked:lsGet(LUN),seen:+(lsGet(LSEEN)||0),
+  masterHash:null,masterLoaded:false,masterOk:ssGet(LMS),mpwOpen:false,mpwMsg:'',
   view:'cover',tab:'home',mtab:'notice',open:null,editing:null,draft:null,busy:false,pwOpen:false,pwMsg:'',pwWrong:0,pwWait:0,allNotices:false,matKind:'file'};
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -177,7 +185,7 @@ const $$=s=>document.querySelectorAll(s);
 const uidGen=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const fmtDate=t=>t?new Date(t).toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'}):'';
 function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2600)}
-function bgCss(c){const b=c.bg||{};if(b.type==='asset')return `url("${b.url||('/_blob/'+b.value)}")`;if(b.type==='data')return `url("${b.value}")`;return (PRESETS[b.value]||PRESETS.dawn).css}
+function bgCss(c){const b=c.bg||{};if(b.type==='asset')return `url("/_blob/${b.value}")`;if(b.type==='data')return `url("${b.value}")`;return (PRESETS[b.value]||PRESETS.dawn).css}
 const hillSvg=c=>{const b=c.bg||{};if(b.type!=='preset')return '';const h=(PRESETS[b.value]||PRESETS.dawn).hill;
   return `<svg class="hills" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true"><path d="M0 190 C180 120 330 150 470 175 C640 205 760 110 930 120 C1050 128 1130 160 1200 150 L1200 300 L0 300Z" fill="${h}" opacity=".55"/><path d="M0 240 C220 190 380 230 560 225 C760 220 900 175 1200 215 L1200 300 L0 300Z" fill="${h}" opacity=".85"/></svg>`};
 const assetUrl=m=>m.assetUrl||('/_blob/'+m.assetId);
@@ -185,8 +193,8 @@ const safeLink=u=>/^https?:\/\//i.test(u)?u:'https://'+u;
 
 /* ================= 저장 ================= */
 const isLocal=()=>st.mode==='local';
-function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null})}catch(e){}}
-function lsSave(){lsSet(LSK,JSON.stringify({cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash}))}
+function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null,masterHash:d.masterHash||null})}catch(e){}}
+function lsSave(){lsSet(LSK,JSON.stringify({cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash,masterHash:st.masterHash}))}
 async function write(fn,okMsg){if(isLocal()){lsSave();if(okMsg)toast(okMsg);return true}
   try{await fn();if(okMsg)toast(okMsg);return true}catch(e){toast(e&&e.code==='invalid_argument'?'저장할 권한이 없어요. 목사님께 “참여자” 권한을 요청해 주세요.':'저장하지 못했어요. 잠시 뒤 다시 해 주세요.');return false}}
 const plain=o=>JSON.parse(JSON.stringify(o));
@@ -206,6 +214,13 @@ async function hashPw(pw){const t='disciple:'+pw;try{const b=await crypto.subtle
   catch(e){let h=5381;for(const c of t)h=((h*33)^c.charCodeAt(0))>>>0;return 'h'+h.toString(16)}}
 async function savePw(pw){const h=pw?await hashPw(pw):null;st.pwHash=h;if(h){st.unlocked=h;lsSet(LUN,h)}
   return write(()=>db.collection('settings').doc('entry').set({hash:h,updatedAt:Date.now()}),h?'입장 비밀번호를 정했어요.':'비밀번호를 껐어요.')}
+async function saveMasterPw(pw){const h=await hashPw('master:'+pw);st.masterHash=h;st.masterOk=h;ssSet(LMS,h);
+  return write(()=>db.collection('settings').doc('master').set({hash:h,updatedAt:Date.now()}),'마스터 비밀번호를 정했어요.')}
+const masterUnlocked=()=>st.master&&!!st.masterHash&&st.masterOk===st.masterHash;
+function openMaster(){if(!st.master){toast('마스터 창은 목사님(편집자)만 열 수 있어요.');return}
+  if(masterUnlocked())return go('master');st.mpwOpen=true;st.mpwMsg='';st.view='cover';render();const i=$('#mp1');if(i)i.focus()}
+function lockMaster(){st.masterOk=null;ssSet(LMS,null);go('cover');toast('마스터 창을 잠갔어요.')}
+const pastorSrc=c=>{const p=c.pastor;if(!p||!p.value)return '';return p.type==='asset'?'/_blob/'+p.value:p.value};
 function sortAll(){st.lessons.sort((a,b)=>(+a.week||0)-(+b.week||0)||(a.createdAt||0)-(b.createdAt||0));
   st.notices.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.createdAt||0)-(a.createdAt||0));
   st.materials.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))}
@@ -218,7 +233,7 @@ const canEnter=()=>st.master||(st.pwHash?st.unlocked===st.pwHash:false);
 const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
 function go(view){st.view=view;window.scrollTo(0,0);render()}
 function render(){document.body.classList.toggle('app',st.view!=='cover');
-  if(st.view==='master'&&!st.master)st.view='cover';
+  if(st.view==='master'&&!masterUnlocked())st.view='cover';
   if(st.view==='app'&&!canEnter())st.view='cover';
   if(st.view==='cover')return coverView();
   if(st.view==='master')return masterView();
@@ -230,19 +245,38 @@ const on=(sel,f)=>{const e=$(sel);if(e)e.onclick=f};
 function coverView(){const c=st.draft||st.cover;
   root.innerHTML=`<section class="cover" style="--dim:${(c.dim??25)/100}">
    <div class="bgl" style='background:${bgCss(c)};background-size:cover;background-position:center'></div>${hillSvg(c)}<div class="dim"></div>
-   ${st.master&&!st.draft?`<div class="tools"><button id="toMaster">마스터 창</button></div>`:''}
+   ${st.master&&!st.draft?`<div class="tools"><button id="toMaster">${masterUnlocked()?'마스터 창':'마스터 입장'}</button></div>`:''}
    <div class="inner">
      <p class="eyebrow">Discipleship</p>
      <h1>${esc(c.title)}</h1>
      <div class="rule"></div>
+     ${pastorSrc(c)?`<div class="pastor"><img src="${esc(pastorSrc(c))}" alt="담당 목사님 사진"></div>`:''}
      <p class="sub">${esc(c.sub)}</p>
      <p class="verse">${esc(c.verse).replace(/\n/g,'<br>')}</p>
      ${st.draft?'':`<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'들어가기'}</button>`}
      ${st.master&&!st.draft&&!st.pwHash&&st.mode!=='loading'?`<p class="hint">입장 비밀번호가 아직 없어요. 마스터 창 › 설정에서 정해 주세요.</p>`:''}
-   </div></section>${st.draft?decorPanel():''}${st.pwOpen?pwPanel():''}`;
+   </div></section>${st.draft?decorPanel():''}${st.pwOpen?pwPanel():''}${st.mpwOpen?mpwPanel():''}`;
   on('#enter',()=>{if(st.mode==='loading')return;if(canEnter())return go('app');st.pwOpen=true;st.pwMsg='';render();const i=$('#pwIn');if(i)i.focus()});
-  on('#toMaster',()=>go('master'));
-  if(st.draft)bindDecor();if(st.pwOpen)bindPw()}
+  on('#toMaster',openMaster);
+  if(st.draft)bindDecor();if(st.pwOpen)bindPw();if(st.mpwOpen)bindMpw()}
+function mpwPanel(){const create=st.masterLoaded&&!st.masterHash;
+  return `<div class="modal" id="mpModal"><div class="panel" role="dialog" aria-label="마스터 입장" style="max-width:420px">
+   <div class="row" style="justify-content:space-between"><h2>${!st.masterLoaded?'잠시만요':create?'마스터 비밀번호 만들기':'마스터 입장'}</h2><button class="btn ghost" id="mpClose">닫기</button></div>
+   ${!st.masterLoaded?'<p class="muted">마스터 정보를 불러오고 있어요…</p>'
+   :`<p class="muted">${create?'마스터 창을 열 때 쓸 비밀번호를 정해 주세요. 성도님 입장 비밀번호와 다르게 정해 주세요.':'마스터 비밀번호를 입력해 주세요. 앱을 닫았다 열면 다시 물어봐요.'}</p>
+     <input id="mp1" class="pwin" type="password" autocomplete="${create?'new-password':'current-password'}" maxlength="20" aria-label="마스터 비밀번호">
+     ${create?'<input id="mp2" class="pwin" type="password" autocomplete="new-password" maxlength="20" aria-label="한 번 더 입력" placeholder="한 번 더">':''}
+     <p class="perr" aria-live="polite">${esc(st.mpwMsg)}</p>
+     <button class="btn pri" id="mpGo">${create?'정하고 마스터 창 열기':'마스터 창 열기'}</button>`}</div></div>`}
+function bindMpw(){const close=()=>{st.mpwOpen=false;render()};on('#mpClose',close);$('#mpModal').onclick=e=>{if(e.target.id==='mpModal')close()};
+  const go2=async()=>{const a=$('#mp1').value.trim();
+    if(!st.masterHash){const b=$('#mp2').value.trim();if(a.length<4){st.mpwMsg='4자 이상 적어 주세요.';return render()}if(a!==b){st.mpwMsg='두 비밀번호가 달라요.';return render()}
+      await saveMasterPw(a);st.mpwOpen=false;return go('master')}
+    if(Date.now()<st.pwWait){st.mpwMsg='잠시 뒤에 다시 해 주세요.';return render()}
+    const h=await hashPw('master:'+a);
+    if(h===st.masterHash){st.masterOk=h;ssSet(LMS,h);st.mpwOpen=false;st.pwWrong=0;go('master')}
+    else{st.pwWrong++;if(st.pwWrong>=5){st.pwWait=Date.now()+30000;st.pwWrong=0;st.mpwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else st.mpwMsg='비밀번호가 맞지 않아요.';render();const i=$('#mp1');if(i)i.focus()}};
+  on('#mpGo',go2);['#mp1','#mp2'].forEach(id=>{const i=$(id);if(i)i.onkeydown=e=>{if(e.key==='Enter')go2()}})}
 function pwPanel(){const none=!st.pwHash;
   return `<div class="modal" id="pwModal"><div class="panel" role="dialog" aria-label="입장 비밀번호" style="max-width:420px">
    <div class="row" style="justify-content:space-between"><h2>${none?'아직 입장할 수 없어요':'입장 비밀번호'}</h2><button class="btn ghost" id="pwClose">닫기</button></div>
@@ -287,7 +321,7 @@ function scaled(i,max){const r=Math.min(1,max/Math.max(i.naturalWidth,i.naturalH
 async function pickImage(file){st.busy=true;render();let img;
   try{img=await loadImg(file)}catch(e){st.busy=false;render();toast('이 사진은 열 수 없어요. 다른 사진을 골라 주세요.');return}
   try{if(assets){const cv=scaled(img.i,2000);const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.85));
-      try{const r=await assets.upload(blob);if(st.draft)st.draft.bg={type:'asset',value:r.id,url:r.url};return}catch(e){}}
+      try{const r=await assets.upload(blob);if(st.draft)st.draft.bg={type:'asset',value:r.id};return}catch(e){}}
     let cv=scaled(img.i,1280),d=cv.toDataURL('image/jpeg',.72);if(d.length>230000){cv=scaled(img.i,960);d=cv.toDataURL('image/jpeg',.6)}
     if(st.draft)st.draft.bg={type:'data',value:d};
   }finally{URL.revokeObjectURL(img.u);st.busy=false;if(st.draft)render()}}
@@ -315,7 +349,7 @@ function appView(){const tabs=[['home','홈','home'],['lessons','훈련 과정',
   root.innerHTML=`<div class="shell"><div class="wrap">${headHtml(right)}
    <nav class="tabs"><div class="in">${tabs.map(([k,l,i])=>`<button data-tab="${k}" class="${st.tab===k?'on':''}">${ic(i)}<span>${l}</span></button>`).join('')}</div></nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
-  on('#toCover',()=>go('cover'));on('#toMaster',()=>go('master'));
+  on('#toCover',()=>go('cover'));on('#toMaster',openMaster);
   $$('[data-tab]').forEach(b=>b.onclick=()=>{st.tab=b.dataset.tab;st.open=null;window.scrollTo(0,0);render()});
   ({home:homeTab,lessons:lessonsTab,materials:materialsTab})[st.tab]()}
 function noticeItem(n,isNew){return `<div class="item">${n.pinned?'<span class="pinned">중요 공지</span>':''}
@@ -362,14 +396,14 @@ function lessonsTab(){let h='';
   b.querySelectorAll('[data-note]').forEach(x=>x.onclick=async()=>{const id=x.dataset.note;st.prog.notes[id]=$('#note_'+id).value.trim();if(await saveProg())toast('나눔을 저장했어요.')})}
 
 /* ---- 마스터 창 ---- */
-function masterView(){const tabs=[['notice','공지 전달'],['lessons','훈련 과정 입력'],['materials','자료 입력'],['members','성도 명단'],['settings','설정']];
+function masterView(){const tabs=[['notice','공지 전달'],['lessons','훈련 과정 입력'],['materials','자료 입력'],['pastor','목사님 사진'],['members','성도 명단'],['settings','설정']];
   root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like" id="toApp">성도 화면 보기</button>`)}
    <div class="row" style="justify-content:space-between"><h2 style="font-size:1.5rem">마스터 창</h2><span class="mbadge">김병구 목사</span></div>
    <nav class="mtabs" aria-label="마스터 메뉴">${tabs.map(([k,l])=>`<button data-mtab="${k}" class="${st.mtab===k?'on':''}">${l}</button>`).join('')}</nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#toCover',()=>go('cover'));on('#toApp',()=>{st.tab='home';go('app')});
   $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;render()});
-  ({notice:mNotice,lessons:mLessons,materials:mMaterials,members:mMembers,settings:mSettings})[st.mtab]()}
+  ({notice:mNotice,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,settings:mSettings})[st.mtab]()}
 function mNotice(){const ed=st.editing&&st.notices.find(n=>n.id===st.editing);const n=ed||{};
   $('#body').innerHTML=`<section class="card"><p class="kicker">${ed?'공지 고치기':'새 공지 보내기'}</p>
     <label>제목 (선택) <input id="nTitle" maxlength="60" value="${esc(n.title)}" placeholder="예: 이번 주 모임 안내"></label>
@@ -425,6 +459,26 @@ function mMaterials(){const k=st.matKind;
     catch(e){toast('파일을 올리지 못했어요. 다른 파일로 해 보세요.')}finally{st.busy=false;render()}});
   $$('[data-delmat]').forEach(b=>b.onclick=()=>{const m=st.materials.find(x=>x.id===b.dataset.delmat);b.parentElement.innerHTML=`<span>정말 지울까요?</span><button class="btn danger" id="yM">지우기</button><button class="btn" id="nM">취소</button>`;
     on('#yM',async()=>{await delMat(m);render()});on('#nM',()=>render())})}
+function mPastor(){const src=pastorSrc(st.cover);
+  $('#body').innerHTML=`<section class="card"><p class="kicker">담당 목사님 사진</p>
+    <div class="row" style="gap:18px;flex-wrap:nowrap"><div class="pphoto">${src?`<img src="${esc(src)}" alt="담당 목사님 사진">`:'<span>사진<br>없음</span>'}</div>
+      <p style="min-width:0">여기에 올린 사진이 <b>표지</b>의 제목 아래에 동그랗게 보여요. 얼굴이 가운데 오는 사진이 좋아요.</p></div>
+    <input type="file" id="ppFile" accept="image/*" hidden>
+    <div class="row"><button class="btn pri" id="ppUp" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':src?'사진 바꾸기':'사진 올리기'}</button>
+      ${src?'<button class="btn danger" id="ppDel">사진 지우기</button>':''}<button class="btn" id="ppView">표지에서 보기</button></div></section>`;
+  on('#ppUp',()=>$('#ppFile').click());
+  $('#ppFile').onchange=e=>{const f=e.target.files[0];if(f)pickPastor(f)};
+  on('#ppDel',async()=>{const c=plain(st.cover);delete c.pastor;await saveCover(c);render()});
+  on('#ppView',()=>go('cover'))}
+async function pickPastor(file){st.busy=true;render();let img;
+  try{img=await loadImg(file)}catch(e){st.busy=false;render();toast('이 사진은 열 수 없어요. 다른 사진을 골라 주세요.');return}
+  try{const sq=size=>{const i=img.i,s=Math.min(i.naturalWidth,i.naturalHeight),c=document.createElement('canvas');c.width=c.height=Math.min(size,s);
+      c.getContext('2d').drawImage(i,(i.naturalWidth-s)/2,(i.naturalHeight-s)/2,s,s,0,0,c.width,c.height);return c};
+    let pastor=null;
+    if(assets){try{const blob=await new Promise(r=>sq(600).toBlob(r,'image/jpeg',.86));const r=await assets.upload(blob);pastor={type:'asset',value:r.id}}catch(e){}}
+    if(!pastor)pastor={type:'data',value:sq(360).toDataURL('image/jpeg',.8)};
+    await saveCover({...plain(st.cover),pastor});
+  }finally{URL.revokeObjectURL(img.u);st.busy=false;render()}}
 function mMembers(){const ids=Object.keys(st.members).sort((a,b)=>(st.members[a].joinedAt||0)-(st.members[b].joinedAt||0));const total=st.lessons.length;
   let h=`<section class="card"><p class="kicker">등록 성도</p><h2>${ids.length}명</h2>`;
   if(!ids.length)h+=`<p class="muted">${st.mode==='db'?'아직 등록한 성도님이 없어요. 공유 메뉴에서 성도님을 “참여자”로 초대하고 입장 비밀번호를 알려 주세요.':'미리보기에서는 성도 명단이 비어 있어요.'}</p>`;
@@ -439,17 +493,24 @@ function mSettings(){$('#body').innerHTML=`<section class="card"><p class="kicke
     <label>한 번 더 입력 <input id="p2" type="password" autocomplete="new-password" maxlength="20"></label>
     <div class="row"><button class="btn pri" id="pSave">${st.pwHash?'비밀번호 바꾸기':'비밀번호 정하기'}</button></div>
     <p class="small muted">비밀번호를 바꾸면 이미 들어와 있던 성도님 기기도 새 비밀번호를 다시 물어봐요.</p></section>
+   <section class="card"><p class="kicker">마스터 비밀번호</p>
+    <p>마스터 창을 열 때 묻는 비밀번호예요. 앱을 닫았다 다시 열면 또 물어봐요.</p>
+    <label>새 마스터 비밀번호 (4~20자) <input id="m1" type="password" autocomplete="new-password" maxlength="20"></label>
+    <label>한 번 더 입력 <input id="m2" type="password" autocomplete="new-password" maxlength="20"></label>
+    <div class="row"><button class="btn pri" id="mSavePw">마스터 비밀번호 바꾸기</button><button class="btn" id="mLock">지금 마스터 창 잠그기</button></div></section>
    <section class="card"><p class="kicker">표지</p><p>표지의 배경 사진, 제목, 말씀을 바꿀 수 있어요.</p><div class="row"><button class="btn" id="decor">표지 꾸미기 창 열기</button></div></section>`;
   on('#pSave',async()=>{const a=$('#p1').value.trim(),b=$('#p2').value.trim();if(a.length<4){toast('비밀번호를 4자 이상 적어 주세요.');return}if(a!==b){toast('두 비밀번호가 달라요.');return}await savePw(a);render()});
-  on('#decor',()=>{st.draft=plain(st.cover);go('cover')})}
+  on('#decor',()=>{st.draft=plain(st.cover);go('cover')});
+  on('#mSavePw',async()=>{const a=$('#m1').value.trim(),b=$('#m2').value.trim();if(a.length<4){toast('4자 이상 적어 주세요.');return}if(a!==b){toast('두 비밀번호가 달라요.');return}await saveMasterPw(a);render()});
+  on('#mLock',lockMaster)}
 
 /* ================= 시작 ================= */
 lsLoad();sortAll();render();
 (async()=>{await new Promise(r=>setTimeout(r,0));
   let d=null,u=null;
   try{if(window.claude){[d,u,assets]=await Promise.all([claude.use('db'),claude.use('user'),claude.use('assets')])}}catch(e){}
-  if(!d){st.mode='local';st.master=true;st.meLoaded=true;render();return}
-  db=d;st.mode='db';st.notices=[];st.lessons=[];st.materials=[];st.pwHash=null;
+  if(!d){st.mode='local';st.master=true;st.meLoaded=true;st.masterLoaded=true;render();return}
+  db=d;st.mode='db';st.notices=[];st.lessons=[];st.materials=[];st.pwHash=null;st.masterHash=null;
   try{st.uid=u?await u.id():null;st.master=u?!!(await u.canEdit()):false}catch(e){}
   if(!st.uid)st.meLoaded=true;
   const timer=setTimeout(()=>{st.meLoaded=true;soft()},8000);
@@ -462,6 +523,7 @@ lsLoad();sortAll();render();
     db.collection('progress').doc(st.uid).onSnapshot(s=>{if(s.exists&&!s.metadata.hasPendingWrites){const p=s.data();st.prog={done:{...(p.done||{})},notes:{...(p.notes||{})}}}soft()},()=>{});
   }
   if(st.master){
+    db.collection('settings').doc('master').onSnapshot(s=>{st.masterHash=s.exists?(s.data().hash||null):null;st.masterLoaded=true;soft()},()=>{st.masterLoaded=true;soft()});
     db.collection('members').onSnapshot(q=>{st.members=Object.fromEntries(q.docs.map(x=>[x.id,x.data()]));soft()},()=>{});
     db.collection('progress').onSnapshot(q=>{st.progAll=Object.fromEntries(q.docs.map(x=>[x.id,x.data()]));soft()},()=>{});
   }
