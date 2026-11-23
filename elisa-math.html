@@ -138,6 +138,28 @@ sup{font-size:.6em}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
 .confetti i{position:absolute;top:-20px;width:12px;height:16px;border-radius:3px;animation:fall 1.6s ease-in forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.6}}
+/* 문제 화면: 스크롤 없이 한 화면에 맞추기 */
+html:has(body.fit){height:100%}
+body.fit{height:100%;min-height:0;margin:0;overflow:hidden;padding-block:8px}
+body.fit .wrap{height:100%;gap:8px}
+.qtop{display:flex;align-items:center;gap:8px}
+.qtop h2{font-size:1.2rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qtop .back{padding:6px 12px;font-size:1rem}
+body.fit .progress{height:10px;flex:none}
+body.fit .qcard{flex:1;min-height:0;padding:12px 14px;gap:8px;border-radius:22px}
+body.fit .q{font-size:clamp(1.2rem,3.6dvh,1.7rem);line-height:1.55;min-height:0;overflow:auto;flex:0 1 auto}
+body.fit .q small{font-size:.9rem}
+body.fit .ansbox{margin-top:auto;min-height:0;height:clamp(44px,7dvh,64px);flex:none;font-size:clamp(1.4rem,4dvh,2rem)}
+body.fit .choices{margin-top:auto;gap:8px}
+body.fit .ansbox.empty{font-size:1rem}
+body.fit .pad{gap:6px;flex:none}
+body.fit .pad button{min-height:0;height:clamp(40px,7dvh,58px);font-size:1.35rem}
+body.fit .choices button{min-height:0;padding:8px;font-size:clamp(1.05rem,2.8dvh,1.3rem)}
+body.fit .qcard .row{flex-wrap:nowrap;flex:none}
+body.fit .qcard .row .btn{flex:1;min-height:44px;padding:6px 10px;font-size:1rem}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;max-height:80%;overflow:auto;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet>div{max-width:720px;margin:0 auto;box-shadow:0 -8px 30px #00000040}
+.sheet>.tip{border:3px solid var(--violet);display:flex;flex-direction:column;gap:8px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -353,6 +375,7 @@ const IC={
 function topBar(title){return `<div class="topbar">${title?`<button class="back" data-go="home">← 처음으로</button><h2>${title}</h2>`:`<span class="chip">⭐ 별 <b>${S.stars}</b>개</span>`}<span class="chip">오늘 <b>${S.daily.date===today()?S.daily.count:0}</b>문제</span></div>`}
 
 function render(){window.scrollTo(0,0);
+  document.body.classList.toggle('fit',view==='quiz'&&!!sess&&!!sess.prob&&sess.mode!=='result'&&sess.mode!=='empty');
   if(view==='home')home();else if(view==='road')road();else if(view==='report')report();else if(view==='quiz')quiz();
   app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==='diag')startDiag();else if(g==='practice')startPractice(false);else if(g==='review')startPractice(true);else{view=g;render()}});
   updateSave()}
@@ -402,14 +425,13 @@ function quiz(){
   if(P.type==='num')body=`<div class="ansbox ${sess.input?'':'empty'}" id="ans" aria-live="polite">${sess.input?esc(sess.input.replace(/-/g,M)):'아래 숫자판으로 답을 입력해요'}</div>
     <div class="pad" id="pad">${['7','8','9','⌫','4','5','6','/','1','2','3','−','0','.'].map(k=>`<button class="${/[0-9]/.test(k)?'':'op'}" data-k="${k}" aria-label="${k==='⌫'?'지우기':k==='/'?'분수 막대':k}">${k}</button>`).join('')}<button class="go" data-k="ok">확인</button></div>`;
   else body=`<div class="choices">${P.choices.map((c,i)=>`<button data-c="${i}">${c.h}</button>`).join('')}</div>`;
-  app.innerHTML=`${topBar(sess.mode==='diag'?'실력 진단 테스트':sess.mode==='review'?'오답 복습':'오늘의 연습')}
+  app.innerHTML=`<div class="qtop"><button class="back" data-go="home">← 처음</button><h2>${sess.mode==='diag'?'실력 진단':sess.mode==='review'?'오답 복습':'오늘의 연습'}</h2><span class="chip">${prog}</span></div>
   <div class="progress"><i style="width:${pct}%"></i></div>
-  <section class="qcard"><div class="qhead"><span class="tag">${s.g} · ${s.name}</span><span class="chip">${prog}</span></div>
-   ${sess.rev?'<span class="tag rev" style="align-self:flex-start">비슷한 문제 다시! 이번엔 꼭 맞혀 보자</span>':''}
+  <section class="qcard"><div class="qhead"><span class="tag">${s.g} · ${s.name}</span>${sess.rev?'<span class="tag rev">비슷한 문제 다시!</span>':''}</div>
    <div class="q">${P.q}</div>${body}
    <div class="row"><button class="btn ghost" id="idk">잘 모르겠어요</button><button class="btn ghost" id="hint">개념 힌트</button></div>
-   <div id="fb"></div></section>`;
-  document.getElementById('hint').onclick=()=>{const f=document.getElementById('fb');f.innerHTML=`<div class="tip"><b>루미의 힌트</b><br>${s.concept}</div>`};
+   </section><div id="fb" class="sheet" hidden></div>`;
+  document.getElementById('hint').onclick=()=>tipSheet(`<b>루미의 힌트</b>${s.concept}`);
   document.getElementById('idk').onclick=()=>answer(null);
   if(P.type==='num'){document.getElementById('pad').onclick=e=>{const b=e.target.closest('button');if(b)key(b.dataset.k)}}
   else app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>answer(+b.dataset.c))}
@@ -425,7 +447,7 @@ function parse(s){s=s.replace(/−/g,'-').trim();if(s.includes('/')){const [a,b]
 
 function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill];let ok,tag=null,givenH;
   if(given===null){ok=false;tag='concept';givenH='모르겠어요'}
-  else if(P.type==='num'){const v=parse(given);if(isNaN(v)){document.getElementById('fb').innerHTML='<div class="tip">숫자를 다시 확인해 줘요. 분수는 3/4처럼 써요.</div>';return}
+  else if(P.type==='num'){const v=parse(given);if(isNaN(v)){tipSheet('숫자를 다시 확인해 줘요. 분수는 3/4처럼 써요.');return}
     ok=near(v,P.ans);givenH=given.replace(/-/g,M);if(!ok)tag=P.diag(v)||'calc'}
   else{const c=P.choices[given];ok=c.ok;givenH=c.h;if(!ok)tag=c.tag||'calc';
     app.querySelectorAll('[data-c]').forEach((b,i)=>{b.disabled=true;if(P.choices[i].ok)b.classList.add('right');else if(i===given)b.classList.add('wrong')})}
@@ -444,7 +466,7 @@ function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill
   else{sess.count++;if(ok)sess.correct++;else sess.forceSkill=sess.skill}
   save();
   const praise=pick(['정답! 최고야!','맞았어! 대단해!','완벽해! 이 느낌 그대로!','정답! 실력이 쑥쑥 크고 있어!']);
-  const fb=document.getElementById('fb');
+  const fb=document.getElementById('fb');fb.hidden=false;
   fb.innerHTML=ok?`<div class="fb good"><h3><span class="mark">○</span> ${praise}</h3>${levelUp?`<div class="tip"><b>레벨 업!</b> “${s.name}” 단원을 통과했어요. 다음 단원으로 넘어가요!</div>`:''}
     <details><summary>풀이 보기</summary><ol class="steps">${P.steps.map(x=>`<li>${x}</li>`).join('')}</ol></details>
     <button class="btn pri" id="next">다음 문제 →</button></div>`
@@ -455,7 +477,8 @@ function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill
     <button class="btn pri" id="next">${sess.mode==='diag'?'다음 문제 →':'비슷한 문제로 다시 도전 →'}</button></div>`;
   if(ok)confetti(levelUp?60:18);
   document.getElementById('next').onclick=()=>{if(sess.mode==='diag')sess.i++;nextQ()};
-  fb.scrollIntoView({behavior:'smooth',block:'nearest'})}
+}
+function tipSheet(h){const f=document.getElementById('fb');f.hidden=false;f.innerHTML=`<div class="tip">${h}<button class="btn pri" id="closeTip">알겠어요</button></div>`;document.getElementById('closeTip').onclick=()=>{f.hidden=true;f.innerHTML=''}}
 
 function finishDiag(){const res=sess.res;let start=res.findIndex(r=>!r.ok);if(start<0)start=Math.min(res.length,SKILLS.length-1);
   res.forEach((r,i)=>{if(r.ok&&i<start){const k=sk(r.id);k.m=Math.max(k.m,.8);k.n=Math.max(k.n,3)}});
