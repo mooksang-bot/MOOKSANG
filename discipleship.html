@@ -571,7 +571,7 @@ function soft(){if(!typing())render()}
 const entryOk=()=>!!st.pwHash&&st.unlocked===st.pwHash;
 const canEnter=()=>entryOk()||masterUnlocked();
 const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
-/* 마스터(편집자)라도 '제자들 입장'으로 들어오면 제자와 똑같은 화면만 보여요 */
+/* 마스터(편집자)라도 '제자들 입장'으로 들어오면 제자와 똑같은 화면만 보여요 ('2반 입장' 버튼) */
 const isM=()=>!!st.master&&st.view!=='app';
 function go(view){st.view=view;window.scrollTo(0,0);render()}
 function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster');
@@ -598,8 +598,8 @@ function coverView(){const c=st.draft||st.cover;
      ${pastorSrc(c)?`<div class="pastor"><img src="${esc(pastorSrc(c))}" alt="담당 목사님 사진"></div>`:''}
      <p class="sub">${esc(c.sub)}</p>
      <p class="verse">${verseHtml(c.verse)}</p>
-     ${st.draft?'':`<div class="enters">${st.master?`<button class="enter alt" id="toMaster">마스터 입장</button>`:''}<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'제자들 입장'}</button><button class="enter lead" id="toLeader">${leaderUnlocked()?'반장 창':'반장 입장'}</button></div>`}
-     ${st.master&&!st.draft&&!st.pwHash&&st.mode!=='loading'?`<p class="hint">입장 비밀번호가 아직 없어요. 마스터 창 › 다른 기능 › 설정에서 정해 주세요.</p>`:''}
+     ${st.draft?'':`<div class="enters">${st.master?`<button class="enter alt" id="toMaster">마스터 입장</button>`:''}<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'2반 입장'}</button><button class="enter lead" id="toLeader">반장 입장</button></div>`}
+     ${st.master&&!st.draft&&!st.pwHash&&st.mode!=='loading'?`<p class="hint">입장 비밀번호가 아직 없어요. 마스터 창 › 입장 비밀번호에서 정해 주세요.</p>`:''}
    </div></section>${st.draft?decorPanel():''}${st.pwOpen?pwPanel():''}${st.mpwOpen?mpwPanel():''}${st.lpwOpen?lpwPanel():''}`;
   on('#enter',()=>{if(st.mode==='loading')return;st.unlocked=null;ssSet(LUN,null);st.pwOpen=true;st.pwMsg='';render();const i=$('#pwIn');if(i)i.focus()});
   on('#toMaster',openMaster);
@@ -626,7 +626,7 @@ function bindMpw(){const close=()=>{st.mpwOpen=false;render()};on('#mpClose',clo
 function pwPanel(){const none=!st.pwHash;
   return `<div class="modal" id="pwModal"><div class="panel" role="dialog" aria-label="입장 비밀번호" style="max-width:420px">
    <div class="row" style="justify-content:space-between"><h2>${none?'아직 입장할 수 없어요':'입장 비밀번호'}</h2><button class="btn ghost" id="pwClose">닫기</button></div>
-   ${none?`<p>${st.master?'아직 입장 비밀번호를 정하지 않았어요. “마스터 입장” › 다른 기능 › 설정에서 비밀번호를 정해 주세요.':'김병구 목사님이 입장 비밀번호를 정하면 들어올 수 있어요. 비밀번호는 목사님께 받아 주세요.'}</p>`
+   ${none?`<p>${st.master?'아직 입장 비밀번호를 정하지 않았어요. “마스터 입장” › 입장 비밀번호에서 비밀번호를 정해 주세요.':'김병구 목사님이 입장 비밀번호를 정하면 들어올 수 있어요. 비밀번호는 목사님께 받아 주세요.'}</p>`
    :`<p class="muted">마스터(김병구 목사님)가 알려 준 비밀번호를 입력하고 입장해 주세요.</p>
      <input id="pwIn" class="pwin" type="password" autocomplete="off" maxlength="20" aria-label="비밀번호">
      <p class="perr" aria-live="polite">${esc(st.pwMsg)}</p>
@@ -815,7 +815,7 @@ function openLeader(){if(leaderUnlocked())return go('leader');st.lpwOpen=true;st
 function lpwPanel(){const none=!st.leaderHash;
   return `<div class="modal" id="lpModal"><div class="panel" role="dialog" aria-label="반장 입장" style="max-width:420px">
    <div class="row" style="justify-content:space-between"><h2>${none?'아직 반장 비밀번호가 없어요':'반장 입장'}</h2><button class="btn ghost" id="lpClose">닫기</button></div>
-   ${none?'<p>마스터가 마스터 창 › 다른 기능 › 설정에서 반장 비밀번호를 정하면 들어올 수 있어요.</p>'
+   ${none?'<p>마스터가 마스터 창 › 입장 비밀번호에서 반장 비밀번호를 정하면 들어올 수 있어요.</p>'
    :`<p class="muted">마스터에게 받은 반장 비밀번호를 입력해 주세요. 앱을 다시 열면 또 물어봐요.</p>
      <input id="lpIn" class="pwin" type="password" autocomplete="off" maxlength="20" aria-label="반장 비밀번호">
      <p class="perr" aria-live="polite">${esc(st.lpwMsg)}</p>
@@ -1193,7 +1193,7 @@ function mLecture(){const L=lecList();if(!L.some(m=>m.id===st.lecSel)){st.lecSel
   bindDelMat();lecSize();if(cur)lecShow(0)}
 function mPw(){$('#body').innerHTML=`<section class="card"><p class="kicker">제자들 입장 비밀번호</p>
     <span class="status ${st.pwHash?'ok':'no'}">${st.pwHash?'● 제자 비밀번호가 정해져 있어요':'● 아직 비밀번호가 없어요 (제자들이 들어올 수 없어요)'}</span>
-    <p>표지에서 “제자들 입장”을 누르면 이 비밀번호를 물어봐요. 정한 비밀번호를 제자들에게 알려 주세요. 앱을 다시 열면 또 물어봐요.</p>
+    <p>표지에서 “2반 입장”을 누르면 이 비밀번호를 물어봐요. 정한 비밀번호를 제자들에게 알려 주세요. 앱을 다시 열면 또 물어봐요.</p>
     <label>${st.pwHash?'새 제자 비밀번호':'제자 비밀번호'} (4~20자) <input id="p1" type="password" autocomplete="new-password" maxlength="20"></label>
     <label>한 번 더 입력 <input id="p2" type="password" autocomplete="new-password" maxlength="20"></label>
     <div class="row"><button class="btn pri" id="pSave">${st.pwHash?'제자 비밀번호 바꾸기':'제자 비밀번호 정하기'}</button></div>
