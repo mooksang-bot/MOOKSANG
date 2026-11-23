@@ -931,10 +931,10 @@ function lMemo(){const D=st.lDraft;
   $$('[data-lmed]').forEach(b=>b.onclick=()=>{const m=st.lmemos.find(x=>x.id===b.dataset.lmed);if(!m)return;st.lDraft={id:m.id,text:m.text,locked:false};st.lNote='고친 다음 보내기를 눌러 주세요.';render();window.scrollTo(0,0);$('#lmText').focus()})}
 
 /* ---- 마스터 창 ---- */
-const MSECT=[['memo','메모하기'],['lecture','강의 시작'],['att','출석부'],['lessons','훈련 과정 입력'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
+const MSECT=[['memo','메모하기'],['lecture','강의 시작'],['att','출석부'],['lessons','훈련 과정 입력'],['guide','기초반 지침서'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
   root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like memo-ic ${lmUnread()?'blink':''}" id="lmIc" aria-label="반장이 보낸 메모 ${lmUnread()}개">${LENV}반장 메모<b class="n">${lmUnread()||''}</b></button><button class="who btn-like" id="toApp">제자 화면</button>`,`<span class="mbadge under">마스터 창</span>`)}
-   <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button></div><button class="btn ${st.mtab==='materials'?'on':''}" id="qUp">자료 올리기</button><button class="btn ${st.mtab==='att'?'on':''}" id="qAtt">출석부</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
+   <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button></div><button class="btn ${st.mtab==='guide'?'on':''}" id="qUp">기초반 지침서</button><button class="btn ${st.mtab==='att'?'on':''}" id="qAtt">출석부</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
    <div class="mbar"><h2>${st.mtab==='memo'?'':cur[1]}</h2><div class="mmenu">
      ${st.mtab!=='memo'?'<button class="btn" id="toMemo">← 메모하기</button>':''}
      <button class="btn" id="mMenu" aria-expanded="${st.menuOpen}">${st.menuOpen?'닫기':'다른 기능'}</button>
@@ -944,10 +944,10 @@ function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur
   on('#lmIc',async()=>{st.mtab='memo';st.menuOpen=false;render();const c=$('#lmCard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});await lmMarkRead()});
   on('#qHome',()=>{st.menuOpen=false;go('cover')});
   const qGo=t=>{st.mtab=t;st.editing=null;st.menuOpen=false;render()};
-  on('#qLec',()=>qGo('lecture'));on('#qAtt',()=>qGo('att'));on('#qUp',()=>qGo('materials'));on('#qPw',()=>qGo('pw'));
+  on('#qLec',()=>qGo('lecture'));on('#qAtt',()=>qGo('att'));on('#qUp',()=>qGo('guide'));on('#qPw',()=>qGo('pw'));
   on('#mMenu',()=>{st.menuOpen=!st.menuOpen;render()});on('#toMemo',()=>{st.mtab='memo';st.editing=null;render()});
   $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;st.menuOpen=false;render()});
-  ({att:()=>{leadSub();lRoster()},lecture:mLecture,memo:mMemo,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
+  ({att:()=>{leadSub();lRoster()},lecture:mLecture,memo:mMemo,lessons:mLessons,guide:()=>mMaterials(true),materials:()=>mMaterials(false),pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
 function mMemo(){const ed=st.editing&&st.memos.find(n=>n.id===st.editing);const n=ed||{};
   $('#body').innerHTML=`<section class="card" style="order:2"><p class="kicker">${ed?'메모 수정':'메모하기'}</p>
     <label>제목 <input id="nTitle" maxlength="60" value="${esc(n.title)}"></label>
@@ -987,21 +987,22 @@ function mLessons(){const ed=st.editing&&st.lessons.find(l=>l.id===st.editing);
     st.editing=null;await saveLesson(l);render()});
   $$('[data-led]').forEach(b=>b.onclick=()=>{st.editing=b.dataset.led;render();window.scrollTo(0,0)});
   confirmDel('[data-ldel]','ldel',id=>delLesson(id))}
-function mMaterials(){const k=st.matKind;
-  $('#body').innerHTML=`<section class="card"><p class="kicker">자료 입력</p>
+function mMaterials(G){const k=st.matKind;const list=st.materials.filter(m=>G?m.cat==='guide':m.cat!=='guide');
+  $('#body').innerHTML=`<section class="card"><p class="kicker">${G?'기초반 지침서 올리기':'자료 입력'}</p>
+    ${G?'<p class="small muted">여기에 올린 자료는 제자 화면의 <b>“기초반 지침 보기”</b>에 바로 보여요.</p>':''}
     <div class="seg"><button class="btn ${k==='file'?'on':''}" data-kind="file">파일 올리기</button><button class="btn ${k==='link'?'on':''}" data-kind="link">링크 (유튜브 등)</button></div>
-    <label>자료 제목 <input id="mTitle" maxlength="80" placeholder="예: 1주차 교재"></label>
+    <label>자료 제목 <input id="mTitle" maxlength="80" placeholder="${G?'예: 기초반 지침서 1과':'예: 1주차 교재'}"></label>
     ${k==='file'?`<label>파일 (PDF·사진·영상, 한 파일 20MB까지) <input id="mFile" type="file" multiple accept="application/pdf,image/*,video/*,.txt"></label>
-      <p class="small muted">PDF나 사진은 올리면 바로 <b>책장을 넘기는 A4 책</b>으로 펼쳐져요. 사진 여러 장을 함께 고르면 한 권의 책이 돼요. 한글·워드·파워포인트 파일은 PDF로 저장해서 올려 주세요.</p>
+      ${G?'<p class="small muted">PDF·사진은 <b>책장을 넘기는 A4 책</b>으로 펼쳐져요.</p>':'<p class="small muted">PDF나 사진은 올리면 바로 <b>책장을 넘기는 A4 책</b>으로 펼쳐져요. 사진 여러 장을 함께 고르면 한 권의 책이 돼요. 한글·워드·파워포인트 파일은 PDF로 저장해서 올려 주세요.</p>'}
       ${assets||isLocal()?'':'<p class="small muted">파일 올리기는 마스터만 할 수 있어요.</p>'}`
       :`<label>주소 <input id="mUrl" inputmode="url" placeholder="https://www.youtube.com/..."></label>`}
     <label>설명 (선택) <textarea id="mDesc" maxlength="1000" style="min-height:70px"></textarea></label>
-    <label>연결할 과정 (선택) <select id="mLesson"><option value="">연결 안 함</option>${st.lessons.map(l=>`<option value="${l.id}">${esc((l.week?l.week+'주차 · ':'')+l.title)}</option>`).join('')}</select></label>
-    <div class="row"><button class="btn pri" id="mSave" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':'자료 올리기'}</button></div></section>
-   <section class="card"><p class="kicker">올린 자료 ${st.materials.length}개</p>${st.materials.length?st.materials.map(m=>matRow(m,true)).join(''):'<p class="muted">아직 올린 자료가 없어요.</p>'}</section>`;
+    ${G?'':`<label>연결할 과정 (선택) <select id="mLesson"><option value="">연결 안 함</option>${st.lessons.map(l=>`<option value="${l.id}">${esc((l.week?l.week+'주차 · ':'')+l.title)}</option>`).join('')}</select></label>`}
+    <div class="row"><button class="btn pri" id="mSave" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':G?'지침서 올리기':'자료 올리기'}</button></div></section>
+   <section class="card"><p class="kicker">${G?'올린 기초반 지침서':'올린 자료'} ${list.length}개</p>${list.length?list.map(m=>matRow(m,true)).join(''):`<p class="muted">${G?'아직 올린 지침서가 없어요.':'아직 올린 자료가 없어요.'}</p>`}</section>`;
   $$('[data-kind]').forEach(b=>b.onclick=()=>{st.matKind=b.dataset.kind;render()});
   on('#mSave',async()=>{const title=$('#mTitle').value.trim();if(!title){toast('자료 제목을 적어 주세요.');return}
-    const base={id:uidGen(),title,desc:$('#mDesc').value.trim(),lessonId:$('#mLesson').value,by:'마스터',createdAt:Date.now()};
+    const base={id:uidGen(),title,desc:$('#mDesc').value.trim(),lessonId:G?'':$('#mLesson').value,by:'마스터',createdAt:Date.now(),...(G?{cat:'guide'}:{})};
     if(k==='link'){const u=$('#mUrl').value.trim();if(!u){toast('주소를 적어 주세요.');return}await saveMat({...base,kind:'link',url:u});return render()}
     const fs=[...$('#mFile').files];if(!fs.length){toast('파일을 골라 주세요.');return}
     if(fs.some(f=>f.size>20*1024*1024)){toast('20MB보다 작은 파일을 골라 주세요.');return}
