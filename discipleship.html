@@ -301,12 +301,13 @@ label.oxb:has(input:focus-visible){outline:3px solid var(--accent)}
 body.lecfs{overflow:hidden}
 /* 앱(아이폰·아이패드) 안 전체 화면: 위쪽 앱 단추 줄과 아래 홈 표시줄에 가리지 않게 여백 */
 @media (pointer:coarse){
-  body.lecfs .lecview.fs{padding-top:max(64px,calc(env(safe-area-inset-top,0px) + 12px));padding-bottom:max(30px,calc(env(safe-area-inset-bottom,0px) + 12px))}
+  body.lecfs .lecview.fs{padding:max(6px,env(safe-area-inset-top,0px)) max(6px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px));gap:6px}
   body.lecfs .lecview.fs>.kicker{display:none}
 }
-@media (pointer:coarse) and (min-width:768px){body.lecfs .lecview.fs{padding-top:max(88px,calc(env(safe-area-inset-top,0px) + 24px));padding-bottom:max(40px,calc(env(safe-area-inset-bottom,0px) + 16px))}}
+
 body.lecfs .lecview.fs{height:var(--vvh,100dvh)}
-body.lecfs .lecview.fs .a4page{aspect-ratio:auto;border-radius:2px}
+body.lecfs .lecview.fs .a4page{aspect-ratio:auto;border-radius:2px;box-shadow:none}
+body.lecfs .lecview.fs .a4bar .btn{min-height:40px;padding-block:4px}
 /* 아이패드(터치 화면 768px 이상): 화면을 넓게 쓰기 */
 @media (min-width:768px) and (pointer:coarse){
   .wrap{max-width:min(1140px,100%)}
