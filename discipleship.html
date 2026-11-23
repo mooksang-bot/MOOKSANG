@@ -424,7 +424,7 @@ function regView(){root.innerHTML=`<div class="shell"><div class="reg">
 /* ---- 성도 화면 ---- */
 const IC={home:'<path d="M3 11l9-7 9 7v9H4z"/><path d="M9 20v-6h6v6"/>',book:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M9 7h6"/>',folder:'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'};
 const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
-function headHtml(right){const ps=pastorSrc(st.cover);return `<header class="head">${ps?`<button class="mark pm" id="toCover" aria-label="표지 보기"><img src="${esc(ps)}" alt="담당 목사님 사진"></button>`:`<button class="mark" id="toCover" aria-label="표지 보기" style='background:${bgCss(st.cover)};background-size:cover;background-position:center'></button>`}
+function headHtml(right){const ps=pastorSrc(st.cover);return `<header class="head">${ps?`<span class="mark pm"><img src="${esc(ps)}" alt="담당 목사님 사진"></span>`:`<span class="mark" aria-hidden="true" style='background:${bgCss(st.cover)};background-size:cover;background-position:center'></span>`}
   <div class="t"><h1>${esc(st.cover.title)}</h1><p>${esc(st.cover.sub)}</p></div>${right}</header>`}
 function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침','book'],['materials','자료실','folder']];
   if(!tabs.some(t=>t[0]===st.tab))st.tab='home';
