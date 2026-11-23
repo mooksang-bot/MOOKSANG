@@ -626,12 +626,14 @@ function render(){window.scrollTo(0,0);
   document.body.classList.toggle('fit',!!g||v==='setpin'||v==='home'||v==='quiz'&&!!sess&&!!sess.prob&&sess.mode!=='result'&&sess.mode!=='empty');
   if(v==='splash')splash();else if(v==='cover')coverScreen();else if(v==='lock')lockScreen();else if(v==='setpin')setPinScreen();else if(v==='nopin')noPin();
   else if(v==='home')home();else if(v==='road')road();else if(v==='report')report();else if(v==='quiz')quiz();
+  bindCommon();
+  updateSave()}
+function bindCommon(){
   const pi=document.getElementById('photoIn');if(pi)pi.onchange=()=>{setPhoto(pi.files[0]);pi.value=''};
   app.querySelectorAll('[data-photo]').forEach(b=>b.onclick=()=>{const i=document.getElementById('photoIn');if(i)i.click()});
   app.querySelectorAll('[data-reset]').forEach(b=>b.onclick=openReset);
   app.querySelectorAll('[data-master]').forEach(b=>b.onclick=openMaster);
-  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==='diag')startDiag();else if(g==='practice')startPractice(false);else if(g==='review')startPractice(true);else{view=g;render()}});
-  updateSave()}
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==='diag')startDiag();else if(g==='practice')startPractice(false);else if(g==='review')startPractice(true);else{view=g;render()}})}
 
 function home(){const ci=curIndex(),cur=SKILLS[ci],revN=Object.values(S.review).reduce((a,b)=>a+b,0);
   let msg;if(!S.diag)msg=`안녕, 엘리사! 나는 수학 별 친구 <b>루미</b>야. 먼저 <b>실력 진단 테스트</b>로 엘리사가 어디서부터 시작하면 좋을지 알아보자!`;
@@ -963,6 +965,7 @@ function report(){const tn=S.total.n,acc=tn?Math.round(S.total.c/tn*100):0;const
    <ol class="devlog">${DEVLOG.map(x=>`<li>${x}</li>`).join('')}</ol></section>
   ${mom?`<div class="row"><button class="btn" id="momLock">엄마 창 닫기</button></div>`:`<section class="card"><h3>기록 지우기</h3><p class="muted">진단과 모든 기록을 처음 상태로 돌려요. 되돌릴 수 없어요.</p><div class="row" id="resetRow"><button class="btn" id="reset">기록 지우기</button></div></section>`}
   <p class="save" id="save"></p>`;
+  bindCommon();updateSave();
   const $=id=>document.getElementById(id);
   if(mom){
     const t=$('momText');t.oninput=()=>{momDraft.text=t.value};
