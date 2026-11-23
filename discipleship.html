@@ -741,7 +741,7 @@ const IC={bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M1
 const ic=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
 function headHtml(right,under){const ps=pastorSrc(st.cover);return `<header class="head">${ps?`<span class="mark pm"><img src="${esc(ps)}" alt="담당 목사님 사진"></span>`:`<span class="mark" aria-hidden="true" style='background:${bgCss(st.cover)};background-size:cover;background-position:center'></span>`}
   <div class="t"><h1>${esc(st.cover.title)}</h1><p>${esc(st.cover.sub)}</p>${under||''}</div>${right}</header>`}
-function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침 보기','book'],['materials','제자들 보기','folder'],['notices','공지 보기','bell']];
+function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침 보기','book'],['notices','공지 보기','bell']];
   if(!tabs.some(t=>t[0]===st.tab))st.tab='home';
   const right=isM()?`<button class="who m btn-like" id="toMaster">마스터 창</button>`:'';
   root.innerHTML=`<div class="shell"><div class="wrap"><header class="head nohp"><div class="t"><h1>${esc(st.cover.title)}</h1></div>${right}</header>
