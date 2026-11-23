@@ -301,6 +301,13 @@ body.lroster .head{padding-block:6px 4px}
 body.lroster .wrap.lead{gap:8px}
 body.lroster .mtabs button{padding:6px 14px}
 @media (max-height:900px){body.lroster .rcard>.small{display:none}}
+.rkl{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.rleg{margin:0;display:flex;gap:12px;flex-wrap:wrap;font-size:1.56rem;font-weight:700;line-height:1.2}
+.rleg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.rleg .lk{display:inline-grid;place-items:center;width:1.5em;height:1.3em;border-radius:.3em;font-size:.9em}
+.rleg .vP{background:#22c55e;color:#06210f}.rleg .vT{background:#f59e0b;color:#2a1700}.rleg .vU{background:#ef4444;color:#fff}
+.rleg span:nth-child(1){color:#4ade80}.rleg span:nth-child(2){color:#fbbf24}.rleg span:nth-child(3){color:#f87171}
+.ptuin{padding:0!important}
 .rtop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .btn.sm{min-height:34px;padding:4px 12px;font-size:.88rem}
 .btn.sm.on{border-color:var(--accent);color:var(--accent);background:var(--soft)}
@@ -844,7 +851,7 @@ function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.
     <fieldset class="sexset"><legend>성별</legend><label class="rchk"><input type="radio" name="rSex" value="남" ${r.sex==='남'?'checked':''}><span>남자</span></label><label class="rchk"><input type="radio" name="rSex" value="여" ${r.sex==='여'?'checked':''}><span>여자</span></label></fieldset></div>
     <p class="small muted">저장하면 장로 → 권사 → 집사 → 그 밖, 같은 직분은 남자 → 여자, 그다음 이름 가나다순으로 자동 정렬돼요.</p>
     <div class="row"><button class="btn pri" id="rSave">저장</button><button class="btn" id="rCancel">취소</button></div></section>`;
-  h+=`<section class="card rcard"><div class="rtop"><p class="kicker">제자 명단 · ${st.roster.length}명</p>
+  h+=`<section class="card rcard"><div class="rtop"><div class="rkl"><p class="kicker">제자 명단 · ${st.roster.length}명</p><p class="rleg" aria-label="P 출석, T 지각, U 무단 결석"><span><b class="lk vP">P</b>출석</span><span><b class="lk vT">T</b>지각</span><span><b class="lk vU">U</b>무단 결석</span></p></div>
       <div class="row"><button class="btn sm" id="wPrev" aria-label="이전 4주">‹ 4주</button><button class="btn sm" id="wNext" aria-label="다음 4주">4주 ›</button>
       ${st.rEdit?'':'<button class="btn sm pri" id="rAdd">+ 추가</button>'}<button class="btn sm ${E?'on':''}" id="rMng">${E?'관리 끝':'수정·삭제'}</button></div></div>
     ${st.roster.length?`<div class="tblwrap"><table class="att rtab"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">직분</th><th scope="col" class="ph">연락처</th>
