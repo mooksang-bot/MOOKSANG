@@ -234,6 +234,35 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 #reader[hidden],[hidden]{display:none!important}
 .qbar{display:flex;gap:6px;flex-wrap:wrap;flex:none;align-items:flex-start}
 .qcol{display:flex;flex-direction:column;gap:6px}
+.qrow{display:flex;gap:6px}
+.qbar .btn.quizbtn{background:linear-gradient(180deg,#ffd36b,#f2b630);border-color:#f2b630;color:#2a1c00;font-weight:700}
+.qbar .btn.quizbtn.on{box-shadow:0 0 0 2px #ffe08a,0 0 12px #ffd36b}
+.qform .qtype{display:flex;gap:6px;flex-wrap:wrap}
+.qform .qtype .btn{flex:1;min-width:0}
+.qch{border:1px solid var(--line);border-radius:14px;padding:8px 10px;margin:0;display:flex;flex-direction:column;gap:6px}
+.qch legend{font-size:.85rem;color:var(--muted);padding:0 4px}
+label.qopt{display:flex;flex-direction:row;align-items:center;gap:8px}
+label.qopt input[type=radio]{width:22px;height:22px;flex:none;accent-color:#22c55e;margin:0}
+label.qopt b{width:22px;text-align:center;flex:none;color:var(--gold)}
+label.qopt .qci{flex:1;min-width:0}
+label.qopt:has(input[type=radio]:checked) .qci{border-color:#22c55e;box-shadow:0 0 0 2px rgba(57,255,136,.5)}
+.oxrow{display:flex;gap:10px}
+label.oxb{flex:1;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:14px;padding:10px;cursor:pointer;font-size:1.6rem;font-weight:800}
+label.oxb input{position:absolute;opacity:0;pointer-events:none}
+label.oxb.o span{color:#4ade80}label.oxb.x span{color:#f87171}
+label.oxb:has(input:checked){border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
+label.oxb:has(input:focus-visible){outline:3px solid var(--accent)}
+.qitem .qh{display:flex;align-items:center;gap:8px}
+.qn{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:.9rem}
+.qtag{font-size:.75rem;border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--muted)}
+.qtext{white-space:pre-wrap;font-weight:600;margin:0}
+.qol{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:2px}
+.qol li.ok{color:#4ade80;font-weight:700}
+.qol li.ok::after{content:" ✓"}
+.qans{margin:0}
+.qitem.qed{outline:2px solid #39ff88;border-radius:12px}
+@media (min-width:900px){body.mfit #body:has(>.qform){grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+.qbar .btn.lecbtn{
 .qbar .btn.lecbtn{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .qbar .btn.lecbtn.on{background:var(--accent);color:var(--accent-ink);box-shadow:0 0 0 2px #5ff5e6,0 0 12px #5ff5e6}
 .lecup .leclist{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:auto}
@@ -559,7 +588,7 @@ const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(
 const LMS='disciple-master-ok',LLD='disciple-leader-ok';
 const ssGet=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 const ssSet=(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}};
-const st={mode:'loading',master:false,uid:null,cover:{...DEF_COVER},notices:[],lessons:[],materials:[],members:{},progAll:{},
+const st={mode:'loading',master:false,uid:null,cover:{...DEF_COVER},quizzes:[],notices:[],lessons:[],materials:[],members:{},progAll:{},
   me:null,meLoaded:false,prog:{done:{},notes:{}},pwHash:null,unlocked:ssGet(LUN),seen:+(lsGet(LSEEN)||0),
   masterHash:null,masterLoaded:false,masterOk:ssGet(LMS),mpwOpen:false,mpwMsg:'',
   memos:[],menuOpen:false,
@@ -582,8 +611,8 @@ const safeLink=u=>/^https?:\/\//i.test(u)?u:'https://'+u;
 
 /* ================= 저장 ================= */
 const isLocal=()=>st.mode==='local';
-function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{roster:(d.roster||[]).slice(),att:d.att||{},lmemos:d.lmemos||[],leaderHash:d.leaderHash||null,cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null,masterHash:d.masterHash||null,memos:d.memos||[],guideText:d.guideText||''})}catch(e){}}
-function lsSave(){lsSet(LSK,JSON.stringify({roster:st.roster,att:st.att,lmemos:st.lmemos,leaderHash:st.leaderHash,cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash,masterHash:st.masterHash,memos:st.memos,guideText:st.guideText||''}))}
+function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{roster:(d.roster||[]).slice(),att:d.att||{},lmemos:d.lmemos||[],leaderHash:d.leaderHash||null,cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null,masterHash:d.masterHash||null,memos:d.memos||[],guideText:d.guideText||'',quizzes:d.quizzes||[]})}catch(e){}}
+function lsSave(){lsSet(LSK,JSON.stringify({roster:st.roster,att:st.att,lmemos:st.lmemos,leaderHash:st.leaderHash,cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash,masterHash:st.masterHash,memos:st.memos,guideText:st.guideText||'',quizzes:st.quizzes||[]}))}
 async function write(fn,okMsg){if(isLocal()){lsSave();if(okMsg)toast(okMsg);return true}
   try{await fn();if(okMsg)toast(okMsg);return true}catch(e){toast(e&&e.code==='invalid_argument'?'저장할 권한이 없어요. 목사님께 “참여자” 권한을 요청해 주세요.':'저장하지 못했어요. 잠시 뒤 다시 해 주세요.');return false}}
 const plain=o=>JSON.parse(JSON.stringify(o));
@@ -591,6 +620,8 @@ const upsert=(arr,o)=>{const i=arr.findIndex(x=>x.id===o.id);if(i>=0)arr[i]=o;el
 function body(o){const {id,...b}=o;return plain(b)}
 const saveCover=c=>{st.cover=c;return write(()=>db.collection('board').doc('cover').set(plain(c)),'표지를 저장했어요. 모든 성도님께 보여요.')};
 const saveGuideText=t=>{st.guideText=t;return write(()=>db.collection('board').doc('guide').set({text:t,updatedAt:Date.now()}),'지침서 내용을 저장했어요. 제자들에게 바로 보여요.')};
+const saveQuiz=q=>{upsert(st.quizzes,q);sortAll();return write(()=>db.collection('quizzes').doc(q.id).set(body(q)),'퀴즈를 저장했어요.')};
+const delQuiz=id=>{st.quizzes=st.quizzes.filter(x=>x.id!==id);return write(()=>db.collection('quizzes').doc(id).delete(),'퀴즈를 지웠어요.')};
 const saveNoticeDoc=n=>{upsert(st.notices,n);sortAll();return write(()=>db.collection('notices').doc(n.id).set(body(n)),'공지를 올렸어요. 2반 화면에 바로 보여요.')};
 const saveMemo=m=>{upsert(st.memos,m);sortAll();return write(()=>db.collection('memos').doc(m.id).set(body(m)),'메모를 저장했어요.')};
 const delMemo=id=>{st.memos=st.memos.filter(x=>x.id!==id);return write(()=>db.collection('memos').doc(id).delete(),'메모를 삭제했어요.')};
@@ -613,7 +644,7 @@ function openMaster(){if(!st.master){toast('마스터 창은 목사님(편집자
   st.masterOk=null;ssSet(LMS,null);st.mpwOpen=true;st.mpwMsg='';st.view='cover';render();const i=$('#mp1');if(i)i.focus()}
 function lockMaster(){st.masterOk=null;ssSet(LMS,null);go('cover');toast('마스터 창을 잠갔어요.')}
 const pastorSrc=c=>{const p=c.pastor;if(!p||!p.value)return '';return p.type==='asset'?'/_blob/'+p.value:p.value};
-function sortAll(){st.lessons.sort((a,b)=>(+a.week||0)-(+b.week||0)||(a.createdAt||0)-(b.createdAt||0));
+function sortAll(){(st.quizzes||[]).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));st.lessons.sort((a,b)=>(+a.week||0)-(+b.week||0)||(a.createdAt||0)-(b.createdAt||0));
   st.notices.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.createdAt||0)-(a.createdAt||0));
   st.memos.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.createdAt||0)-(a.createdAt||0));
   st.materials.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))}
@@ -1105,20 +1136,20 @@ function lMemo(){const D=st.lDraft;
   $$('[data-lmed]').forEach(b=>b.onclick=()=>{const m=st.lmemos.find(x=>x.id===b.dataset.lmed);if(!m)return;st.lDraft={id:m.id,text:m.text,locked:false};st.lNote='고친 다음 보내기를 눌러 주세요.';render();window.scrollTo(0,0);$('#lmText').focus()})}
 
 /* ---- 마스터 창 ---- */
-const MSECT=[['memo','공지하기'],['lecture','강의 시작'],['att','출석부'],['lessons','훈련 과정 입력'],['guide','기초반 지침서'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
+const MSECT=[['memo','공지하기'],['lecture','강의 시작'],['att','출석부'],['quiz','퀴즈'],['lessons','훈련 과정 입력'],['guide','기초반 지침서'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
   root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml('',`<span class="mbadge under">마스터 창</span>`)}
-   <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button></div><button class="btn ${st.mtab==='guide'?'on':''}" id="qUp">기초반 지침서</button><button class="btn ${st.mtab==='att'?'on':''}" id="qAtt">출석부</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
+   <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><div class="qrow"><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button><button class="btn quizbtn ${st.mtab==='quiz'?'on':''}" id="qQuiz">퀴즈</button></div></div><button class="btn ${st.mtab==='guide'?'on':''}" id="qUp">기초반 지침서</button><button class="btn ${st.mtab==='att'?'on':''}" id="qAtt">출석부</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
    ${st.mtab==='memo'?'':`<div class="mbar"><h2>${cur[1]}</h2></div>`}
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#toCover',()=>go('cover'));on('#toApp',()=>{st.tab='home';st.menuOpen=false;go('app')});
   on('#lmIc',async()=>{st.mtab='memo';st.menuOpen=false;render();const c=$('#lmCard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});await lmMarkRead()});
   on('#qHome',()=>{st.menuOpen=false;go('cover')});
   const qGo=t=>{st.mtab=t;st.editing=null;st.menuOpen=false;render()};
-  on('#qLec',()=>qGo('lecture'));on('#qAtt',()=>qGo('att'));on('#qUp',()=>qGo('guide'));on('#qPw',()=>qGo('pw'));
+  on('#qLec',()=>qGo('lecture'));on('#qQuiz',()=>qGo('quiz'));on('#qAtt',()=>qGo('att'));on('#qUp',()=>qGo('guide'));on('#qPw',()=>qGo('pw'));
   on('#mMenu',()=>{st.menuOpen=!st.menuOpen;render()});on('#toMemo',()=>{st.mtab='memo';st.editing=null;render()});
   $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;st.menuOpen=false;render()});
-  ({att:()=>{leadSub();lRoster()},lecture:mLecture,memo:mMemo,lessons:mLessons,guide:mGuide,materials:()=>mMaterials(false),pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
+  ({att:()=>{leadSub();lRoster()},lecture:mLecture,quiz:mQuiz,memo:mMemo,lessons:mLessons,guide:mGuide,materials:()=>mMaterials(false),pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
 function mMemo(){const ed=st.editing&&st.notices.find(n=>n.id===st.editing);const n=ed||{};
   $('#body').innerHTML=`<section class="card" style="order:2"><p class="kicker">${ed?'공지 수정':'공지하기'}</p>
     <p class="small muted">여기에 올린 공지는 2반 화면의 <b>공지 보기</b>와 홈 화면에 그대로 보여요.</p>
@@ -1315,6 +1346,39 @@ function mLecture(){const L=lecList();if(!L.some(m=>m.id===st.lecSel)){st.lecSel
   on('#lecPrev',()=>lecGo(-1));on('#lecNext',()=>lecGo(1));
   on('#lecFull',()=>{const c=$('.lecview');if(document.fullscreenElement)document.exitFullscreen();else if(c&&c.requestFullscreen)c.requestFullscreen().catch(()=>toast('이 기기에서는 전체 화면을 쓸 수 없어요.'))});
   bindDelMat();lecSize();if(cur)lecShow(0)}
+/* ================= 퀴즈: 문제 만들기 ================= */
+const QT={mc:'객관식',ox:'O / X',short:'단답형'};
+function quizAnsLabel(q){if(q.type==='mc'){const i=+q.answer;return (i+1)+'번 · '+((q.choices||[])[i]||'')}if(q.type==='ox')return q.answer;return q.answer||''}
+function mQuiz(){const ed=st.qEdit&&st.quizzes.find(x=>x.id===st.qEdit);const q=ed||{};const T=st.qType||(ed&&ed.type)||'mc';const ch=(q.choices||['','','','']).concat(['','','','']).slice(0,4);
+  const L=st.quizzes;
+  $('#body').innerHTML=`<section class="card qform"><p class="kicker">${ed?'퀴즈 문제 고치기':'퀴즈 문제 만들기'}</p>
+    <div class="seg qtype" role="radiogroup" aria-label="문제 종류">${Object.entries(QT).map(([k,l])=>`<button class="btn ${T===k?'on':''}" data-qt="${k}" role="radio" aria-checked="${T===k}">${l}</button>`).join('')}</div>
+    <label>문제 <textarea id="qQ" maxlength="1000" placeholder="예: 예수님을 믿으면 얻는 것은 무엇인가요?">${esc(q.q||'')}</textarea></label>
+    ${T==='mc'?`<fieldset class="qch"><legend>보기 · 정답에 동그라미를 눌러요</legend>${ch.map((c,i)=>`<label class="qopt"><input type="radio" name="qAns" value="${i}" ${String(q.answer)===String(i)&&q.type==='mc'?'checked':''} aria-label="${i+1}번을 정답으로"><b>${i+1}</b><input class="qci" data-ci="${i}" maxlength="200" value="${esc(c)}" placeholder="${i+1}번 보기"></label>`).join('')}</fieldset>`
+     :T==='ox'?`<fieldset class="qch"><legend>정답</legend><div class="oxrow">${['O','X'].map(v=>`<label class="oxb ${v==='O'?'o':'x'}"><input type="radio" name="qAns" value="${v}" ${q.type==='ox'&&q.answer===v?'checked':''}><span>${v}</span></label>`).join('')}</div></fieldset>`
+     :`<label>정답 <input id="qShort" maxlength="100" value="${esc(q.type==='short'?q.answer||'':'')}" placeholder="예: 영생"></label>`}
+    <label>해설 (선택) <textarea id="qEx" maxlength="1000" style="min-height:60px" placeholder="정답 풀이나 성경 구절을 적어 두세요">${esc(q.explain||'')}</textarea></label>
+    <div class="row"><button class="btn pri" id="qSave">${ed?'고친 문제 저장':'문제 저장'}</button>${ed?'<button class="btn" id="qCancel">취소</button>':'<button class="btn" id="qClear">새로 쓰기</button>'}</div></section>
+   <section class="card qlist"><p class="kicker">만든 퀴즈 ${L.length}문제</p>
+    ${L.length?L.map((x,i)=>`<div class="item qitem ${x.id===st.qEdit?'qed':''}"><div class="qh"><span class="qn">${i+1}</span><span class="qtag">${QT[x.type]||''}</span></div>
+      <p class="qtext">${esc(x.q)}</p>
+      ${x.type==='mc'?`<ol class="qol">${(x.choices||[]).map((c,j)=>`<li class="${String(j)===String(x.answer)?'ok':''}">${esc(c)}</li>`).join('')}</ol>`:''}
+      <p class="qans">정답: <b>${esc(quizAnsLabel(x))}</b></p>${x.explain?`<p class="small muted">해설: ${esc(x.explain)}</p>`:''}
+      <div class="row"><button class="btn" data-qed="${x.id}">수정</button><button class="btn danger" data-qdel="${x.id}">삭제</button></div></div>`).join(''):'<p class="muted">아직 만든 퀴즈가 없어요. 왼쪽에서 문제를 만들어 저장하세요.</p>'}</section>`;
+  $$('[data-qt]').forEach(b=>b.onclick=()=>{st.qType=b.dataset.qt;const keep={q:$('#qQ').value,ex:$('#qEx').value};render();$('#qQ').value=keep.q;$('#qEx').value=keep.ex});
+  on('#qSave',async()=>{const text=$('#qQ').value.trim();if(!text){toast('문제를 적어 주세요.');return}
+    let answer='',choices=[];
+    if(T==='mc'){choices=[...$$('.qci')].map(i=>i.value.trim());const filled=choices.filter(Boolean).length;if(filled<2){toast('보기를 2개 이상 적어 주세요.');return}
+      const r=document.querySelector('input[name="qAns"]:checked');if(!r){toast('정답 보기의 동그라미를 눌러 주세요.');return}if(!choices[+r.value]){toast('정답으로 고른 보기에 내용을 적어 주세요.');return}
+      answer=r.value;while(choices.length&&!choices[choices.length-1])choices.pop()}
+    else if(T==='ox'){const r=document.querySelector('input[name="qAns"]:checked');if(!r){toast('정답(O 또는 X)을 골라 주세요.');return}answer=r.value}
+    else{answer=$('#qShort').value.trim();if(!answer){toast('정답을 적어 주세요.');return}}
+    const o={id:ed?ed.id:uidGen(),type:T,q:text,choices,answer,explain:$('#qEx').value.trim(),createdAt:ed?ed.createdAt:Date.now(),updatedAt:Date.now()};
+    st.qEdit=null;st.qType=null;await saveQuiz(o);render()});
+  on('#qCancel',()=>{st.qEdit=null;st.qType=null;render()});
+  on('#qClear',()=>{st.qType=null;render()});
+  $$('[data-qed]').forEach(b=>b.onclick=()=>{st.qEdit=b.dataset.qed;st.qType=null;render();const t=$('#qQ');if(t)t.focus()});
+  confirmDel('[data-qdel]','qdel',async id=>{if(st.qEdit===id)st.qEdit=null;await delQuiz(id)})}
 function mPw(){$('#body').innerHTML=`<section class="card"><p class="kicker">제자들 입장 비밀번호</p>
     <span class="status ${st.pwHash?'ok':'no'}">${st.pwHash?'● 제자 비밀번호가 정해져 있어요':'● 아직 비밀번호가 없어요 (제자들이 들어올 수 없어요)'}</span>
     <p>표지에서 “2반 입장”을 누르면 이 비밀번호를 물어봐요. 정한 비밀번호를 제자들에게 알려 주세요. 앱을 다시 열면 또 물어봐요.</p>
@@ -1462,7 +1526,7 @@ lsLoad();sortAll();sortRoster();render();
     db.collection('progress').doc(st.uid).onSnapshot(s=>{if(s.exists&&!s.metadata.hasPendingWrites){const p=s.data();st.prog={done:{...(p.done||{})},notes:{...(p.notes||{})}}}soft()},()=>{});
   }
   if(st.master){
-    col('memos','memos');
+    col('memos','memos');col('quizzes','quizzes');
     db.collection('leaderMemos').onSnapshot(q=>{st.lmemos=q.docs.map(x=>({id:x.id,...plain(x.data())})).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));soft()},()=>{});
     db.collection('settings').doc('master').onSnapshot(s=>{st.masterHash=s.exists?(s.data().hash||null):null;st.masterLoaded=true;soft()},()=>{st.masterLoaded=true;soft()});
     db.collection('members').onSnapshot(q=>{st.members=Object.fromEntries(q.docs.map(x=>[x.id,x.data()]));soft()},()=>{});
