@@ -385,13 +385,13 @@ const saveProg=()=>write(()=>db.collection('progress').doc(st.uid).set(plain(st.
 async function saveMe(m){const ok=await write(()=>db.collection('members').doc(st.uid).set(m),'등록했어요. 환영합니다!');if(ok)st.me=m;return ok}
 async function hashPw(pw){const t='disciple:'+pw;try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
   catch(e){let h=5381;for(const c of t)h=((h*33)^c.charCodeAt(0))>>>0;return 'h'+h.toString(16)}}
-async function savePw(pw){const h=pw?await hashPw(pw):null;st.pwHash=h;if(h){st.unlocked=h;ssSet(LUN,h)}
+async function savePw(pw){const h=pw?await hashPw(pw):null;st.pwHash=h;
   return write(()=>db.collection('settings').doc('entry').set({hash:h,updatedAt:Date.now()}),h?'입장 비밀번호를 정했어요.':'비밀번호를 껐어요.')}
 async function saveMasterPw(pw){const h=await hashPw('master:'+pw);st.masterHash=h;st.masterOk=h;ssSet(LMS,h);
   return write(()=>db.collection('settings').doc('master').set({hash:h,updatedAt:Date.now()}),'마스터 비밀번호를 정했어요.')}
 const masterUnlocked=()=>st.master&&!!st.masterHash&&st.masterOk===st.masterHash;
 function openMaster(){if(!st.master){toast('마스터 창은 목사님(편집자)만 열 수 있어요.');return}
-  if(masterUnlocked())return go('master');st.mpwOpen=true;st.mpwMsg='';st.view='cover';render();const i=$('#mp1');if(i)i.focus()}
+  st.masterOk=null;ssSet(LMS,null);st.mpwOpen=true;st.mpwMsg='';st.view='cover';render();const i=$('#mp1');if(i)i.focus()}
 function lockMaster(){st.masterOk=null;ssSet(LMS,null);go('cover');toast('마스터 창을 잠갔어요.')}
 const pastorSrc=c=>{const p=c.pastor;if(!p||!p.value)return '';return p.type==='asset'?'/_blob/'+p.value:p.value};
 function sortAll(){st.lessons.sort((a,b)=>(+a.week||0)-(+b.week||0)||(a.createdAt||0)-(b.createdAt||0));
@@ -434,7 +434,7 @@ function coverView(){const c=st.draft||st.cover;
      ${st.draft?'':`<div class="enters">${st.master?`<button class="enter alt" id="toMaster">마스터 입장</button>`:''}<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'제자들 입장'}</button><button class="enter lead" id="toLeader">${leaderUnlocked()?'반장 창':'반장 입장'}</button></div>`}
      ${st.master&&!st.draft&&!st.pwHash&&st.mode!=='loading'?`<p class="hint">입장 비밀번호가 아직 없어요. 마스터 창 › 다른 기능 › 설정에서 정해 주세요.</p>`:''}
    </div></section>${st.draft?decorPanel():''}${st.pwOpen?pwPanel():''}${st.mpwOpen?mpwPanel():''}${st.lpwOpen?lpwPanel():''}`;
-  on('#enter',()=>{if(st.mode==='loading')return;if(entryOk())return go('app');st.pwOpen=true;st.pwMsg='';render();const i=$('#pwIn');if(i)i.focus()});
+  on('#enter',()=>{if(st.mode==='loading')return;st.unlocked=null;ssSet(LUN,null);st.pwOpen=true;st.pwMsg='';render();const i=$('#pwIn');if(i)i.focus()});
   on('#toMaster',openMaster);
   on('#toLeader',openLeader);
   if(st.draft)bindDecor();if(st.pwOpen)bindPw();if(st.mpwOpen)bindMpw();if(st.lpwOpen)bindLpw()}
