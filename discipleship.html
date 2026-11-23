@@ -827,7 +827,7 @@ function bindLpw(){on('#lpClose',()=>{st.lpwOpen=false;render()});$('#lpModal').
     else{st.lpwWrong++;if(st.lpwWrong>=5){st.lpwWait=Date.now()+30000;st.lpwWrong=0;st.lpwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else st.lpwMsg='비밀번호가 맞지 않아요.';render();const i=$('#lpIn');if(i)i.focus()}};
   on('#lpGo',go2);const i=$('#lpIn');if(i)i.onkeydown=e=>{if(e.key==='Enter')go2()}}
 function leaderView(){leadSub();document.body.classList.remove('lroster');if(!st.lmonth)st.lmonth=ymNow();
-  const T=[['att','출석 체크'],['dues','회비 납부'],['roster','제자 명단'],['up','자료 올리기'],['memo','마스터에게 메모']];
+  const T=[['att','출석 체크'],['dues','회비 납부'],['roster','제자 명단']];if(!T.some(t=>t[0]===st.ltab))st.ltab='att';
   root.innerHTML=`<div class="shell"><div class="wrap lead">${headHtml(`<button class="who btn-like" id="lCover">표지</button><span class="mbadge lb">반장 창</span>`)}
    <nav class="mtabs" aria-label="반장 메뉴">${T.map(([k,l])=>`<button data-ltab="${k}" class="${st.ltab===k?'on':''}">${l}</button>`).join('')}</nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
