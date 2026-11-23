@@ -299,7 +299,7 @@ em.by.lead{background:#3b8fc9}
 .gup .gdrop{border:2px dashed var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,box-shadow .15s}
 .gup .gdrop:hover,.gup .gdrop:focus-within{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
 @media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,.75fr) minmax(0,2fr)}.gview .gbox{height:auto;flex:1;min-height:120px}.gview textarea#gText{min-height:84px;height:84px}.gview{display:flex;flex-direction:column;height:100%}}
-.cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end}
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.7fr) minmax(0,1fr) auto;gap:10px;align-items:end}
 .cgrid .row{margin:0}
 @media (max-width:600px){.cgrid{grid-template-columns:minmax(0,1fr)}}
 /* 반장 2반 명단: 한 화면에 */
@@ -308,14 +308,15 @@ body.lcfit .wrap.lead{gap:8px}
 body.lcfit .mtabs button{padding:6px 14px;min-height:38px}
 body.lcfit #body{gap:8px}
 body.lcfit #body>.card{padding:10px 12px;gap:6px}
-body.lcfit .cgrid{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:6px}
+body.lcfit .cgrid{grid-template-columns:minmax(0,1fr) minmax(0,.7fr) minmax(0,1.2fr) auto;gap:6px}
+table.ctab td.crole{color:var(--muted);font-size:.9rem}
 body.lcfit .cgrid label{font-size:.8rem;gap:2px}
 body.lcfit .cgrid input{padding:6px 10px;min-height:36px}
 body.lcfit .cgrid .btn{min-height:38px;padding:4px 14px}
 body.lcfit table.ctab th,body.lcfit table.ctab td{padding:2px 6px}
 body.lcfit table.ctab thead th{font-size:.8rem;padding-block:4px}
 body.lcfit table.ctab .cact .btn{min-height:26px;padding:1px 10px;font-size:.8rem}
-@media (max-width:600px){body.lcfit .cgrid{grid-template-columns:minmax(0,.9fr) minmax(0,1.2fr) auto}body.lcfit .cgrid .btn{padding:4px 10px}body.lcfit table.ctab .cact .btn{padding:1px 7px;font-size:.75rem}body.lcfit table.ctab td{font-size:.85rem}}
+@media (max-width:600px){body.lcfit .cgrid{grid-template-columns:minmax(0,1fr) minmax(0,.75fr) minmax(0,1.5fr)}body.lcfit .cgrid .row{grid-column:1/-1}body.lcfit .cgrid .row .btn{flex:1}body.lcfit .cgrid .row .btn{min-height:32px;padding-block:2px}body.lcfit #body{gap:6px}body.lcfit #body>.card{padding:8px 10px;gap:4px}body.lcfit .cgrid input{min-height:32px;padding:4px 8px}body.lcfit .head{padding-block:4px 2px}body.lcfit .mtabs button{min-height:34px;padding:4px 12px}body.lcfit table.ctab td.crole{font-size:.78rem}body.lcfit .cgrid .btn{padding:4px 10px}body.lcfit table.ctab .cact .btn{padding:1px 7px;font-size:.75rem}body.lcfit table.ctab td{font-size:.85rem}}
 table.ctab th[scope=row]{text-align:left;font-weight:700}
 table.ctab td a{color:var(--ink);text-decoration:none;border-bottom:1px dashed var(--muted)}
 table.ctab .cact{gap:6px;flex-wrap:nowrap;justify-content:center}
@@ -875,20 +876,21 @@ function leaderView(){leadSub();document.body.classList.remove('lroster','lattfi
 function lContacts(){document.body.classList.add('lcfit');const ed=st.cEdit&&st.roster.find(r=>r.id===st.cEdit);const R0=st.roster;
   $('#body').innerHTML=`<section class="card cform"><p class="kicker">${ed?'2반 명단 고치기':'2반 명단에 넣기'}</p>
     <div class="cgrid"><label>이름 <input id="cName" maxlength="20" autocomplete="off" value="${esc(ed?ed.name:'')}" placeholder="예: 홍길동"></label>
+    <label>직분 <input id="cRole" maxlength="10" autocomplete="off" list="roleList" value="${esc(ed?ed.role||'':'')}" placeholder="장로·권사·집사"><datalist id="roleList"><option value="장로"><option value="권사"><option value="집사"><option value="성도"><option value="청년"></datalist></label>
     <label>연락처 <input id="cPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="${esc(ed?ed.phone:'')}" placeholder="010-1234-5678"></label>
     <div class="row"><button class="btn pri" id="cSave">${ed?'고친 내용 저장':'저장'}</button>${ed?'<button class="btn" id="cCancel">취소</button>':''}</div></div></section>
    <section class="card clist"><p class="kicker">2반 명단 · ${R0.length}명</p>
-    ${R0.length?`<div class="tblwrap"><table class="att ctab"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">연락처</th><th scope="col">수정·삭제</th></tr></thead><tbody>
-      ${R0.map((x,i)=>`<tr class="${x.id===st.cEdit?'cedit':''}"><td class="num">${i+1}</td><th scope="row">${esc(x.name)}</th><td>${x.phone?`<a href="tel:${esc(String(x.phone).replace(/[^0-9+]/g,''))}">${esc(x.phone)}</a>`:'<span class="muted">-</span>'}</td>
+    ${R0.length?`<div class="tblwrap"><table class="att ctab"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">직분</th><th scope="col">연락처</th><th scope="col">수정·삭제</th></tr></thead><tbody>
+      ${R0.map((x,i)=>`<tr class="${x.id===st.cEdit?'cedit':''}"><td class="num">${i+1}</td><th scope="row">${esc(x.name)}</th><td class="crole">${x.role?esc(x.role):'<span class="muted">-</span>'}</td><td>${x.phone?`<a href="tel:${esc(String(x.phone).replace(/[^0-9+]/g,''))}">${esc(x.phone)}</a>`:'<span class="muted">-</span>'}</td>
         <td><div class="row cact"><button class="btn" data-ced="${x.id}">수정</button><button class="btn danger" data-cdel="${x.id}">삭제</button></div></td></tr>`).join('')}</tbody></table></div>`
       :'<p class="muted">아직 2반 명단이 비어 있어요. 위에서 이름과 연락처를 넣어 주세요.</p>'}</section>`;
-  on('#cSave',async()=>{const name=$('#cName').value.trim(),phone=$('#cPhone').value.trim();if(!name){toast('이름을 적어 주세요.');return}
-    const o=ed?{...plain(ed),name,phone,updatedAt:Date.now()}:{id:uidGen(),name,phone,role:'',sex:'',createdAt:Date.now(),updatedAt:Date.now()};
+  on('#cSave',async()=>{const name=$('#cName').value.trim(),phone=$('#cPhone').value.trim(),role=$('#cRole').value.trim();if(!name){toast('이름을 적어 주세요.');return}
+    const o=ed?{...plain(ed),name,role,phone,updatedAt:Date.now()}:{id:uidGen(),name,phone,role,sex:'',createdAt:Date.now(),updatedAt:Date.now()};
     st.cEdit=null;await saveRoster(o);render()});
   on('#cCancel',()=>{st.cEdit=null;render()});
   $$('[data-ced]').forEach(b=>b.onclick=()=>{st.cEdit=b.dataset.ced;render();const i=$('#cName');if(i){i.focus();i.scrollIntoView({block:'center'})}});
   confirmDel('[data-cdel]','cdel',async id=>{if(st.cEdit===id)st.cEdit=null;await delRoster(id)});
-  const k=e=>{if(e.key==='Enter'){e.preventDefault();$('#cSave').click()}};['#cName','#cPhone'].forEach(q=>{const i=$(q);if(i)i.onkeydown=k})}
+  const k=e=>{if(e.key==='Enter'){e.preventDefault();$('#cSave').click()}};['#cName','#cRole','#cPhone'].forEach(q=>{const i=$(q);if(i)i.onkeydown=k})}
 function lUp(){const c=st.lcat||'guide';const mine=st.materials.filter(m=>m.by==='반장').concat(st.notices.filter(n=>n.by==='반장').map(n=>({...n,_n:1}))).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   $('#body').innerHTML=`<section class="card"><p class="kicker">자료 올리기</p>
     <p class="small muted">올린 자료는 제자 화면의 해당 칸에 바로 보여요.</p>
