@@ -250,17 +250,26 @@ em.by.lead{background:#3b8fc9}
 @media (max-width:420px){.mgrid{grid-template-columns:1fr 1fr}.tabs button{font-size:.72rem;letter-spacing:-.02em}.tabs button span{white-space:nowrap}.seg .btn{padding:8px 6px;font-size:.9rem}}
 /* 받는 제자 체크 목록: 마우스를 올리면 녹색 네온, 체크하면 녹색으로 빛남 */
 .gtext{white-space:pre-wrap;line-height:1.75;font-size:1rem;color:var(--ink)}
-.gview .gbox{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--soft) 55%,transparent);max-height:70vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
-.gfile{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
-.gfh{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.gfh strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gfh .btn{min-height:34px;padding:4px 12px;font-size:.9rem}
-.gimg{display:block;width:100%;height:auto;border-radius:8px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25)}
-.gpdf{display:flex;flex-direction:column;gap:10px}
+.gview .gbox>.gtext{max-height:30%;overflow:auto;flex:none}
+.gview .gbox{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--soft) 55%,transparent);height:62vh;overflow:hidden;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.ggrid{display:grid;gap:8px;justify-content:center;align-content:start;grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+.gcell{position:relative;border-radius:8px;overflow:hidden;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25);display:grid;place-items:center}
+.gcell .gimg{display:block;width:100%;height:100%;object-fit:contain;background:#fff}
+.gcell .gwait{color:#555;font-size:.85rem;text-align:center;padding:8px}
+.gcell .glink{display:grid;place-items:center;width:100%;height:100%;background:var(--card)}
+.gview .gbox{position:relative}
+.gzoom{position:absolute;inset:0;z-index:5;background:var(--card);display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:14px}
+.gzoom img{flex:1;min-height:0;width:100%;object-fit:contain;background:#fff;border-radius:8px;cursor:zoom-out}
+.gzbar{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.gzbar .btn{min-height:36px;padding:4px 12px;font-size:.9rem}
+.gzbar span{font-weight:700;min-width:56px;text-align:center}
+.gcap{position:absolute;left:0;right:0;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:4px 6px;background:linear-gradient(rgba(0,0,0,.72),rgba(0,0,0,0));color:#fff;font-size:.8rem}
+.gcap strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gcap .btn{min-height:24px;padding:1px 7px;font-size:.72rem;background:rgba(0,0,0,.6);white-space:nowrap;flex:none}
 .gview textarea#gText{min-height:140px}
 .gup .gdrop{border:2px dashed var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,box-shadow .15s}
 .gup .gdrop:hover,.gup .gdrop:focus-within{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
-@media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,.75fr) minmax(0,2fr)}.gview .gbox{max-height:none;flex:1;min-height:120px}.gview textarea#gText{min-height:84px;height:84px}.gview{display:flex;flex-direction:column;height:100%}}
+@media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,.75fr) minmax(0,2fr)}.gview .gbox{height:auto;flex:1;min-height:120px}.gview textarea#gText{min-height:84px;height:84px}.gview{display:flex;flex-direction:column;height:100%}}
 .rcpt{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .rhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;max-height:230px;overflow:auto;padding:4px}
@@ -948,10 +957,7 @@ const MSECT=[['memo','메모하기'],['lecture','강의 시작'],['att','출석�
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
   root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like memo-ic ${lmUnread()?'blink':''}" id="lmIc" aria-label="반장이 보낸 메모 ${lmUnread()}개">${LENV}반장 메모<b class="n">${lmUnread()||''}</b></button><button class="who btn-like" id="toApp">제자 화면</button>`,`<span class="mbadge under">마스터 창</span>`)}
    <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button></div><button class="btn ${st.mtab==='guide'?'on':''}" id="qUp">기초반 지침서</button><button class="btn ${st.mtab==='att'?'on':''}" id="qAtt">출석부</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
-   <div class="mbar"><h2>${st.mtab==='memo'?'':cur[1]}</h2><div class="mmenu">
-     ${st.mtab!=='memo'?'<button class="btn" id="toMemo">← 메모하기</button>':''}
-     <button class="btn" id="mMenu" aria-expanded="${st.menuOpen}">${st.menuOpen?'닫기':'다른 기능'}</button>
-     ${st.menuOpen?`<div class="mpop" role="menu">${MSECT.map(([k,l])=>`<button role="menuitem" data-mtab="${k}" class="${st.mtab===k?'on':''}">${l}</button>`).join('')}</div>`:''}</div></div>
+   ${st.mtab==='memo'?'':`<div class="mbar"><h2>${cur[1]}</h2></div>`}
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#toCover',()=>go('cover'));on('#toApp',()=>{st.tab='home';st.menuOpen=false;go('app')});
   on('#lmIc',async()=>{st.mtab='memo';st.menuOpen=false;render();const c=$('#lmCard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});await lmMarkRead()});
@@ -1002,32 +1008,51 @@ function mLessons(){const ed=st.editing&&st.lessons.find(l=>l.id===st.editing);
   confirmDel('[data-ldel]','ldel',id=>delLesson(id))}
 /* 지침서 파일을 '지침서 보기' 칸 안에서 크게 보여 주기 */
 const GPDF={};
-function gFileHtml(m){const ct=m.contentType||'';let body='';
-  if(m.kind==='link')body=`<a class="btn" href="${esc(safeLink(m.url))}" target="_blank" rel="noopener">링크 열기</a>`;
-  else if(/^image\//.test(ct)){const n=m.pages?m.pages.length:(m.pageCount||(LOCALURLS[m.id]||[1]).length);body=Array.from({length:n},(_,i)=>`<img class="gimg" src="${esc(assetUrl(m,i))}" alt="${esc(m.title)} ${i+1}쪽" loading="lazy">`).join('')}
-  else if(/pdf/.test(ct))body=`<div class="gpdf" data-gpdf="${m.id}">${GPDF[m.id]?GPDF[m.id].map((u,i)=>`<img class="gimg" src="${u}" alt="${esc(m.title)} ${i+1}쪽">`).join(''):'<p class="muted">지침서를 펼치는 중…</p>'}</div>`;
-  else if(/^video\//.test(ct))body=`<video class="gimg" src="${esc(assetUrl(m))}" controls playsinline></video>`;
-  else body=`<a class="btn" href="${esc(assetUrl(m))}" target="_blank" rel="noopener">파일 열기</a>`;
-  return `<div class="gfile"><div class="gfh"><strong>${esc(m.title)}</strong><button class="btn danger" data-delmat="${m.id}">삭제</button></div>${body}</div>`}
+/* 쪽 하나 = 칸 하나. 첫 쪽에 파일 이름과 삭제 버튼을 얹어요. 모든 쪽이 스크롤 없이 한 번에 보이도록 크기를 맞춰요(gFit). */
+const gCap=(m,i)=>i?'':`<div class="gcap"><strong>${esc(m.title)}</strong><button class="btn danger" data-delmat="${m.id}">삭제</button></div>`;
+const gCell=(m,i,inner,ar)=>`<div class="gcell" data-ar="${ar}">${gCap(m,i)}${inner}</div>`;
+function gFileHtml(m){const ct=m.contentType||'';
+  if(/^image\//.test(ct)){const n=m.pages?m.pages.length:(m.pageCount||(LOCALURLS[m.id]||[1]).length);return Array.from({length:n},(_,i)=>gCell(m,i,`<img class="gimg" src="${esc(assetUrl(m,i))}" alt="${esc(m.title)} ${i+1}쪽">`,1.414)).join('')}
+  if(/pdf/.test(ct)){if(GPDF[m.id])return GPDF[m.id].map((u,i)=>gCell(m,i,`<img class="gimg" src="${u}" alt="${esc(m.title)} ${i+1}쪽">`,1.414)).join('');
+    return `<div class="gcell" data-ar="1.414" data-gpdf="${m.id}">${gCap(m,0)}<p class="muted gwait">지침서를 펼치는 중…</p></div>`}
+  if(/^video\//.test(ct))return gCell(m,0,`<video class="gimg" src="${esc(assetUrl(m))}" controls playsinline></video>`,.5625);
+  const href=m.kind==='link'?safeLink(m.url):assetUrl(m);
+  return gCell(m,0,`<div class="glink"><a class="btn" href="${esc(href)}" target="_blank" rel="noopener">${m.kind==='link'?'링크 열기':'파일 열기'}</a></div>`,.35)}
+function bindGZoom(){$$('.gview .ggrid img.gimg').forEach((im,i)=>{im.style.cursor='zoom-in';im.title='누르면 크게 보여요';im.onclick=()=>gZoom(i)})}
+function gFit(){const box=$('.gview .gbox'),grid=box&&box.querySelector('.ggrid');if(!grid)return;
+  const cells=[...grid.children];const n=cells.length;if(!n)return;
+  cells.forEach(c=>{const im=c.querySelector('img.gimg');if(im&&im.naturalWidth)c.dataset.ar=(im.naturalHeight/im.naturalWidth).toFixed(4)});
+  const cs=getComputedStyle(box);const used=[...box.children].filter(e=>e!==grid).reduce((a,e)=>a+e.offsetHeight+10,0);
+  const H=box.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-used,W=grid.clientWidth,g=8;
+  const ar=Math.max(...cells.map(c=>+c.dataset.ar||1.414));let best=0,bc=1;
+  for(let c=1;c<=n;c++){const r=Math.ceil(n/c);const w=Math.min((W-(c-1)*g)/c,(H-(r-1)*g)/(r*ar));if(w>best){best=w;bc=c}}
+  best=Math.max(40,Math.floor(best));grid.style.gridTemplateColumns=`repeat(${bc},${best}px)`;cells.forEach(c=>{c.style.height=Math.floor(best*(+c.dataset.ar||ar))+'px'})}
+window.addEventListener('resize',()=>{if(st.view==='master'&&st.mtab==='guide')gFit()});
+/* 쪽을 누르면 지침서 보기 칸 안에서 그 쪽만 크게 (◀ ▶로 넘기기, 닫기) */
+function gZoom(i){const box=$('.gview .gbox');if(!box)return;const imgs=[...box.querySelectorAll('.ggrid img.gimg')];let z=box.querySelector('.gzoom');
+  if(i<0||i>=imgs.length){if(z)z.remove();return}
+  if(!z){z=document.createElement('div');z.className='gzoom';box.appendChild(z)}
+  z.innerHTML=`<img src="${imgs[i].src}" alt="${esc(imgs[i].alt)}"><div class="gzbar"><button class="btn" data-gz="${i-1}" ${i?'':'disabled'}>◀ 앞 쪽</button><span>${i+1} / ${imgs.length}</span><button class="btn" data-gz="${i+1}" ${i<imgs.length-1?'':'disabled'}>뒤 쪽 ▶</button><button class="btn" data-gz="-1">닫기</button></div>`;
+  z.querySelectorAll('[data-gz]').forEach(b=>b.onclick=e=>{e.stopPropagation();gZoom(+b.dataset.gz)});z.querySelector('img').onclick=()=>gZoom(-1)}
 async function gFillPdfs(){for(const el of $$('[data-gpdf]')){const id=el.dataset.gpdf;if(GPDF[id])continue;const m=st.materials.find(x=>x.id===id);if(!m)continue;
   try{const lib=await loadPdfJs();const doc=await lib.getDocument({url:assetUrl(m)}).promise;const out=[];const W=Math.min(1400,Math.max(600,Math.round((el.clientWidth||600)*(devicePixelRatio||1))));
     for(let i=1;i<=Math.min(doc.numPages,40);i++){const pg=await doc.getPage(i);const v0=pg.getViewport({scale:1});const v=pg.getViewport({scale:W/v0.width});const c=document.createElement('canvas');c.width=v.width;c.height=v.height;
       await pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise;out.push(c.toDataURL('image/jpeg',.85))}
-    GPDF[id]=out;const cur=document.querySelector(`[data-gpdf="${id}"]`);if(cur)cur.innerHTML=out.map((u,i)=>`<img class="gimg" src="${u}" alt="${esc(m.title)} ${i+1}쪽">`).join('')}
-  catch(e){const cur=document.querySelector(`[data-gpdf="${id}"]`);if(cur)cur.innerHTML='<p class="muted">PDF를 열지 못했어요. 다시 올려 보세요.</p>'}}}
+    GPDF[id]=out;const cur=document.querySelector(`[data-gpdf="${id}"]`);if(cur){cur.outerHTML=gFileHtml(m);bindGZoom();bindDelMat();gFit()}}
+  catch(e){const cur=document.querySelector(`[data-gpdf="${id}"]`);if(cur){const w=cur.querySelector('.gwait');if(w)w.textContent='PDF를 열지 못했어요. 다시 올려 보세요.'}}}}
 function mGuide(){const gs=st.materials.filter(m=>m.cat==='guide');
   $('#body').innerHTML=`<section class="card gup"><p class="kicker">기초반 지침서</p>
     <label class="gdrop">파일 올리기 <span class="small muted">PDF·사진·영상 · 한 파일 20MB까지</span><input id="gFile" type="file" multiple accept="application/pdf,image/*,video/*,.txt"></label>
     <div class="row"><button class="btn pri" id="gUp" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':'파일 올리기'}</button></div></section>
    <section class="card gview"><p class="kicker">지침서 보기</p>
     <div class="gbox">${st.guideText?`<div class="gtext">${esc(st.guideText)}</div>`:'<p class="muted">아래 입력창에 지침서 내용을 적고 저장하면 여기에 보여요.</p>'}
-      ${gs.map(gFileHtml).join('')}</div>
+      ${gs.length?`<div class="ggrid">${gs.map(gFileHtml).join('')}</div>`:''}</div>
     <label class="gedit">지침서 내용 수정 <textarea id="gText" maxlength="20000" placeholder="기초반 지침서 내용을 적어 주세요">${esc(st.guideText||'')}</textarea></label>
     <div class="row"><button class="btn pri" id="gSave">저장</button><button class="btn" id="gReset">되돌리기</button></div></section>`;
   on('#gUp',async()=>{const fs=[...$('#gFile').files];const m=await doUpload(fs,{id:uidGen(),title:fs.length?fs[0].name.replace(/\.[^.]+$/,''):'',desc:'',lessonId:'',cat:'guide',by:'마스터',createdAt:Date.now()});if(m)render()});
   on('#gSave',async()=>{await saveGuideText($('#gText').value.replace(/\s+$/,''));render()});
   on('#gReset',()=>{$('#gText').value=st.guideText||''});
-  bindDelMat();gFillPdfs()}
+  bindGZoom();bindDelMat();$$('.gview img.gimg').forEach(im=>{if(!im.complete)im.addEventListener('load',gFit,{once:true})});gFit();gFillPdfs()}
 function mMaterials(G){const k=st.matKind;const list=st.materials.filter(m=>G?m.cat==='guide':m.cat!=='guide');
   $('#body').innerHTML=`<section class="card"><p class="kicker">${G?'기초반 지침서 올리기':'자료 입력'}</p>
     ${G?'<p class="small muted">여기에 올린 자료는 제자 화면의 <b>“기초반 지침 보기”</b>에 바로 보여요.</p>':''}
