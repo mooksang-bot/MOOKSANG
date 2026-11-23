@@ -136,6 +136,14 @@ body.mfit .shell{height:100%;padding-block:0 calc(10px + env(safe-area-inset-bot
 body.mfit .shell>.wrap{height:100%;gap:8px}
 body.mfit .head{position:static;padding-block:10px 4px;flex:none}
 body.mfit .mtabs{flex:none}
+.mbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none}
+.mbar h2{font-size:1.3rem;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mmenu{position:relative;display:flex;gap:6px;flex:none}
+.mmenu .btn{min-height:40px;padding:6px 14px;font-size:.95rem}
+.mpop{position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column;min-width:190px}
+.mpop button{border:0;background:none;text-align:left;padding:11px 14px;border-radius:10px;font-size:1rem}
+.mpop button:hover{background:var(--soft)}
+.mpop button.on{color:var(--accent);font-weight:700;background:var(--soft)}
 body.mfit #body{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:10px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border-radius:18px}
 body.mfit .card{padding:14px 16px;gap:10px}
 body.mfit textarea{min-height:76px}
@@ -225,7 +233,8 @@ const ssSet=(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setI
 const st={mode:'loading',master:false,uid:null,cover:{...DEF_COVER},notices:[],lessons:[],materials:[],members:{},progAll:{},
   me:null,meLoaded:false,prog:{done:{},notes:{}},pwHash:null,unlocked:lsGet(LUN),seen:+(lsGet(LSEEN)||0),
   masterHash:null,masterLoaded:false,masterOk:ssGet(LMS),mpwOpen:false,mpwMsg:'',
-  view:'cover',tab:'home',mtab:'notice',open:null,editing:null,draft:null,busy:false,pwOpen:false,pwMsg:'',pwWrong:0,pwWait:0,allNotices:false,matKind:'file'};
+  memos:[],menuOpen:false,
+  view:'cover',tab:'home',mtab:'memo',open:null,editing:null,draft:null,busy:false,pwOpen:false,pwMsg:'',pwWrong:0,pwWait:0,allNotices:false,matKind:'file'};
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=s=>document.querySelector(s);
@@ -243,8 +252,8 @@ const safeLink=u=>/^https?:\/\//i.test(u)?u:'https://'+u;
 
 /* ================= 저장 ================= */
 const isLocal=()=>st.mode==='local';
-function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null,masterHash:d.masterHash||null})}catch(e){}}
-function lsSave(){lsSet(LSK,JSON.stringify({cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash,masterHash:st.masterHash}))}
+function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null,masterHash:d.masterHash||null,memos:(d.memos||[]).concat(d.notices||[])});st.notices=[]}catch(e){}}
+function lsSave(){lsSet(LSK,JSON.stringify({cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash,masterHash:st.masterHash,memos:st.memos}))}
 async function write(fn,okMsg){if(isLocal()){lsSave();if(okMsg)toast(okMsg);return true}
   try{await fn();if(okMsg)toast(okMsg);return true}catch(e){toast(e&&e.code==='invalid_argument'?'저장할 권한이 없어요. 목사님께 “참여자” 권한을 요청해 주세요.':'저장하지 못했어요. 잠시 뒤 다시 해 주세요.');return false}}
 const plain=o=>JSON.parse(JSON.stringify(o));
@@ -252,6 +261,8 @@ const upsert=(arr,o)=>{const i=arr.findIndex(x=>x.id===o.id);if(i>=0)arr[i]=o;el
 function body(o){const {id,...b}=o;return plain(b)}
 const saveCover=c=>{st.cover=c;return write(()=>db.collection('board').doc('cover').set(plain(c)),'표지를 저장했어요. 모든 성도님께 보여요.')};
 const saveNoticeDoc=n=>{upsert(st.notices,n);sortAll();return write(()=>db.collection('notices').doc(n.id).set(body(n)),'공지를 보냈어요.')};
+const saveMemo=m=>{upsert(st.memos,m);sortAll();return write(()=>db.collection('memos').doc(m.id).set(body(m)),'메모를 저장했어요.')};
+const delMemo=id=>{st.memos=st.memos.filter(x=>x.id!==id);return write(()=>db.collection('memos').doc(id).delete(),'메모를 삭제했어요.')};
 const delNotice=id=>{st.notices=st.notices.filter(x=>x.id!==id);return write(()=>db.collection('notices').doc(id).delete(),'공지를 지웠어요.')};
 const saveLesson=l=>{upsert(st.lessons,l);sortAll();return write(()=>db.collection('lessons').doc(l.id).set(body(l)),'과정을 저장했어요.')};
 const delLesson=id=>{st.lessons=st.lessons.filter(x=>x.id!==id);return write(()=>db.collection('lessons').doc(id).delete(),'과정을 지웠어요.')};
@@ -273,6 +284,7 @@ function lockMaster(){st.masterOk=null;ssSet(LMS,null);go('cover');toast('마스
 const pastorSrc=c=>{const p=c.pastor;if(!p||!p.value)return '';return p.type==='asset'?'/_blob/'+p.value:p.value};
 function sortAll(){st.lessons.sort((a,b)=>(+a.week||0)-(+b.week||0)||(a.createdAt||0)-(b.createdAt||0));
   st.notices.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.createdAt||0)-(a.createdAt||0));
+  st.memos.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.createdAt||0)-(a.createdAt||0));
   st.materials.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))}
 
 /* ================= 화면 공통 ================= */
@@ -305,7 +317,7 @@ function coverView(){const c=st.draft||st.cover;
      <p class="sub">${esc(c.sub)}</p>
      <p class="verse">${esc(c.verse).replace(/\n/g,'<br>')}</p>
      ${st.draft?'':`<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'들어가기'}</button>`}
-     ${st.master&&!st.draft&&!st.pwHash&&st.mode!=='loading'?`<p class="hint">입장 비밀번호가 아직 없어요. 마스터 창 › 설정에서 정해 주세요.</p>`:''}
+     ${st.master&&!st.draft&&!st.pwHash&&st.mode!=='loading'?`<p class="hint">입장 비밀번호가 아직 없어요. 마스터 창 › 다른 기능 › 설정에서 정해 주세요.</p>`:''}
    </div></section>${st.draft?decorPanel():''}${st.pwOpen?pwPanel():''}${st.mpwOpen?mpwPanel():''}`;
   on('#enter',()=>{if(st.mode==='loading')return;if(canEnter())return go('app');st.pwOpen=true;st.pwMsg='';render();const i=$('#pwIn');if(i)i.focus()});
   on('#toMaster',openMaster);
@@ -409,9 +421,9 @@ function noticeItem(n,isNew){return `<div class="item">${n.pinned?'<span class="
 function homeTab(){const total=st.lessons.length,done=st.lessons.filter(l=>st.prog.done[l.id]).length;
   const next=st.lessons.find(l=>!st.prog.done[l.id])||st.lessons[st.lessons.length-1];
   const ns=st.allNotices?st.notices:st.notices.slice(0,3);const seen=st.seen;
-  $('#body').innerHTML=`<section class="card"><p class="kicker">공지 사항</p>
-    ${ns.length?ns.map(n=>noticeItem(n,(n.createdAt||0)>seen)).join(''):'<p class="muted">아직 공지가 없어요.</p>'}
-    ${st.notices.length>3?`<button class="btn ghost" id="moreN">${st.allNotices?'접기':`공지 ${st.notices.length}개 모두 보기`}</button>`:''}</section>
+  $('#body').innerHTML=`${ns.length?`<section class="card"><p class="kicker">공지 사항</p>
+    ${ns.map(n=>noticeItem(n,(n.createdAt||0)>seen)).join('')}
+    ${st.notices.length>3?`<button class="btn ghost" id="moreN">${st.allNotices?'접기':`공지 ${st.notices.length}개 모두 보기`}</button>`:''}</section>`:''}
    <section class="card"><p class="kicker">나의 훈련</p><h2>${done} / ${total} 과정 완료</h2><div class="bar"><i style="width:${total?done/total*100:0}%"></i></div></section>
    <section class="card"><p class="kicker">이번에 할 과정</p>
     ${next?`<h2>${next.week?esc(next.week)+'주차 · ':''}${esc(next.title)}</h2>${next.scripture?`<p class="muted">본문: ${esc(next.scripture)}</p>`:''}<div class="row"><button class="btn pri" id="goLesson">과정 보기</button></div>`
@@ -447,28 +459,33 @@ function lessonsTab(){let h='';
   b.querySelectorAll('[data-note]').forEach(x=>x.onclick=async()=>{const id=x.dataset.note;st.prog.notes[id]=$('#note_'+id).value.trim();if(await saveProg())toast('나눔을 저장했어요.')})}
 
 /* ---- 마스터 창 ---- */
-function masterView(){const tabs=[['notice','공지 전달'],['lessons','훈련 과정 입력'],['materials','자료 입력'],['pastor','목사님 사진'],['members','성도 명단'],['settings','설정']];
+const MSECT=[['memo','메모하기'],['lessons','훈련 과정 입력'],['materials','자료 입력'],['pastor','목사님 사진'],['members','성도 명단'],['settings','설정']];
+function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
   root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<span class="mbadge">마스터 창</span><button class="who btn-like" id="toApp">성도 화면</button>`)}
-   <nav class="mtabs" aria-label="마스터 메뉴">${tabs.map(([k,l])=>`<button data-mtab="${k}" class="${st.mtab===k?'on':''}">${l}</button>`).join('')}</nav>
+   <div class="mbar"><h2>${st.mtab==='memo'?'':cur[1]}</h2><div class="mmenu">
+     ${st.mtab!=='memo'?'<button class="btn" id="toMemo">← 메모하기</button>':''}
+     <button class="btn" id="mMenu" aria-expanded="${st.menuOpen}">${st.menuOpen?'닫기':'다른 기능'}</button>
+     ${st.menuOpen?`<div class="mpop" role="menu">${MSECT.map(([k,l])=>`<button role="menuitem" data-mtab="${k}" class="${st.mtab===k?'on':''}">${l}</button>`).join('')}</div>`:''}</div></div>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
-  on('#toCover',()=>go('cover'));on('#toApp',()=>{st.tab='home';go('app')});
-  $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;render()});
-  ({notice:mNotice,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,settings:mSettings})[st.mtab]()}
-function mNotice(){const ed=st.editing&&st.notices.find(n=>n.id===st.editing);const n=ed||{};
-  $('#body').innerHTML=`<section class="card"><p class="kicker">${ed?'공지 고치기':'새 공지 보내기'}</p>
-    <label>제목 (선택) <input id="nTitle" maxlength="60" value="${esc(n.title)}" placeholder="예: 이번 주 모임 안내"></label>
-    <label>내용 <textarea id="nText" maxlength="2000" placeholder="성도님들께 전할 말씀을 적어 주세요.">${esc(n.text)}</textarea></label>
-    <label class="check"><input type="checkbox" id="nPin" ${n.pinned?'checked':''}> 중요 공지 (맨 위에 고정)</label>
-    <div class="row"><button class="btn pri" id="nSend">${ed?'고친 공지 저장':'모든 성도님께 보내기'}</button>${ed?'<button class="btn" id="nCancel">취소</button>':''}</div></section>
-   <section class="card"><p class="kicker">보낸 공지 ${st.notices.length}개</p>
-    ${st.notices.length?st.notices.map(x=>`<div class="item">${x.pinned?'<span class="pinned">중요 공지</span>':''}${x.title?`<h3>${esc(x.title)}</h3>`:''}<p class="notice">${esc(x.text)}</p><span class="date">${fmtDate(x.createdAt)}</span>
-      <div class="row"><button class="btn" data-ned="${x.id}">고치기</button><button class="btn danger" data-ndel="${x.id}">지우기</button></div></div>`).join(''):'<p class="muted">아직 보낸 공지가 없어요.</p>'}</section>`;
-  on('#nSend',async()=>{const text=$('#nText').value.trim();if(!text){toast('내용을 적어 주세요.');return}
-    const o={id:n.id||uidGen(),title:$('#nTitle').value.trim(),text,pinned:$('#nPin').checked,createdAt:n.createdAt||Date.now(),updatedAt:Date.now()};st.editing=null;await saveNoticeDoc(o);render()});
+  on('#toCover',()=>go('cover'));on('#toApp',()=>{st.tab='home';st.menuOpen=false;go('app')});
+  on('#mMenu',()=>{st.menuOpen=!st.menuOpen;render()});on('#toMemo',()=>{st.mtab='memo';st.editing=null;render()});
+  $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;st.menuOpen=false;render()});
+  ({memo:mMemo,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,settings:mSettings})[st.mtab]()}
+function mMemo(){const ed=st.editing&&st.memos.find(n=>n.id===st.editing);const n=ed||{};
+  $('#body').innerHTML=`<section class="card"><p class="kicker">${ed?'메모 수정':'메모하기'}</p>
+    <label>제목 <input id="nTitle" maxlength="60" value="${esc(n.title)}"></label>
+    <label>내용 <textarea id="nText" maxlength="4000">${esc(n.text)}</textarea></label>
+    <label class="check"><input type="checkbox" id="nPin" ${n.pinned?'checked':''}> 중요 메모</label>
+    <div class="row"><button class="btn pri" id="nSend">저장</button>${ed?'<button class="btn" id="nCancel">취소</button>':''}</div></section>
+   <section class="card"><p class="kicker">저장 메모 ${st.memos.length}개</p>
+    ${st.memos.length?st.memos.map(x=>`<div class="item">${x.pinned?'<span class="pinned">중요 메모</span>':''}${x.title?`<h3>${esc(x.title)}</h3>`:''}<p class="notice">${esc(x.text)}</p><span class="date">${fmtDate(x.createdAt)}</span>
+      <div class="row"><button class="btn" data-ned="${x.id}">수정</button><button class="btn danger" data-ndel="${x.id}">삭제</button></div></div>`).join(''):'<p class="muted">아직 저장한 메모가 없어요.</p>'}</section>`;
+  on('#nSend',async()=>{const text=$('#nText').value.trim(),title=$('#nTitle').value.trim();if(!text&&!title){toast('제목이나 내용을 적어 주세요.');return}
+    const o={id:n.id||uidGen(),title,text,pinned:$('#nPin').checked,createdAt:n.createdAt||Date.now(),updatedAt:Date.now()};st.editing=null;await saveMemo(o);render()});
   on('#nCancel',()=>{st.editing=null;render()});
-  $$('[data-ned]').forEach(b=>b.onclick=()=>{st.editing=b.dataset.ned;render();window.scrollTo(0,0)});
-  confirmDel('[data-ndel]','ndel',id=>delNotice(id))}
-function confirmDel(sel,key,fn){$$(sel).forEach(b=>b.onclick=()=>{const id=b.dataset[key];b.parentElement.innerHTML=`<span>정말 지울까요?</span><button class="btn danger" data-y>지우기</button><button class="btn" data-n>취소</button>`;
+  $$('[data-ned]').forEach(b=>b.onclick=()=>{st.editing=b.dataset.ned;render()});
+  confirmDel('[data-ndel]','ndel',id=>delMemo(id))}
+function confirmDel(sel,key,fn){$$(sel).forEach(b=>b.onclick=()=>{const id=b.dataset[key];b.parentElement.innerHTML=`<span>삭제할까요?</span><button class="btn danger" data-y>삭제</button><button class="btn" data-n>취소</button>`;
   const p=document.querySelector(`[data-y]`).parentElement;p.querySelector('[data-y]').onclick=async()=>{await fn(id);render()};p.querySelector('[data-n]').onclick=()=>render()})}
 function lessonForm(l){l=l||{};return `<section class="card"><p class="kicker">${l.id?'과정 고치기':'새 과정 입력'}</p>
   <div class="row" style="flex-wrap:nowrap"><label style="width:100px;flex:none">주차 <input id="fWeek" inputmode="numeric" value="${esc(l.week??(st.lessons.length+1))}"></label><label style="flex:1;min-width:0">제목 <input id="fTitle" maxlength="60" value="${esc(l.title)}" placeholder="예: 구원의 확신"></label></div>
@@ -661,6 +678,8 @@ lsLoad();sortAll();render();
     db.collection('progress').doc(st.uid).onSnapshot(s=>{if(s.exists&&!s.metadata.hasPendingWrites){const p=s.data();st.prog={done:{...(p.done||{})},notes:{...(p.notes||{})}}}soft()},()=>{});
   }
   if(st.master){
+    col('memos','memos');
+    (async()=>{try{const q=await db.collection('notices').get();for(const d of q.docs){await db.collection('memos').doc(d.id).set({...d.data()});await db.collection('notices').doc(d.id).delete()}}catch(e){}})();
     db.collection('settings').doc('master').onSnapshot(s=>{st.masterHash=s.exists?(s.data().hash||null):null;st.masterLoaded=true;soft()},()=>{st.masterLoaded=true;soft()});
     db.collection('members').onSnapshot(q=>{st.members=Object.fromEntries(q.docs.map(x=>[x.id,x.data()]));soft()},()=>{});
     db.collection('progress').onSnapshot(q=>{st.progAll=Object.fromEntries(q.docs.map(x=>[x.id,x.data()]));soft()},()=>{});
