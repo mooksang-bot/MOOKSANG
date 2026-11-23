@@ -44,6 +44,12 @@ a{color:var(--violet)}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .chips{display:inline-flex;gap:6px;align-items:center}
 button.chip{cursor:pointer}
+/* 엘리사 화면의 '표지' 버튼: 2배 크기 + 네온 */
+body.home .topbar .chip.covbtn{font-size:1.6rem;padding:9px 26px;border-width:3px;border-color:var(--violet);color:var(--violet);transition:box-shadow .2s,border-color .2s,color .2s,transform .15s,text-shadow .2s}
+body.home .topbar .chip.covbtn:hover,body.home .topbar .chip.covbtn:focus-visible,body.home .topbar .chip.covbtn:active{border-color:#3fe6d6;color:var(--ink);transform:translateY(-1px);
+  box-shadow:0 0 0 2px #5ff5e6,0 0 14px #5ff5e6,0 0 32px rgba(140,90,255,.65),inset 0 0 10px rgba(95,245,230,.3);text-shadow:0 0 8px rgba(95,245,230,.9)}
+body.home .topbar .chip.covbtn:active{transform:translateY(1px)}
+@media (max-width:420px){body.home .topbar .chip.covbtn{font-size:1.35rem;padding:7px 18px}}
 .chip.mchip{background:var(--sun);border-color:var(--sun);color:#3b2a00}
 .minput{width:100%;font-size:18px;padding:10px 12px;border-radius:14px;border:3px solid var(--line);background:var(--card);color:var(--ink);font-family:var(--body);text-align:center;letter-spacing:.1em}
 .minput:focus{outline:none;border-color:var(--violet)}
@@ -294,7 +300,8 @@ body.home .tile.big .ic{width:clamp(44px,7.5dvh,72px);height:clamp(44px,7.5dvh,7
 body.home .badge{top:6px;right:8px;min-width:24px;height:24px;font-size:.85rem}
 body.home .card{padding:12px 16px;gap:10px;border-radius:20px;flex:none}
 body.home .wrap{justify-content:center}
-@media (max-height:700px){body.home .tile:not(.big){min-height:0}}
+@media (max-width:520px){body.home .tile:not(.big){min-height:clamp(46px,9dvh,120px)}}
+@media (max-height:700px){body.home .tile:not(.big){min-height:0}body.home .hero{padding-block:6px}body.home .topbar .chip.covbtn{font-size:1.2rem;padding:5px 16px}}
 body.home .card h3{font-size:1rem}
 body.home .path{gap:6px}
 body.home .dot{width:clamp(24px,3.9dvh,39px);height:clamp(24px,3.9dvh,39px);font-size:clamp(.8rem,1.6dvh,1rem)}
@@ -619,7 +626,7 @@ const IC={
  map:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M4 9l10-4 12 4 10-4v26l-10 4-12-4-10 4z"/><path d="M14 5v26M26 9v26"/></svg>`,
  rep:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 34h28M10 28V18M18 28V10M26 28v-6M34 28V14"/></svg>`
 };
-function topBar(title){return `<div class="topbar">${title?`<button class="back" data-go="home">← 처음으로</button><h2>${title}</h2>`:`<span class="chips"><button class="chip" data-go="cover">표지</button><span class="chip">⭐ 별 <b>${S.stars}</b>개</span></span>`}<span class="chips"><span class="chip">오늘 <b>${S.daily.date===today()?S.daily.count:0}</b>문제</span><button class="chip resetbtn" data-reset>초기화</button></span></div>`}
+function topBar(title){return `<div class="topbar">${title?`<button class="back" data-go="home">← 처음으로</button><h2>${title}</h2>`:`<span class="chips"><button class="chip covbtn" data-go="cover">표지</button><span class="chip">⭐ 별 <b>${S.stars}</b>개</span></span>`}<span class="chips"><span class="chip">오늘 <b>${S.daily.date===today()?S.daily.count:0}</b>문제</span><button class="chip resetbtn" data-reset>초기화</button></span></div>`}
 function openReset(){closeReset();const d=document.createElement('div');d.className='rmodal';d.id='rmodal';
   d.innerHTML=`<div class="rbox" role="dialog" aria-label="초기화"><h3>푼 문제 초기화</h3>
     <p>어떤 기록을 지울까요? 지운 기록은 되돌릴 수 없어요.</p>
