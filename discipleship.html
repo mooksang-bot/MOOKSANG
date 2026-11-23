@@ -248,7 +248,7 @@ const LMS='disciple-master-ok';
 const ssGet=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 const ssSet=(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}};
 const st={mode:'loading',master:false,uid:null,cover:{...DEF_COVER},notices:[],lessons:[],materials:[],members:{},progAll:{},
-  me:null,meLoaded:false,prog:{done:{},notes:{}},pwHash:null,unlocked:lsGet(LUN),seen:+(lsGet(LSEEN)||0),
+  me:null,meLoaded:false,prog:{done:{},notes:{}},pwHash:null,unlocked:ssGet(LUN),seen:+(lsGet(LSEEN)||0),
   masterHash:null,masterLoaded:false,masterOk:ssGet(LMS),mpwOpen:false,mpwMsg:'',
   memos:[],menuOpen:false,
   view:'cover',tab:'home',mtab:'memo',open:null,editing:null,draft:null,busy:false,pwOpen:false,pwMsg:'',pwWrong:0,pwWait:0,allNotices:false,matKind:'file'};
@@ -290,7 +290,7 @@ const saveProg=()=>write(()=>db.collection('progress').doc(st.uid).set(plain(st.
 async function saveMe(m){const ok=await write(()=>db.collection('members').doc(st.uid).set(m),'등록했어요. 환영합니다!');if(ok)st.me=m;return ok}
 async function hashPw(pw){const t='disciple:'+pw;try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
   catch(e){let h=5381;for(const c of t)h=((h*33)^c.charCodeAt(0))>>>0;return 'h'+h.toString(16)}}
-async function savePw(pw){const h=pw?await hashPw(pw):null;st.pwHash=h;if(h){st.unlocked=h;lsSet(LUN,h)}
+async function savePw(pw){const h=pw?await hashPw(pw):null;st.pwHash=h;if(h){st.unlocked=h;ssSet(LUN,h)}
   return write(()=>db.collection('settings').doc('entry').set({hash:h,updatedAt:Date.now()}),h?'입장 비밀번호를 정했어요.':'비밀번호를 껐어요.')}
 async function saveMasterPw(pw){const h=await hashPw('master:'+pw);st.masterHash=h;st.masterOk=h;ssSet(LMS,h);
   return write(()=>db.collection('settings').doc('master').set({hash:h,updatedAt:Date.now()}),'마스터 비밀번호를 정했어요.')}
@@ -308,7 +308,8 @@ function sortAll(){st.lessons.sort((a,b)=>(+a.week||0)-(+b.week||0)||(a.createdA
 const root=document.getElementById('root');
 const typing=()=>{const a=document.activeElement;return a&&root.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)};
 function soft(){if(!typing())render()}
-const canEnter=()=>st.master||(st.pwHash?st.unlocked===st.pwHash:false);
+const entryOk=()=>!!st.pwHash&&st.unlocked===st.pwHash;
+const canEnter=()=>entryOk()||masterUnlocked();
 const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
 function go(view){st.view=view;window.scrollTo(0,0);render()}
 function render(){document.body.classList.toggle('app',st.view!=='cover');
@@ -336,7 +337,7 @@ function coverView(){const c=st.draft||st.cover;
      ${st.draft?'':`<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'제자들 입장'}</button>`}
      ${st.master&&!st.draft&&!st.pwHash&&st.mode!=='loading'?`<p class="hint">입장 비밀번호가 아직 없어요. 마스터 창 › 다른 기능 › 설정에서 정해 주세요.</p>`:''}
    </div></section>${st.draft?decorPanel():''}${st.pwOpen?pwPanel():''}${st.mpwOpen?mpwPanel():''}`;
-  on('#enter',()=>{if(st.mode==='loading')return;if(canEnter())return go('app');st.pwOpen=true;st.pwMsg='';render();const i=$('#pwIn');if(i)i.focus()});
+  on('#enter',()=>{if(st.mode==='loading')return;if(entryOk())return go('app');st.pwOpen=true;st.pwMsg='';render();const i=$('#pwIn');if(i)i.focus()});
   on('#toMaster',openMaster);
   if(st.draft)bindDecor();if(st.pwOpen)bindPw();if(st.mpwOpen)bindMpw()}
 function mpwPanel(){const create=st.masterLoaded&&!st.masterHash;
@@ -360,8 +361,8 @@ function bindMpw(){const close=()=>{st.mpwOpen=false;render()};on('#mpClose',clo
 function pwPanel(){const none=!st.pwHash;
   return `<div class="modal" id="pwModal"><div class="panel" role="dialog" aria-label="입장 비밀번호" style="max-width:420px">
    <div class="row" style="justify-content:space-between"><h2>${none?'아직 입장할 수 없어요':'입장 비밀번호'}</h2><button class="btn ghost" id="pwClose">닫기</button></div>
-   ${none?`<p>김병구 목사님이 입장 비밀번호를 정하면 들어올 수 있어요. 비밀번호는 목사님께 받아 주세요.</p>`
-   :`<p class="muted">김병구 목사님께 받은 비밀번호를 입력해 주세요. 한 번 들어오면 이 기기에서는 다시 묻지 않아요.</p>
+   ${none?`<p>${st.master?'아직 입장 비밀번호를 정하지 않았어요. “마스터 입장” › 다른 기능 › 설정에서 비밀번호를 정해 주세요.':'김병구 목사님이 입장 비밀번호를 정하면 들어올 수 있어요. 비밀번호는 목사님께 받아 주세요.'}</p>`
+   :`<p class="muted">마스터(김병구 목사님)가 알려 준 비밀번호를 입력하고 입장해 주세요.</p>
      <input id="pwIn" class="pwin" type="password" autocomplete="off" maxlength="20" aria-label="비밀번호">
      <p class="perr" aria-live="polite">${esc(st.pwMsg)}</p>
      <button class="btn pri" id="pwGo">입장</button>`}</div></div>`}
@@ -369,7 +370,7 @@ function bindPw(){on('#pwClose',()=>{st.pwOpen=false;render()});
   $('#pwModal').onclick=e=>{if(e.target.id==='pwModal'){st.pwOpen=false;render()}};
   const tryPw=async()=>{if(Date.now()<st.pwWait){st.pwMsg='잠시 뒤에 다시 해 주세요.';return render()}
     const v=$('#pwIn').value.trim();if(!v)return;const h=await hashPw(v);
-    if(h===st.pwHash){st.unlocked=h;lsSet(LUN,h);st.pwOpen=false;st.pwWrong=0;go('app')}
+    if(h===st.pwHash){st.unlocked=h;ssSet(LUN,h);st.pwOpen=false;st.pwWrong=0;go('app')}
     else{st.pwWrong++;if(st.pwWrong>=5){st.pwWait=Date.now()+30000;st.pwWrong=0;st.pwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else st.pwMsg='비밀번호가 맞지 않아요.';render();const i=$('#pwIn');if(i)i.focus()}};
   on('#pwGo',tryPw);const i=$('#pwIn');if(i)i.onkeydown=e=>{if(e.key==='Enter')tryPw()}}
 function decorPanel(){const c=st.draft,b=c.bg||{};
@@ -584,7 +585,7 @@ function mMembers(){const ids=Object.keys(st.members).sort((a,b)=>(st.members[a]
   $('#body').innerHTML=h+'</section>'}
 function mSettings(){$('#body').innerHTML=`<section class="card"><p class="kicker">입장 비밀번호</p>
     <span class="status ${st.pwHash?'ok':'no'}">${st.pwHash?'● 비밀번호가 정해져 있어요':'● 아직 비밀번호가 없어요 (성도님이 들어올 수 없어요)'}</span>
-    <p>성도님이 표지에서 “제자들 입장”을 누르면 이 비밀번호를 물어봐요. 정한 비밀번호를 성도님들께 알려 주세요. 마스터는 비밀번호 없이 들어가요.</p>
+    <p>성도님이 표지에서 “제자들 입장”을 누르면 이 비밀번호를 물어봐요. 정한 비밀번호를 성도님들께 알려 주세요. 마스터도 “제자들 입장”으로 들어갈 때는 이 비밀번호를 입력해요. 앱을 다시 열면 또 물어봐요.</p>
     <label>${st.pwHash?'새 비밀번호':'비밀번호'} (4~20자) <input id="p1" type="password" autocomplete="new-password" maxlength="20"></label>
     <label>한 번 더 입력 <input id="p2" type="password" autocomplete="new-password" maxlength="20"></label>
     <div class="row"><button class="btn pri" id="pSave">${st.pwHash?'비밀번호 바꾸기':'비밀번호 정하기'}</button></div>
