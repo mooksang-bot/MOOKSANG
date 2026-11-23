@@ -197,7 +197,21 @@ body.mfit .item{gap:4px}
 .cover .enter{transition:box-shadow .25s,transform .25s}
 .cover .enters{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:10px}
 .cover .enters .enter{margin-top:0}
-.cover .enter.alt{background:rgba(20,14,6,.55);color:#f3d68e;border:1px solid #e9cf8c;box-shadow:0 8px 30px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+/* 입체 버튼: 윗면 빛 반사 + 아래 두께 + 그림자, 누르면 들어감 */
+.cover .enters .enter{position:relative;border-radius:999px;transition:transform .12s ease,box-shadow .12s ease,filter .2s;
+  background:linear-gradient(180deg,#fff3cc 0%,#f3d483 42%,#d6a24b 58%,#b9852f 100%);color:#2a1d08;border:1px solid #fff2c8;text-shadow:0 1px 0 rgba(255,255,255,.55);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.85),inset 0 -3px 0 rgba(120,78,18,.45),0 5px 0 #7a5419,0 6px 2px rgba(0,0,0,.35),0 14px 22px rgba(0,0,0,.45)}
+.cover .enters .enter::after{content:"";position:absolute;left:12%;right:12%;top:3px;height:42%;border-radius:999px;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0))}
+.cover .enters .enter.alt{background:linear-gradient(180deg,#5a4628 0%,#33260f 48%,#1e160b 100%);color:#f6dc97;border:1px solid #e9cf8c;text-shadow:0 -1px 0 rgba(0,0,0,.7),0 0 10px rgba(246,220,151,.25);
+  box-shadow:inset 0 2px 0 rgba(255,236,180,.45),inset 0 -3px 0 rgba(0,0,0,.55),0 5px 0 #0c0804,0 6px 2px rgba(0,0,0,.4),0 14px 22px rgba(0,0,0,.5)}
+.cover .enters .enter.alt::after{background:linear-gradient(180deg,rgba(255,236,180,.22),rgba(255,236,180,0))}
+.cover .enters .enter:active{transform:translateY(4px);box-shadow:inset 0 2px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(120,78,18,.4),0 1px 0 #7a5419,0 3px 8px rgba(0,0,0,.45)}
+.cover .enters .enter.alt:active{box-shadow:inset 0 2px 0 rgba(255,236,180,.35),inset 0 -2px 0 rgba(0,0,0,.5),0 1px 0 #0c0804,0 3px 8px rgba(0,0,0,.5)}
+@media (hover:hover){
+  .cover .enters .enter:hover{transform:translateY(-2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.85),inset 0 -3px 0 rgba(120,78,18,.45),0 7px 0 #7a5419,0 8px 2px rgba(0,0,0,.35),0 18px 26px rgba(0,0,0,.45),0 0 18px rgba(95,245,230,.55)}
+  .cover .enters .enter.alt:hover{box-shadow:inset 0 2px 0 rgba(255,236,180,.45),inset 0 -3px 0 rgba(0,0,0,.55),0 7px 0 #0c0804,0 8px 2px rgba(0,0,0,.4),0 18px 26px rgba(0,0,0,.5),0 0 18px rgba(95,245,230,.55)}
+  .cover .enters .enter:active{transform:translateY(4px)}
+}
 @media (hover:hover){
   .cover .enter:hover{box-shadow:0 0 0 2px #5ff5e6,0 0 18px #5ff5e6,0 0 46px rgba(0,229,255,.65);transform:translateY(-1px)}
   .cover .tools button:hover{box-shadow:0 0 0 1px #5ff5e6,0 0 16px #5ff5e6;border-color:#5ff5e6}
