@@ -249,6 +249,13 @@ em.by.lead{background:#3b8fc9}
 .mtile:hover,.mtile:active,.mtile:focus-visible{border-color:#3fe6d6;box-shadow:0 0 0 2px #5ff5e6,0 0 12px #5ff5e6,0 0 26px rgba(140,90,255,.5)}
 @media (max-width:420px){.mgrid{grid-template-columns:1fr 1fr}.tabs button{font-size:.72rem;letter-spacing:-.02em}.tabs button span{white-space:nowrap}.seg .btn{padding:8px 6px;font-size:.9rem}}
 /* 받는 제자 체크 목록: 마우스를 올리면 녹색 네온, 체크하면 녹색으로 빛남 */
+.gtext{white-space:pre-wrap;line-height:1.75;font-size:1rem;color:var(--ink)}
+.gview .gbox{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--soft) 55%,transparent);max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.gview .gfiles{border-top:1px dashed var(--line);padding-top:6px}
+.gview textarea#gText{min-height:140px}
+.gup .gdrop{border:2px dashed var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,box-shadow .15s}
+.gup .gdrop:hover,.gup .gdrop:focus-within{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
+@media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)}.gview .gbox{max-height:none;flex:1;min-height:120px}.gview{display:flex;flex-direction:column;height:100%}}
 .rcpt{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .rhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;max-height:230px;overflow:auto;padding:4px}
@@ -478,14 +485,15 @@ const safeLink=u=>/^https?:\/\//i.test(u)?u:'https://'+u;
 
 /* ================= 저장 ================= */
 const isLocal=()=>st.mode==='local';
-function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{roster:(d.roster||[]).slice(),att:d.att||{},lmemos:d.lmemos||[],leaderHash:d.leaderHash||null,cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null,masterHash:d.masterHash||null,memos:d.memos||[]})}catch(e){}}
-function lsSave(){lsSet(LSK,JSON.stringify({roster:st.roster,att:st.att,lmemos:st.lmemos,leaderHash:st.leaderHash,cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash,masterHash:st.masterHash,memos:st.memos}))}
+function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{roster:(d.roster||[]).slice(),att:d.att||{},lmemos:d.lmemos||[],leaderHash:d.leaderHash||null,cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null,masterHash:d.masterHash||null,memos:d.memos||[],guideText:d.guideText||''})}catch(e){}}
+function lsSave(){lsSet(LSK,JSON.stringify({roster:st.roster,att:st.att,lmemos:st.lmemos,leaderHash:st.leaderHash,cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash,masterHash:st.masterHash,memos:st.memos,guideText:st.guideText||''}))}
 async function write(fn,okMsg){if(isLocal()){lsSave();if(okMsg)toast(okMsg);return true}
   try{await fn();if(okMsg)toast(okMsg);return true}catch(e){toast(e&&e.code==='invalid_argument'?'저장할 권한이 없어요. 목사님께 “참여자” 권한을 요청해 주세요.':'저장하지 못했어요. 잠시 뒤 다시 해 주세요.');return false}}
 const plain=o=>JSON.parse(JSON.stringify(o));
 const upsert=(arr,o)=>{const i=arr.findIndex(x=>x.id===o.id);if(i>=0)arr[i]=o;else arr.push(o)};
 function body(o){const {id,...b}=o;return plain(b)}
 const saveCover=c=>{st.cover=c;return write(()=>db.collection('board').doc('cover').set(plain(c)),'표지를 저장했어요. 모든 성도님께 보여요.')};
+const saveGuideText=t=>{st.guideText=t;return write(()=>db.collection('board').doc('guide').set({text:t,updatedAt:Date.now()}),'지침서 내용을 저장했어요. 제자들에게 바로 보여요.')};
 const saveNoticeDoc=n=>{upsert(st.notices,n);sortAll();return write(()=>db.collection('notices').doc(n.id).set(body(n)),'제자들에게 보냈어요.')};
 const saveMemo=m=>{upsert(st.memos,m);sortAll();return write(()=>db.collection('memos').doc(m.id).set(body(m)),'메모를 저장했어요.')};
 const delMemo=id=>{st.memos=st.memos.filter(x=>x.id!==id);return write(()=>db.collection('memos').doc(id).delete(),'메모를 삭제했어요.')};
@@ -720,7 +728,7 @@ function materialsTab(){const lib=st.materials.filter(m=>m.cat!=='guide'&&m.cat!
   ${upPanel('library')}${isM()&&lib.length?`<section class="card"><p class="kicker">자료 관리 (마스터)</p>${lib.map(m=>matRow(m,true)).join('')}</section>`:''}`;
   bindUp('library');bindDelMat()}
 function lessonsTab(){const guides=st.materials.filter(m=>m.cat==='guide');
-  let h=`<section class="card"><p class="kicker">기초반 지침 보기 · 자료 ${guides.length}개</p>${matGrid(guides,'마스터나 반장이 지침 자료를 올리면 여기에 바로 보여요.')}</section>`+upPanel('guide');
+  let h=(st.guideText?`<section class="card"><p class="kicker">기초반 지침서</p><div class="gtext">${esc(st.guideText)}</div></section>`:'')+`<section class="card"><p class="kicker">기초반 지침 보기 · 자료 ${guides.length}개</p>${matGrid(guides,'마스터나 반장이 지침 자료를 올리면 여기에 바로 보여요.')}</section>`+upPanel('guide');
   if(isM()&&guides.length)h+=`<section class="card"><p class="kicker">지침 자료 관리 (마스터)</p>${guides.map(m=>matRow(m,true)).join('')}</section>`;
   if(!st.lessons.length)h+=`<section class="card empty">김병구 목사님이 과정을 올리면 여기에 보여요.</section>`;
   for(const l of st.lessons){const done=!!st.prog.done[l.id],open=st.open===l.id;const mats=st.materials.filter(m=>m.lessonId===l.id);
@@ -947,7 +955,7 @@ function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur
   on('#qLec',()=>qGo('lecture'));on('#qAtt',()=>qGo('att'));on('#qUp',()=>qGo('guide'));on('#qPw',()=>qGo('pw'));
   on('#mMenu',()=>{st.menuOpen=!st.menuOpen;render()});on('#toMemo',()=>{st.mtab='memo';st.editing=null;render()});
   $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;st.menuOpen=false;render()});
-  ({att:()=>{leadSub();lRoster()},lecture:mLecture,memo:mMemo,lessons:mLessons,guide:()=>mMaterials(true),materials:()=>mMaterials(false),pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
+  ({att:()=>{leadSub();lRoster()},lecture:mLecture,memo:mMemo,lessons:mLessons,guide:mGuide,materials:()=>mMaterials(false),pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
 function mMemo(){const ed=st.editing&&st.memos.find(n=>n.id===st.editing);const n=ed||{};
   $('#body').innerHTML=`<section class="card" style="order:2"><p class="kicker">${ed?'메모 수정':'메모하기'}</p>
     <label>제목 <input id="nTitle" maxlength="60" value="${esc(n.title)}"></label>
@@ -987,6 +995,19 @@ function mLessons(){const ed=st.editing&&st.lessons.find(l=>l.id===st.editing);
     st.editing=null;await saveLesson(l);render()});
   $$('[data-led]').forEach(b=>b.onclick=()=>{st.editing=b.dataset.led;render();window.scrollTo(0,0)});
   confirmDel('[data-ldel]','ldel',id=>delLesson(id))}
+function mGuide(){const gs=st.materials.filter(m=>m.cat==='guide');
+  $('#body').innerHTML=`<section class="card gup"><p class="kicker">기초반 지침서</p>
+    <label class="gdrop">파일 올리기 <span class="small muted">PDF·사진·영상 · 한 파일 20MB까지</span><input id="gFile" type="file" multiple accept="application/pdf,image/*,video/*,.txt"></label>
+    <div class="row"><button class="btn pri" id="gUp" ${st.busy?'disabled':''}>${st.busy?'올리는 중…':'파일 올리기'}</button></div></section>
+   <section class="card gview"><p class="kicker">지침서 보기</p>
+    <div class="gbox">${st.guideText?`<div class="gtext">${esc(st.guideText)}</div>`:'<p class="muted">아래 입력창에 지침서 내용을 적고 저장하면 여기에 보여요.</p>'}
+      ${gs.length?`<div class="gfiles">${gs.map(m=>matRow(m,true)).join('')}</div>`:''}</div>
+    <label class="gedit">지침서 내용 수정 <textarea id="gText" maxlength="20000" placeholder="기초반 지침서 내용을 적어 주세요">${esc(st.guideText||'')}</textarea></label>
+    <div class="row"><button class="btn pri" id="gSave">저장</button><button class="btn" id="gReset">되돌리기</button></div></section>`;
+  on('#gUp',async()=>{const fs=[...$('#gFile').files];const m=await doUpload(fs,{id:uidGen(),title:fs.length?fs[0].name.replace(/\.[^.]+$/,''):'',desc:'',lessonId:'',cat:'guide',by:'마스터',createdAt:Date.now()});if(m){render();if(bookable(m))openReader(m)}});
+  on('#gSave',async()=>{await saveGuideText($('#gText').value.replace(/\s+$/,''));render()});
+  on('#gReset',()=>{$('#gText').value=st.guideText||''});
+  bindDelMat()}
 function mMaterials(G){const k=st.matKind;const list=st.materials.filter(m=>G?m.cat==='guide':m.cat!=='guide');
   $('#body').innerHTML=`<section class="card"><p class="kicker">${G?'기초반 지침서 올리기':'자료 입력'}</p>
     ${G?'<p class="small muted">여기에 올린 자료는 제자 화면의 <b>“기초반 지침 보기”</b>에 바로 보여요.</p>':''}
@@ -1191,6 +1212,7 @@ lsLoad();sortAll();sortRoster();render();
   if(!st.uid)st.meLoaded=true;
   const timer=setTimeout(()=>{st.meLoaded=true;soft()},8000);
   const col=(name,key)=>db.collection(name).onSnapshot(q=>{st[key]=q.docs.map(x=>({id:x.id,...x.data()}));sortAll();soft()},()=>{});
+  db.collection('board').doc('guide').onSnapshot(s=>{st.guideText=s.exists?String(s.data().text||''):'';soft()},()=>{});
   db.collection('board').doc('cover').onSnapshot(s=>{st.cover=s.exists?{...DEF_COVER,...s.data()}:{...DEF_COVER};soft()},()=>{});
   db.collection('settings').doc('entry').onSnapshot(s=>{st.pwHash=s.exists?(s.data().hash||null):null;soft()},()=>{});
   st.leaderHash=null;db.collection('settings').doc('leader').onSnapshot(s=>{st.leaderHash=s.exists?(s.data().hash||null):null;soft()},()=>{});
