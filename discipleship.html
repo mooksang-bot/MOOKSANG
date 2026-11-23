@@ -866,7 +866,7 @@ function bindLpw(){on('#lpClose',()=>{st.lpwOpen=false;render()});$('#lpModal').
   on('#lpGo',go2);const i=$('#lpIn');if(i)i.onkeydown=e=>{if(e.key==='Enter')go2()}}
 function leaderView(){leadSub();document.body.classList.remove('lroster','lattfit','lcfit');if(!st.lmonth)st.lmonth=ymNow();
   const T=[['att','출석 체크'],['dues','회비 납부'],['roster','2반 명단']];if(!T.some(t=>t[0]===st.ltab))st.ltab='att';
-  root.innerHTML=`<div class="shell"><div class="wrap lead"><header class="head nohp"><div class="t"><h1>${esc(st.cover.title)}</h1></div><button class="who btn-like" id="lCover">표지</button><span class="mbadge lb">반장 창</span></header>
+  root.innerHTML=`<div class="shell"><div class="wrap lead"><header class="head nohp"><div class="t"><h1>${esc(st.cover.title)}</h1></div><button class="who btn-like" id="lCover">홈 화면</button></header>
    <nav class="mtabs" aria-label="반장 메뉴">${T.map(([k,l])=>`<button data-ltab="${k}" class="${st.ltab===k?'on':''}">${l}</button>`).join('')}</nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#lCover',()=>go('cover'));
