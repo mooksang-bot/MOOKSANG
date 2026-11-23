@@ -311,6 +311,14 @@ table.rtab td.no{color:var(--muted);font-size:.8rem}
 table.rtab th.wkh{color:var(--gold);font-size:.8rem}
 table.rtab td.mng{display:flex;gap:4px;align-items:center}
 table.rtab td.mng .btn.sm{min-height:24px;padding:1px 8px;font-size:.78rem}
+.cell.ptu{width:34px;height:30px;border-radius:9px;font-weight:800;font-size:1rem;letter-spacing:.02em;font-family:var(--sans);display:inline-grid;place-items:center;padding:0;border:1.5px solid var(--line);background:var(--card);color:var(--muted)}
+.cell.ptu.vP{background:#22c55e;border-color:#22c55e;color:#06210f;box-shadow:0 0 10px rgba(57,255,136,.55)}
+.cell.ptu.vT{background:#f59e0b;border-color:#f59e0b;color:#2a1700;box-shadow:0 0 10px rgba(245,158,11,.55)}
+.cell.ptu.vU{background:#ef4444;border-color:#ef4444;color:#fff;box-shadow:0 0 10px rgba(239,68,68,.55)}
+.cell.ptu.ro{width:28px;height:24px;font-size:.85rem;cursor:default}
+button.cell.ptu:hover,button.cell.ptu:focus-visible{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
+.ptu-legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.9rem}
+.ptu-legend .cell.ptu{width:24px;height:22px;font-size:.8rem;box-shadow:none}
 .ok-mark{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#22c55e;color:#06210f;font-weight:700;box-shadow:0 0 10px rgba(57,255,136,.55)}
 .no-mark{color:var(--muted)}
 table.hatt tr.meRow th,table.hatt tr.meRow td{background:color-mix(in srgb,var(--gold) 16%,transparent)}
@@ -604,9 +612,9 @@ function attView(){const W=rosterWeeks();const meN=st.me&&st.me.name;
      <div class="row"><button class="btn sm" id="hwPrev" aria-label="이전 4주">‹ 4주</button><button class="btn sm" id="hwNext" aria-label="다음 4주">4주 ›</button></div></div>
     ${st.roster.length?`<div class="tblwrap"><table class="att rtab hatt"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">직분</th>${W.map(w=>`<th scope="col" class="wkh">${w.label}</th>`).join('')}</tr></thead><tbody>
       ${st.roster.map((x,i)=>`<tr class="${meN&&x.name===meN?'meRow':''}"><td class="no">${i+1}</td><th scope="row" class="nm2">${esc(x.name)}</th><td>${esc(x.role||'')}</td>
-        ${W.map(w=>isIn(w,x.id)?'<td><span class="ok-mark" aria-label="출석">○</span></td>':'<td><span class="no-mark" aria-label="미체크">·</span></td>').join('')}</tr>`).join('')}</tbody>
+        ${W.map(w=>{const v=attV(w,x.id);return v?`<td><span class="cell ptu v${v} ro" aria-label="${PTU[v]}">${v}</span></td>`:'<td><span class="no-mark" aria-label="기록 없음">·</span></td>'}).join('')}</tr>`).join('')}</tbody>
       <tfoot><tr><td></td><th scope="row">출석</th><td></td>${W.map(w=>`<td>${st.roster.filter(x=>isIn(w,x.id)).length}</td>`).join('')}</tr></tfoot></table></div>
-      <p class="small muted">반장·마스터가 체크한 출석이 그대로 보여요. ○ = 출석${meN?' · 내 줄은 강조돼요':''}.</p>`
+      <p class="ptu-legend"><span class="cell ptu vP ro">P</span> 출석 <span class="cell ptu vT ro">T</span> 지각 <span class="cell ptu vU ro">U</span> 무단 결석 <span class="small muted">· 반장·마스터가 체크한 그대로${meN?' · 내 줄은 강조':''}</span></p>`
     :'<p class="muted">반장이 제자 명단과 출석을 입력하면 여기에 보여요.</p>'}</section>`}
 function homeTab(){leadSub();
   const mine=st.notices.filter(forMe);const ns=st.allNotices?mine:mine.slice(0,3);const seen=st.seen;
@@ -761,14 +769,13 @@ function lAtt(){const days=sundays(st.lmonth),mo=+st.lmonth.split('-')[1],A=curA
   let h=`<section class="card"><p class="kicker">출석 체크 · 주일 기준</p>${monBar()}`;
   if(!st.roster.length){$('#body').innerHTML=h+'</section>'+noRoster();bindMon();on('#goRoster',()=>{st.ltab='roster';st.rEdit='new';render()});return}
   h+=`<div class="tblwrap"><table class="att"><thead><tr><th scope="col">이름</th>${days.map(d=>`<th scope="col">${mo}/${d}</th>`).join('')}<th scope="col">출석</th></tr></thead><tbody>
-    ${st.roster.map(r=>{const c=days.filter(d=>D[d]&&D[d][r.id]).length;return `<tr><th scope="row" class="nm">${esc(r.name)}${r.role?`<span>${esc(r.role)}</span>`:''}</th>
-      ${days.map(d=>{const on=!!(D[d]&&D[d][r.id]);return `<td><button class="cell ${on?'on':''}" data-att="${d}|${r.id}" aria-pressed="${on}" aria-label="${esc(r.name)} ${mo}월 ${d}일 ${on?'출석':'결석'}">${on?'○':''}</button></td>`}).join('')}
+    ${st.roster.map(r=>{const c=days.filter(d=>attOf(st.lmonth,d,r.id)==='P').length;return `<tr><th scope="row" class="nm">${esc(r.name)}${r.role?`<span>${esc(r.role)}</span>`:''}</th>
+      ${days.map(d=>`<td>${ptuBtn(st.lmonth+'|'+d+'|'+r.id,attOf(st.lmonth,d,r.id),esc(r.name)+' '+mo+'월 '+d+'일')}</td>`).join('')}
       <td class="cnt">${c}/${days.length}</td></tr>`}).join('')}</tbody>
-    <tfoot><tr><th scope="row">출석 인원</th>${days.map(d=>`<td>${st.roster.filter(r=>D[d]&&D[d][r.id]).length}</td>`).join('')}<td></td></tr></tfoot></table></div>
-    <p class="small muted">칸을 누르면 출석(○)과 결석이 바뀌어요. 한 달의 주일이 차례로 나와요.</p></section>`;
+    <tfoot><tr><th scope="row">출석 인원</th>${days.map(d=>`<td>${st.roster.filter(r=>attOf(st.lmonth,d,r.id)==='P').length}</td>`).join('')}<td></td></tr></tfoot></table></div>
+    ${ptuLegend}</section>`;
   $('#body').innerHTML=h;bindMon();
-  $$('[data-att]').forEach(b=>b.onclick=async()=>{const [d,rid]=b.dataset.att.split('|');const A=curAtt();A.days=A.days||{};A.days[d]=A.days[d]||{};
-    if(A.days[d][rid])delete A.days[d][rid];else A.days[d][rid]=true;st.att[st.lmonth]=A;render();await saveAtt(st.lmonth)})}
+  $$('[data-ptu]').forEach(b=>b.onclick=()=>cyclePtu(b.dataset.ptu))}
 function lDues(){const A=curAtt(),P=A.dues||{};const mo=+st.lmonth.split('-')[1];
   let h=`<section class="card"><p class="kicker">회비 납부 · 한 달 단위</p>${monBar()}`;
   if(!st.roster.length){$('#body').innerHTML=h+'<p class="muted">제자 명단이 비어 있어요. 이름을 추가하면 여기에 체크 목록이 나와요.</p></section>'+noRoster();bindMon();on('#goRoster',()=>{st.ltab='roster';st.rEdit='new';render()});return}
@@ -785,7 +792,16 @@ const pad2=n=>String(n).padStart(2,'0');
 function rosterWeeks(){const s0=st.rStart||'2026-11-29';const d=new Date(s0+'T00:00:00');const out=[];
   for(let i=0;i<4;i++){const x=new Date(d);x.setDate(d.getDate()+7*i);out.push({ym:`${x.getFullYear()}-${pad2(x.getMonth()+1)}`,day:String(x.getDate()),label:`${x.getMonth()+1}월${pad2(x.getDate())}일`})}return out}
 function shiftWeeks(k){const d=new Date((st.rStart||'2026-11-29')+'T00:00:00');d.setDate(d.getDate()+7*4*k);st.rStart=`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}
-const isIn=(w,rid)=>{const A=st.att[w.ym];return !!(A&&A.days&&A.days[w.day]&&A.days[w.day][rid])};
+/* 출석 기록: P = 출석, T = 지각, U = 무단 결석 (예전 기록 true는 P로 읽음) */
+const PTU={P:'출석',T:'지각',U:'무단 결석'};const NEXT={'':'P',P:'T',T:'U',U:''};
+const normV=v=>v===true?'P':(v==='P'||v==='T'||v==='U'?v:'');
+const attOf=(ym,day,rid)=>{const A=st.att[ym];return normV(A&&A.days&&A.days[day]&&A.days[day][rid])};
+const attV=(w,rid)=>attOf(w.ym,w.day,rid);
+const isIn=(w,rid)=>attV(w,rid)==='P';
+const ptuBtn=(key,v,label)=>`<button class="cell ptu ${v?'v'+v:''}" data-ptu="${key}" aria-label="${label} ${v?PTU[v]:'기록 없음'} (누를 때마다 P → T → U → 빈칸)">${v}</button>`;
+async function cyclePtu(key){const [ym,day,rid]=key.split('|');const A=plain(st.att[ym]||{days:{},dues:{}});A.days=A.days||{};A.days[day]=A.days[day]||{};
+  const nv=NEXT[normV(A.days[day][rid])];if(nv)A.days[day][rid]=nv;else delete A.days[day][rid];st.att[ym]=A;render();await saveAtt(ym)}
+const ptuLegend='<p class="ptu-legend"><span class="cell ptu vP">P</span> 출석 <span class="cell ptu vT">T</span> 지각 <span class="cell ptu vU">U</span> 무단 결석 <span class="small muted">· 칸을 누를 때마다 P → T → U → 빈칸</span></p>';
 function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.rEdit!=='new'?st.roster.find(r=>r.id===st.rEdit):null;const r=ed||{};const W=rosterWeeks();const E=!!st.rManage;
   let h='';
   if(st.rEdit)h+=`<section class="card rform"><p class="kicker">${ed?'제자 정보 수정':'제자 추가'}</p>
@@ -801,10 +817,10 @@ function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.
     ${st.roster.length?`<div class="tblwrap"><table class="att rtab"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">직분</th><th scope="col" class="ph">연락처</th>
       ${W.map(w=>`<th scope="col" class="wkh">${w.label}</th>`).join('')}${E?'<th scope="col">관리</th>':''}</tr></thead><tbody>
       ${st.roster.map((x,i)=>`<tr><td class="no">${i+1}</td><th scope="row" class="nm2">${esc(x.name)}</th><td>${esc(x.role||'')}${x.sex?`<span class="sx ${x.sex==='남'?'m':'f'}">${x.sex}</span>`:''}</td><td class="ph">${esc(x.phone||'')}</td>
-        ${W.map(w=>{const on=isIn(w,x.id);return `<td><input type="checkbox" class="acb" data-ra="${w.ym}|${w.day}|${x.id}" ${on?'checked':''} aria-label="${esc(x.name)} ${w.label} 출석"></td>`}).join('')}
+        ${W.map(w=>`<td>${ptuBtn(w.ym+'|'+w.day+'|'+x.id,attV(w,x.id),esc(x.name)+' '+w.label)}</td>`).join('')}
         ${E?`<td class="mng"><button class="btn sm" data-red="${x.id}">수정</button><button class="btn sm danger" data-rdel="${x.id}">삭제</button></td>`:''}</tr>`).join('')}</tbody>
       <tfoot><tr><td></td><th scope="row">출석</th><td></td><td class="ph"></td>${W.map(w=>`<td>${st.roster.filter(x=>isIn(w,x.id)).length}</td>`).join('')}${E?'<td></td>':''}</tr></tfoot></table></div>
-      <p class="small muted">날짜 칸의 네모를 체크하면 그 주일 출석으로 저장돼요. 출석 체크 탭과 같은 기록이에요.</p>`
+      ${ptuLegend}`
     :'<p class="muted">아직 제자가 없어요. “+ 제자 추가”를 눌러 주세요.</p>'}</section>`;
   $('#body').innerHTML=h;
   on('#wPrev',()=>{shiftWeeks(-1);render()});on('#wNext',()=>{shiftWeeks(1);render()});
@@ -814,8 +830,7 @@ function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.
     const sx=document.querySelector('input[name="rSex"]:checked');const o={id:ed?ed.id:uidGen(),name,role:$('#rRole').value.trim(),phone:$('#rPhone').value.trim(),sex:sx?sx.value:'',createdAt:ed?ed.createdAt:Date.now(),updatedAt:Date.now()};st.rEdit=null;await saveRoster(o);render()});
   $$('[data-red]').forEach(b=>b.onclick=()=>{st.rEdit=b.dataset.red;render();window.scrollTo(0,0)});
   confirmDel('[data-rdel]','rdel',id=>delRoster(id));
-  $$('[data-ra]').forEach(c=>c.onchange=async()=>{const [ym,day,rid]=c.dataset.ra.split('|');const A=plain(st.att[ym]||{days:{},dues:{}});A.days=A.days||{};A.days[day]=A.days[day]||{};
-    if(c.checked)A.days[day][rid]=true;else delete A.days[day][rid];st.att[ym]=A;render();await saveAtt(ym)})}
+  $$('[data-ptu]').forEach(b=>b.onclick=()=>cyclePtu(b.dataset.ptu))}
 function lMemo(){const D=st.lDraft;
   $('#body').innerHTML=`<section class="card"><p class="kicker">마스터에게 메모 보내기</p>
     <textarea id="lmText" maxlength="2000" ${D.locked?'readonly':''} placeholder="마스터(김병구 목사님)에게 전할 내용을 적어 주세요.">${esc(D.text)}</textarea>
