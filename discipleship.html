@@ -310,6 +310,9 @@ table.rtab th.nm2{text-align:left;position:sticky;left:0;background:var(--card);
 table.rtab td.no{color:var(--muted);font-size:.8rem}
 table.rtab th.wkh{color:var(--gold);font-size:.8rem}
 table.rtab td.mng{display:flex;gap:4px}
+.ok-mark{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#22c55e;color:#06210f;font-weight:700;box-shadow:0 0 10px rgba(57,255,136,.55)}
+.no-mark{color:var(--muted)}
+table.hatt tr.meRow th,table.hatt tr.meRow td{background:color-mix(in srgb,var(--gold) 16%,transparent)}
 input.acb{width:20px;height:20px;margin:0;accent-color:#22c55e;cursor:pointer;border-radius:5px;transition:box-shadow .18s}
 input.acb:checked{box-shadow:0 0 0 2px #39ff88,0 0 10px #39ff88,0 0 20px rgba(57,255,136,.55)}
 input.acb:hover,input.acb:focus-visible{box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
@@ -589,20 +592,25 @@ function attHtml(n){const m=n.matId&&st.materials.find(x=>x.id===n.matId);if(!m)
 function noticeItem(n,isNew){return `<div class="item">${n.pinned?'<span class="pinned">중요</span>':''}
   ${n.title?`<h3>${esc(n.title)}${isNew?'<span class="newdot">새 메모</span>':''}</h3>`:(isNew?'<span class="newdot" style="margin:0;align-self:flex-start">새 메모</span>':'')}
   ${n.text?`<p class="notice">${esc(n.text)}</p>`:''}${attHtml(n)}<span class="date">${fmtDate(n.updatedAt||n.createdAt)}</span></div>`}
-function homeTab(){const total=st.lessons.length,done=st.lessons.filter(l=>st.prog.done[l.id]).length;
-  const next=st.lessons.find(l=>!st.prog.done[l.id])||st.lessons[st.lessons.length-1];
+function attView(){const W=rosterWeeks();const meN=st.me&&st.me.name;
+  return `<section class="card"><div class="rtop"><p class="kicker">출석 현황 · ${st.roster.length}명</p>
+     <div class="row"><button class="btn sm" id="hwPrev" aria-label="이전 4주">‹ 4주</button><button class="btn sm" id="hwNext" aria-label="다음 4주">4주 ›</button></div></div>
+    ${st.roster.length?`<div class="tblwrap"><table class="att rtab hatt"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">직분</th>${W.map(w=>`<th scope="col" class="wkh">${w.label}</th>`).join('')}</tr></thead><tbody>
+      ${st.roster.map((x,i)=>`<tr class="${meN&&x.name===meN?'meRow':''}"><td class="no">${i+1}</td><th scope="row" class="nm2">${esc(x.name)}</th><td>${esc(x.role||'')}</td>
+        ${W.map(w=>isIn(w,x.id)?'<td><span class="ok-mark" aria-label="출석">○</span></td>':'<td><span class="no-mark" aria-label="미체크">·</span></td>').join('')}</tr>`).join('')}</tbody>
+      <tfoot><tr><td></td><th scope="row">출석</th><td></td>${W.map(w=>`<td>${st.roster.filter(x=>isIn(w,x.id)).length}</td>`).join('')}</tr></tfoot></table></div>
+      <p class="small muted">반장·마스터가 체크한 출석이 그대로 보여요. ○ = 출석${meN?' · 내 줄은 강조돼요':''}.</p>`
+    :'<p class="muted">반장이 제자 명단과 출석을 입력하면 여기에 보여요.</p>'}</section>`}
+function homeTab(){leadSub();
   const mine=st.notices.filter(forMe);const ns=st.allNotices?mine:mine.slice(0,3);const seen=st.seen;
   $('#body').innerHTML=`${ns.length?`<section class="card"><p class="kicker">목사님이 보낸 메모</p>
     ${ns.map(n=>noticeItem(n,(n.createdAt||0)>seen)).join('')}
     ${mine.length>3?`<button class="btn ghost" id="moreN">${st.allNotices?'접기':`메모 ${mine.length}개 모두 보기`}</button>`:''}</section>`:''}
-   <section class="card"><p class="kicker">나의 훈련</p><h2>${done} / ${total} 과정 완료</h2><div class="bar"><i style="width:${total?done/total*100:0}%"></i></div></section>
-   <section class="card"><p class="kicker">이번에 할 과정</p>
-    ${next?`<h2>${next.week?esc(next.week)+'주차 · ':''}${esc(next.title)}</h2>${next.scripture?`<p class="muted">본문: ${esc(next.scripture)}</p>`:''}<div class="row"><button class="btn pri" id="goLesson">과정 보기</button></div>`
-     :`<p class="muted">김병구 목사님이 과정을 올리면 여기에 보여요.</p>`}</section>
+   ${attView()}
    <p class="small muted" style="text-align:center">${st.mode==='db'?'모든 내용은 성도님들과 실시간으로 함께 보여요.':'미리보기: 이 기기에만 저장돼요.'}</p>`;
   const latest=mine.reduce((m,n)=>Math.max(m,n.createdAt||0),0);if(latest>st.seen){st.seen=latest;lsSet(LSEEN,String(latest))}
   on('#moreN',()=>{st.allNotices=!st.allNotices;render()});
-  on('#goLesson',()=>{st.tab='lessons';st.open=next.id;render()})}
+  on('#hwPrev',()=>{shiftWeeks(-1);render()});on('#hwNext',()=>{shiftWeeks(1);render()})}
 function matRow(m,admin){const img=m.kind==='file'&&/^image\//.test(m.contentType||'');
   const label=m.kind==='link'?'링크':(/pdf/.test(m.contentType||'')?'PDF':/^video\//.test(m.contentType||'')?'영상':img?'':'파일');
   const href=m.kind==='link'?safeLink(m.url):assetUrl(m);const l=m.lessonId&&st.lessons.find(x=>x.id===m.lessonId);
