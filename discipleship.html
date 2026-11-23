@@ -195,6 +195,9 @@ body.mfit .item{gap:4px}
 .cover.lit h1{filter:drop-shadow(0 0 4px #fff4cf) drop-shadow(0 0 14px #5ff5e6) drop-shadow(0 0 34px rgba(0,200,224,.8))}
 .cover.lit .rule{box-shadow:0 0 10px #f3d79a,0 0 22px #f3d79a}
 .cover .enter{transition:box-shadow .25s,transform .25s}
+.cover .enters{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.cover .enters .enter{margin-top:0}
+.cover .enter.alt{background:rgba(20,14,6,.55);color:#f3d68e;border:1px solid #e9cf8c;box-shadow:0 8px 30px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 @media (hover:hover){
   .cover .enter:hover{box-shadow:0 0 0 2px #5ff5e6,0 0 18px #5ff5e6,0 0 46px rgba(0,229,255,.65);transform:translateY(-1px)}
   .cover .tools button:hover{box-shadow:0 0 0 1px #5ff5e6,0 0 16px #5ff5e6;border-color:#5ff5e6}
@@ -348,7 +351,6 @@ function verseHtml(v){return String(v||'').split('\n').map(l=>/^\s*[—–-]/.te
 function coverView(){const c=st.draft||st.cover;
   root.innerHTML=`<section class="cover" style="--dim:${(c.dim??25)/100}">
    <div class="bgl" style='background:${bgCss(c)};background-size:cover;background-position:center'></div>${hillSvg(c)}<div class="dim"></div><div class="glow" aria-hidden="true"></div>
-   ${st.master&&!st.draft?`<div class="tools"><button id="toMaster">${masterUnlocked()?'마스터 창':'마스터 입장'}</button></div>`:''}
    <div class="inner">
      <p class="eyebrow">Discipleship</p>
      <h1>${esc(c.title)}</h1>
@@ -356,7 +358,7 @@ function coverView(){const c=st.draft||st.cover;
      ${pastorSrc(c)?`<div class="pastor"><img src="${esc(pastorSrc(c))}" alt="담당 목사님 사진"></div>`:''}
      <p class="sub">${esc(c.sub)}</p>
      <p class="verse">${verseHtml(c.verse)}</p>
-     ${st.draft?'':`<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'제자들 입장'}</button>`}
+     ${st.draft?'':`<div class="enters">${st.master?`<button class="enter alt" id="toMaster">${masterUnlocked()?'마스터 창':'마스터 입장'}</button>`:''}<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'제자들 입장'}</button></div>`}
      ${st.master&&!st.draft&&!st.pwHash&&st.mode!=='loading'?`<p class="hint">입장 비밀번호가 아직 없어요. 마스터 창 › 다른 기능 › 설정에서 정해 주세요.</p>`:''}
    </div></section>${st.draft?decorPanel():''}${st.pwOpen?pwPanel():''}${st.mpwOpen?mpwPanel():''}`;
   on('#enter',()=>{if(st.mode==='loading')return;if(entryOk())return go('app');st.pwOpen=true;st.pwMsg='';render();const i=$('#pwIn');if(i)i.focus()});
