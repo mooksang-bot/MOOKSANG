@@ -280,7 +280,8 @@ body.home .avatar{width:clamp(64px,13dvh,140px);height:clamp(64px,13dvh,140px)}
 body.home .cam{width:clamp(28px,4.5dvh,38px);height:clamp(28px,4.5dvh,38px)}
 body.home .hero h1{font-size:clamp(1.3rem,3.6dvh,2.1rem)}
 body.home .bubble{font-size:clamp(.85rem,2.1dvh,1.05rem);line-height:1.45;padding:8px 12px;margin-top:4px}
-body.home .tiles{flex:1;min-height:0;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:8px}
+body.home .tiles{flex:none;min-height:0;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:8px}
+body.home .tile:not(.big){min-height:clamp(56px,13dvh,160px);padding-block:6px}
 body.home .tile{min-height:0;padding:10px 12px;gap:2px;border-radius:20px;overflow:hidden;justify-content:center}
 body.home .tile .ic{width:clamp(36px,6dvh,58px);height:clamp(36px,6dvh,58px);border-radius:12px;flex:none}
 body.home .tile .ic svg{width:60%;height:60%}
@@ -291,11 +292,13 @@ body.home .tile .t{word-break:keep-all}
 @media (max-width:380px){body.home .tile:not(.big) .t{font-size:1rem}body.home .tile:not(.big){column-gap:8px;padding:8px 10px}}
 body.home .tile.big .ic{width:clamp(44px,7.5dvh,72px);height:clamp(44px,7.5dvh,72px)}
 body.home .badge{top:6px;right:8px;min-width:24px;height:24px;font-size:.85rem}
-body.home .card{padding:10px 14px;gap:6px;border-radius:20px;flex:none}
+body.home .card{padding:12px 16px;gap:10px;border-radius:20px;flex:none}
+body.home .wrap{justify-content:center}
+@media (max-height:700px){body.home .tile:not(.big){min-height:0}}
 body.home .card h3{font-size:1rem}
-body.home .path{gap:4px}
-body.home .dot{width:clamp(18px,3dvh,30px);height:clamp(18px,3dvh,30px);font-size:.7rem}
-body.home .gsep{height:clamp(18px,3dvh,30px);margin:0 2px}
+body.home .path{gap:6px}
+body.home .dot{width:clamp(24px,3.9dvh,39px);height:clamp(24px,3.9dvh,39px);font-size:clamp(.8rem,1.6dvh,1rem)}
+body.home .gsep{height:clamp(24px,3.9dvh,39px);margin:0 3px}
 body.home .legend{display:none}
 body.home .save{font-size:.75rem;line-height:1.3;flex:none}
 body.home .hero h1,body.home .hero .bubble{text-align:left}
@@ -383,6 +386,8 @@ const TAGS={
   slopeFlip:['기울기의 위아래가 바뀌었어요','기울기 = (y의 증가량) ÷ (x의 증가량). y가 위(분자)예요.'],
   sqrtSimp:['루트 밖으로 꺼내기','√(a² × b) = a√b. 제곱인 부분만 밖으로 나오고, 나올 때는 a(제곱근)로 나와요.'],
   factorConcept:['인수분해 두 수 찾기','곱해서 상수항, 더해서 x의 계수가 되는 두 수를 찾아요.'],
+  pythag:['피타고라스 정리 헷갈림','직각삼각형에서 (빗변)² = (다른 두 변)²의 합이에요. 길이를 그냥 더하거나 빼면 안 돼요.'],
+  vertex:['꼭짓점 부호','y = (x − p)² + q 의 꼭짓점은 (p, q). (x − 3)²이면 p = 3, (x + 3)²이면 p = −3이에요.'],
   calc:['계산 실수','한 줄씩 종이에 써서 천천히 다시 계산해 봐요. 암산보다 실수가 훨씬 줄어요.'],
   concept:['개념이 아직 헷갈려요','괜찮아요! 아래 풀이를 천천히 읽고, 비슷한 문제로 한 번 더 해 봐요.']
 };
@@ -478,6 +483,14 @@ const SKILLS=[
    return {type:'num',q:`두 점 (${n(x1)}, ${n(y1)}), (${n(x2)}, ${n(y2)})을<br>지나는 직선의 기울기는?`,ans:m,ansH:n(m),
     diag:v=>(near(v,1/m)&&Math.abs(m)!==1)?'slopeFlip':(v===-m?'sign':null),
     steps:[`기울기 = (y의 증가량) ÷ (x의 증가량)`,`y의 증가량: ${n(y2)} − ${pp(y1)} = ${n(m*dx)}`,`x의 증가량: ${n(x2)} − ${pp(x1)} = ${dx}`,`${n(m*dx)} ÷ ${dx} = <b>${n(m)}</b>`]}}},
+ {id:'pythag',g:'중2',name:'피타고라스 정리',concept:'직각삼각형에서 (빗변)² = (다른 두 변)²의 합. 빗변은 직각의 맞은편, 가장 긴 변이에요.',gen(){
+   const [a0,b0,c0]=pick([[3,4,5],[5,12,13],[8,15,17],[6,8,10]]);const k=pick([1,1,2]);const a=a0*k,b=b0*k,c=c0*k;const askC=Math.random()<.55;
+   if(askC)return {type:'num',q:`직각삼각형에서 직각을 낀 두 변이 ${a}, ${b}일 때<br>빗변의 길이는?`,ans:c,ansH:''+c,
+     diag:v=>v===a+b?'pythag':(v===a*a+b*b?'pythag':null),
+     steps:[`(빗변)² = ${a}² + ${b}² = ${a*a} + ${b*b} = ${c*c}`,`제곱해서 ${c*c}이 되는 양수는 ${c}`,`답: <b>${c}</b>`]};
+   return {type:'num',q:`직각삼각형에서 빗변이 ${c}, 한 변이 ${a}일 때<br>나머지 한 변의 길이는?`,ans:b,ansH:''+b,
+     diag:v=>(v===c-a||near(v,Math.sqrt(c*c+a*a)))?'pythag':null,
+     steps:[`(빗변)² = (두 변)²의 합이니까 □² = ${c}² − ${a}²`,`= ${c*c} − ${a*a} = ${b*b}`,`제곱해서 ${b*b}이 되는 양수는 ${b}`,`답: <b>${b}</b>`]}}},
  {id:'sqrt',g:'중3',name:'제곱근 간단히',concept:'√(a² × b) = a√b : 제곱인 수는 루트 밖으로 나와요.',gen(){
    const k=R(2,5),r=pick([2,3,5,6,7]),N=k*k*r;const C=`${k}${rt(r)}`;
    return {type:'mc',q:`${rt(N)}<br><small>a√b 꼴로 간단히 하면?</small>`,ansH:C,
@@ -492,7 +505,13 @@ const SKILLS=[
    let r1,r2;do{r1=R(-6,6);r2=R(-6,6)}while(r1===r2||r1+r2===0);const s=(u,v)=>{const [a,b]=u<v?[u,v]:[v,u];return `x = ${n(a)} 또는 x = ${n(b)}`};const C=s(r1,r2);
    return {type:'mc',q:`${poly([[1,'x²'],[-(r1+r2),'x'],[r1*r2,'']])} = 0<br><small>해는?</small>`,ansH:C,
     choices:mc(C,[[s(-r1,-r2),'sign'],[s(r1,-r2),'sign'],[s(-r1,r2),'sign']],()=>s(r1+RNZ(-2,2),r2)),
-    steps:[`인수분해: (${lin(1,-r1)})(${lin(1,-r2)}) = 0`,`${lin(1,-r1)} = 0 또는 ${lin(1,-r2)} = 0`,`답: <b>${C}</b>`]}}}
+    steps:[`인수분해: (${lin(1,-r1)})(${lin(1,-r2)}) = 0`,`${lin(1,-r1)} = 0 또는 ${lin(1,-r2)} = 0`,`답: <b>${C}</b>`]}}},
+ {id:'vertex',g:'중3',name:'이차함수의 꼭짓점',concept:'y = a(x − p)² + q 의 꼭짓점은 (p, q). 괄호 안은 부호가 반대로 보이니 조심해요.',gen(){
+   const a=pick([1,2,-1,3]),p=RNZ(-5,5),q=R(-6,6);const f=(u,v)=>`(${n(u)}, ${n(v)})`;const C=f(p,q);
+   const head=a===1?'':a===-1?M:''+a;const inner=p>0?`(x ${M} ${p})²`:`(x + ${-p})²`;
+   return {type:'mc',q:`y = ${head}${inner}${tail(q)}<br><small>이 그래프의 꼭짓점은?</small>`,ansH:C,
+    choices:mc(C,[[f(-p,q),'vertex'],[f(p,-q),'sign'],[f(q,p),'order']],()=>f(p+RNZ(-2,2),q)),
+    steps:[`y = a(x − p)² + q 꼴이면 꼭짓점은 (p, q)`,`괄호 안이 x ${p>0?M+' '+p:'+ '+(-p)}이니까 p = ${n(p)}${p<0?' (x + '+(-p)+' = x − ('+M+(-p)+'))':''}`,`q = ${n(q)}`,`답: <b>${C}</b>`]}}}
 ];
 const SK=Object.fromEntries(SKILLS.map((s,i)=>[s.id,{...s,i}]));
 
@@ -853,7 +872,7 @@ const ROAD=[
  {g:'중3',c:'var(--mint)',title:'중3 · 제곱근과 이차',units:['제곱근과 실수','다항식의 곱셈과 인수분해','이차방정식','이차함수','삼각비','원의 성질','통계'],
   tip:'중2의 전개(곱셈공식)가 인수분해와 이차방정식으로 이어져요. 곱셈공식을 거꾸로 쓰는 것이 인수분해예요.',q:['중3 제곱근 개념','중3 인수분해 공식','중3 이차방정식 풀이']}
 ];
-const APPU={'초6':{'분수의 덧셈·뺄셈':'frac','분수·소수의 곱셈과 나눗셈':'dec','비례식과 비례배분':'ratio'},'중1':{'소인수분해':'gcd','정수와 유리수':'iadd','문자와 식':'lin','일차방정식':'eq1','좌표평면과 그래프':'prop'},'중2':{'식의 계산(지수법칙)':'exp','일차부등식':'ineq','연립일차방정식':'sys','일차함수':'slope'},'중3':{'제곱근과 실수':'sqrt','다항식의 곱셈과 인수분해':'factor','이차방정식':'quad'}};
+const APPU={'초6':{'분수의 덧셈·뺄셈':'frac','분수·소수의 곱셈과 나눗셈':'dec','비례식과 비례배분':'ratio'},'중1':{'소인수분해':'gcd','정수와 유리수':'iadd','문자와 식':'lin','일차방정식':'eq1','좌표평면과 그래프':'prop'},'중2':{'식의 계산(지수법칙)':'exp','일차부등식':'ineq','연립일차방정식':'sys','일차함수':'slope','피타고라스 정리':'pythag'},'중3':{'제곱근과 실수':'sqrt','다항식의 곱셈과 인수분해':'factor','이차방정식':'quad','이차함수':'vertex'}};
 function road(){app.innerHTML=`${topBar('학습 로드맵')}
   <section class="card"><h3>루미 선생님의 추천 순서</h3><p>한 단계를 80% 이상 맞히면 다음 단계로 넘어가요. 선행학습은 빠르게보다 <b>정확하게</b>가 더 중요해요. 초록 테두리 단원은 이 앱에서 바로 연습할 수 있어요.</p></section>
   ${ROAD.map(r=>`<section class="card"><div class="stage" style="--c:${r.c}"><h3>${r.title}</h3>
@@ -872,7 +891,8 @@ const DEVLOG=['첫 판: 실력 진단(초6~중3, 18단원), 오늘의 연습, �
  '풀이 보기 네온 박스, 숫자판·버튼 네온 빛',
  '풀이 과정 사진 첨부: 루미 선생님(Claude)이 손글씨 풀이를 검사하고 비슷한 문제로 이어서 연습',
  '표지와 마스터 창: 마스터 비밀번호로 들어가 리포트·설정·개발 기록 보기',
- '엄마 입장: 마스터가 정한 비밀번호로 들어와 모든 내용을 보기 전용으로 보고, 마스터에게 요청 메모 보내기(수정하기·보내기). 마스터 창 메모 아이콘이 네온으로 깜빡임'];
+ '엄마 입장: 마스터가 정한 비밀번호로 들어와 모든 내용을 보기 전용으로 보고, 마스터에게 요청 메모 보내기(수정하기·보내기). 마스터 창 메모 아이콘이 네온으로 깜빡임',
+ '단원 20개로 늘림(중2 피타고라스 정리, 중3 이차함수의 꼭짓점). 첫 화면 4개 칸 높이 절반, 수학 여행 번호 30% 크게'];
 async function saveMaster(pw){const h=await hashPin('master:'+pw);masterHash=h;masterOk=h;lsSet(LMK,h);ssSet(LMO,h);
   if(db){try{await db.collection('settings').doc('master').set({hash:h,updatedAt:Date.now()})}catch(e){}}}
 function openMaster(){whoAs='master';if(masterUnlocked()){view='report';return render()}mpwOpen=true;mpwMsg='';view='cover';render();const i=document.getElementById('mp1');if(i)i.focus()}
