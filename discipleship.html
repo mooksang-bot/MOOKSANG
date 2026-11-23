@@ -589,7 +589,7 @@ const upsert=(arr,o)=>{const i=arr.findIndex(x=>x.id===o.id);if(i>=0)arr[i]=o;el
 function body(o){const {id,...b}=o;return plain(b)}
 const saveCover=c=>{st.cover=c;return write(()=>db.collection('board').doc('cover').set(plain(c)),'표지를 저장했어요. 모든 성도님께 보여요.')};
 const saveGuideText=t=>{st.guideText=t;return write(()=>db.collection('board').doc('guide').set({text:t,updatedAt:Date.now()}),'지침서 내용을 저장했어요. 제자들에게 바로 보여요.')};
-const saveNoticeDoc=n=>{upsert(st.notices,n);sortAll();return write(()=>db.collection('notices').doc(n.id).set(body(n)),'제자들에게 보냈어요.')};
+const saveNoticeDoc=n=>{upsert(st.notices,n);sortAll();return write(()=>db.collection('notices').doc(n.id).set(body(n)),'공지를 올렸어요. 2반 화면에 바로 보여요.')};
 const saveMemo=m=>{upsert(st.memos,m);sortAll();return write(()=>db.collection('memos').doc(m.id).set(body(m)),'메모를 저장했어요.')};
 const delMemo=id=>{st.memos=st.memos.filter(x=>x.id!==id);return write(()=>db.collection('memos').doc(id).delete(),'메모를 삭제했어요.')};
 const delNotice=id=>{st.notices=st.notices.filter(x=>x.id!==id);return write(()=>db.collection('notices').doc(id).delete(),'공지를 지웠어요.')};
@@ -1103,7 +1103,7 @@ function lMemo(){const D=st.lDraft;
   $$('[data-lmed]').forEach(b=>b.onclick=()=>{const m=st.lmemos.find(x=>x.id===b.dataset.lmed);if(!m)return;st.lDraft={id:m.id,text:m.text,locked:false};st.lNote='고친 다음 보내기를 눌러 주세요.';render();window.scrollTo(0,0);$('#lmText').focus()})}
 
 /* ---- 마스터 창 ---- */
-const MSECT=[['memo','메모하기'],['lecture','강의 시작'],['att','출석부'],['lessons','훈련 과정 입력'],['guide','기초반 지침서'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
+const MSECT=[['memo','공지하기'],['lecture','강의 시작'],['att','출석부'],['lessons','훈련 과정 입력'],['guide','기초반 지침서'],['materials','자료 올리기'],['pastor','목사님 사진'],['members','성도 명단'],['pw','입장 비밀번호'],['settings','설정']];
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
   root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml('',`<span class="mbadge under">마스터 창</span>`)}
    <div class="qbar"><div class="qcol"><button class="btn" id="qHome">홈으로 가기</button><button class="btn lecbtn ${st.mtab==='lecture'?'on':''}" id="qLec">강의 시작</button></div><button class="btn ${st.mtab==='guide'?'on':''}" id="qUp">기초반 지침서</button><button class="btn ${st.mtab==='att'?'on':''}" id="qAtt">출석부</button><button class="btn ${st.mtab==='pw'?'on':''}" id="qPw">입장 비밀번호</button></div>
@@ -1117,24 +1117,25 @@ function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur
   on('#mMenu',()=>{st.menuOpen=!st.menuOpen;render()});on('#toMemo',()=>{st.mtab='memo';st.editing=null;render()});
   $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;st.menuOpen=false;render()});
   ({att:()=>{leadSub();lRoster()},lecture:mLecture,memo:mMemo,lessons:mLessons,guide:mGuide,materials:()=>mMaterials(false),pastor:mPastor,members:mMembers,pw:mPw,settings:mSettings})[st.mtab]()}
-function mMemo(){const ed=st.editing&&st.memos.find(n=>n.id===st.editing);const n=ed||{};
-  $('#body').innerHTML=`<section class="card" style="order:2"><p class="kicker">${ed?'메모 수정':'메모하기'}</p>
+function mMemo(){const ed=st.editing&&st.notices.find(n=>n.id===st.editing);const n=ed||{};
+  $('#body').innerHTML=`<section class="card" style="order:2"><p class="kicker">${ed?'공지 수정':'공지하기'}</p>
+    <p class="small muted">여기에 올린 공지는 2반 화면의 <b>공지 보기</b>와 홈 화면에 그대로 보여요.</p>
     <label>제목 <input id="nTitle" maxlength="60" value="${esc(n.title)}"></label>
     <label>내용 <textarea id="nText" maxlength="4000">${esc(n.text)}</textarea></label>
-    <label class="check"><input type="checkbox" id="nPin" ${n.pinned?'checked':''}> 중요 메모</label>
-    <div class="row"><button class="btn pri" id="nSend">저장</button>${ed?'<button class="btn" id="nCancel">취소</button>':''}</div></section>
+    <label class="check"><input type="checkbox" id="nPin" ${n.pinned?'checked':''}> 중요 공지 (맨 위에 고정)</label>
+    <div class="row"><button class="btn pri" id="nSend">${ed?'고친 공지 올리기':'공지 올리기'}</button>${ed?'<button class="btn" id="nCancel">취소</button>':''}</div></section>
    <section class="card" style="order:1">${st.lmemos.length?`<div class="lmblock" id="lmCard"><p class="kicker">반장이 보낸 메모 ${lmUnread()?`<span class="newdot">새 메모 ${lmUnread()}</span>`:''}</p>
      ${st.lmemos.map(m=>`<div class="item ${m.read?'':'unread'}"><p class="notice">${esc(m.text)}</p><span class="date">${fmtDate(m.updatedAt)}${m.edited?' · 수정됨':''}${m.read?'':' · 새 메모'}</span></div>`).join('')}
      ${lmUnread()?'<div class="row"><button class="btn" id="lmRead">모두 읽음으로 표시</button></div>':''}</div>`:''}
-    <p class="kicker">저장 메모 ${st.memos.length}개</p>
-    ${st.memos.length?st.memos.map(x=>`<div class="item">${x.pinned?'<span class="pinned">중요 메모</span>':''}${x.title?`<h3>${esc(x.title)}</h3>`:''}<p class="notice">${esc(x.text)}</p><span class="date">${fmtDate(x.createdAt)}</span>
-      <div class="row"><button class="btn" data-ned="${x.id}">수정</button><button class="btn danger" data-ndel="${x.id}">삭제</button></div></div>`).join(''):'<p class="muted">아직 저장한 메모가 없어요.</p>'}</section>`;
+    <p class="kicker">올린 공지 ${st.notices.length}개 · 2반 공지 화면에 보이는 그대로</p>
+    ${st.notices.length?st.notices.map(x=>`<div class="item">${x.pinned?'<span class="pinned">중요</span>':''}${x.title?`<h3>${esc(x.title)}</h3>`:''}${x.text?`<p class="notice">${esc(x.text)}</p>`:''}${attHtml(x)}<span class="date">${fmtDate(x.updatedAt||x.createdAt)}${x.to&&x.to.length?' · 받는 사람: '+esc(toLabel(x)):''}</span>
+      <div class="row"><button class="btn" data-ned="${x.id}">수정</button><button class="btn danger" data-ndel="${x.id}">삭제</button></div></div>`).join(''):'<p class="muted">아직 올린 공지가 없어요.</p>'}</section>`;
   on('#nSend',async()=>{const text=$('#nText').value.trim(),title=$('#nTitle').value.trim();if(!text&&!title){toast('제목이나 내용을 적어 주세요.');return}
-    const o={id:n.id||uidGen(),title,text,pinned:$('#nPin').checked,createdAt:n.createdAt||Date.now(),updatedAt:Date.now()};st.editing=null;await saveMemo(o);render()});
+    const o={...(ed?plain(ed):{}),id:n.id||uidGen(),by:n.by||'마스터',title,text,pinned:$('#nPin').checked,to:n.to||[],toNames:n.toNames||[],matId:n.matId||'',createdAt:n.createdAt||Date.now(),updatedAt:Date.now()};st.editing=null;await saveNoticeDoc(o);render()});
   on('#nCancel',()=>{st.editing=null;render()});
   on('#lmRead',lmMarkRead);
   $$('[data-ned]').forEach(b=>b.onclick=()=>{st.editing=b.dataset.ned;render()});
-  confirmDel('[data-ndel]','ndel',id=>delMemo(id))}
+  confirmDel('[data-ndel]','ndel',id=>delNotice(id))}
 function confirmDel(sel,key,fn){$$(sel).forEach(b=>b.onclick=()=>{const id=b.dataset[key];b.parentElement.innerHTML=`<span>삭제할까요?</span><button class="btn danger" data-y>삭제</button><button class="btn" data-n>취소</button>`;
   const p=document.querySelector(`[data-y]`).parentElement;p.querySelector('[data-y]').onclick=async()=>{await fn(id);render()};p.querySelector('[data-n]').onclick=()=>render()})}
 function lessonForm(l){l=l||{};return `<section class="card"><p class="kicker">${l.id?'과정 고치기':'새 과정 입력'}</p>
