@@ -246,7 +246,7 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 .lecview{display:flex;flex-direction:column;gap:8px}
 .a4stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;perspective:2200px;height:min(70vh,calc((100vw - 64px)*1.4142))}
 .a4page{position:relative;background:#fff;color:#222;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 1px rgba(0,0,0,.15);overflow:hidden;transform-style:preserve-3d;aspect-ratio:1/1.4142}
-.a4page>img,.a4page>video,.leaf>img,.leaf>video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff}
+.a4page>img,.a4page>video,.leaf>img,.leaf>video,.zw>img,.zw>video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff}
 .a4msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center;color:#333}
 .a4msg .muted{color:#666}
 .leaf{position:absolute;inset:0;background:#fff;transform-origin:left center;backface-visibility:hidden;z-index:2;box-shadow:0 0 24px rgba(0,0,0,.35)}
@@ -261,6 +261,18 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 @keyframes shadeOut{from{opacity:1}to{opacity:0}}
 .lecview:fullscreen{background:#111;padding:16px;height:100vh}
 .lecview:fullscreen .a4stage{height:auto}
+.gvcard{gap:8px}
+.gvcard .a4stage.gvstage{flex:none;height:max(320px,min(calc(100vh - 320px),calc((100vw - 48px)*1.4142)))}
+.gvcard .a4bar{gap:8px}.gvcard .a4bar .btn{min-height:38px;padding-block:4px}
+.gvstage{height:min(78vh,calc((100vw - 48px)*1.4142))}
+#gvPage{touch-action:pan-y;cursor:zoom-in}
+#gvPage.zoomed{touch-action:none;cursor:grab}
+#gvPage.zoomed:active{cursor:grabbing}
+#gvPage .zw{position:absolute;inset:0;transform-origin:0 0}
+.a4text{position:absolute;inset:0;padding:9% 10%;white-space:pre-wrap;line-height:1.75;color:#222;font-family:var(--serif);overflow:hidden;word-break:keep-all}
+.zbar .btn{min-width:48px}
+.zbar #gvZr{min-width:90px}
+.gvtip{text-align:center;margin:0}
 .a4bar{flex-wrap:wrap;display:flex;align-items:center;justify-content:center;gap:12px;flex:none}
 .a4bar .btn{min-width:96px}
 .a4bar span{font-weight:800;min-width:64px;text-align:center}
@@ -732,7 +744,7 @@ function headHtml(right,under){const ps=pastorSrc(st.cover);return `<header clas
 function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초반 지침 보기','book'],['materials','제자들 보기','folder'],['notices','공지 보기','bell']];
   if(!tabs.some(t=>t[0]===st.tab))st.tab='home';
   const right=isM()?`<button class="who m btn-like" id="toMaster">마스터 창</button>`:'';
-  root.innerHTML=`<div class="shell"><div class="wrap">${headHtml(right)}
+  root.innerHTML=`<div class="shell"><div class="wrap"><header class="head nohp"><div class="t"><h1>${esc(st.cover.title)}</h1></div>${right}</header>
    <nav class="tabs"><div class="in">${tabs.map(([k,l,i])=>`<button data-tab="${k}" class="${st.tab===k?'on':''}">${ic(i)}<span>${l}</span></button>`).join('')}</div></nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#toCover',()=>go('cover'));on('#toMaster',openMaster);
@@ -810,8 +822,58 @@ function materialsTab(){const lib=st.materials.filter(m=>m.cat!=='guide'&&m.cat!
   $('#body').innerHTML=`<section class="card"><p class="kicker">제자들 보기 · 자료 ${lib.length}개</p>${matGrid(lib,'마스터나 반장이 자료를 올리면 여기에 바로 보여요.')}</section>
   ${upPanel('library')}${isM()&&lib.length?`<section class="card"><p class="kicker">자료 관리 (마스터)</p>${lib.map(m=>matRow(m,true)).join('')}</section>`:''}`;
   bindUp('library');bindDelMat()}
+/* ===== 2반 화면 '기초반 지침 보기': A4 책 + 휠 확대(최대 5배) ===== */
+const GV={pages:null,key:'',z:1,tx:0,ty:0};
+function gvText(t){const out=[];let cur=[],n=0;for(const ln of String(t).split('\n')){const k=Math.max(1,Math.ceil(ln.length/34));if(n+k>24&&cur.length){out.push(cur.join('\n'));cur=[];n=0}cur.push(ln);n+=k}if(cur.length)out.push(cur.join('\n'));return out}
+async function gvPages(){const gs=st.materials.filter(m=>m.cat==='guide').slice().sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  const key=(st.guideText||'').length+'|'+gs.map(m=>m.id).join(',');if(GV.pages&&GV.key===key)return GV.pages;
+  const P=[];if(st.guideText)gvText(st.guideText).forEach(t=>P.push({t}));
+  for(const m of gs){const ct=m.contentType||'';
+    if(/pdf/.test(ct)){try{if(!(LEC[m.id]&&LEC[m.id].doc))await lecSrc(m,0);for(let i=0;i<LEC[m.id].n;i++)P.push({m,i})}catch(e){P.push({m,i:0,err:1})}}
+    else if(/^image\//.test(ct)){const n=lecCount(m);for(let i=0;i<n;i++)P.push({m,i})}
+    else P.push({m,i:0})}
+  GV.pages=P;GV.key=key;return P}
+async function gvHtml(pg){if(!pg)return '<div class="a4msg"><p class="muted">마스터가 지침서를 올리면 여기에 A4로 보여요.</p></div>';
+  if(pg.t!==undefined)return `<div class="a4text">${esc(pg.t)}</div>`;
+  if(pg.err)return '<div class="a4msg"><p class="muted">자료를 열지 못했어요.</p></div>';
+  const ct=pg.m.contentType||'';let src='';if(/pdf|^image\//.test(ct))src=await lecSrc(pg.m,pg.i);return lecInner(pg.m,src)}
+function gvSize(){const stg=$('.gvstage'),pg=$('#gvPage');if(!stg||!pg)return;const W=stg.clientWidth,H=stg.clientHeight;let h=Math.min(H,W*1.4142);if(h<160)h=W*1.4142;const w=h/1.4142;
+  pg.style.width=Math.floor(w)+'px';pg.style.height=Math.floor(h)+'px';pg.style.fontSize=(w/26).toFixed(1)+'px'}
+function gvApply(){const z=$('#gvPage .zw');if(!z)return;z.style.transform=`translate(${GV.tx}px,${GV.ty}px) scale(${GV.z})`;const l=$('#gvZ');if(l)l.textContent=Math.round(GV.z*100)+'%';
+  const pg=$('#gvPage');if(pg)pg.classList.toggle('zoomed',GV.z>1.001)}
+function gvClamp(){const pg=$('#gvPage');if(!pg)return;const w=pg.clientWidth,h=pg.clientHeight;GV.tx=Math.min(0,Math.max(w-w*GV.z,GV.tx));GV.ty=Math.min(0,Math.max(h-h*GV.z,GV.ty))}
+function gvZoomAt(nz,px,py){nz=Math.min(5,Math.max(1,nz));const r=nz/GV.z;GV.tx=px-(px-GV.tx)*r;GV.ty=py-(py-GV.ty)*r;GV.z=nz;gvClamp();gvApply()}
+function gvZoomCenter(f){const pg=$('#gvPage');if(!pg)return;gvZoomAt(GV.z*f,pg.clientWidth/2,pg.clientHeight/2)}
+async function gvShow(dir){const pg=$('#gvPage');if(!pg)return;const P=await gvPages();const n=P.length;if(st.gvP>n-1)st.gvP=Math.max(0,n-1);
+  const html=`<div class="zw">${await gvHtml(P[st.gvP])}</div>`;const lab=$('#gvNo');if(lab)lab.textContent=n?`${st.gvP+1} / ${n}`:'0 / 0';
+  const pv=$('#gvPrev'),nx=$('#gvNext');if(pv)pv.disabled=st.gvP<=0;if(nx)nx.disabled=st.gvP>=n-1;
+  GV.z=1;GV.tx=0;GV.ty=0;const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!dir||reduce){pg.innerHTML=html;gvApply();return}
+  const old=pg.innerHTML;st.gvAnim=true;const tok=st.gvTok=(st.gvTok||0)+1;const done=()=>{if(st.gvTok!==tok)return;st.gvTok++;pg.innerHTML=html;st.gvAnim=false;gvApply()};
+  if(dir>0)pg.innerHTML=html+`<div class="leaf next">${old}<i class="shade"></i></div>`;else pg.innerHTML=old+`<div class="leaf prev">${html}<i class="shade"></i></div>`;
+  pg.querySelector('.leaf').addEventListener('animationend',done,{once:true});setTimeout(done,1100)}
+function gvGo(d){if(st.gvAnim||!GV.pages)return;const p=(st.gvP||0)+d;if(p<0||p>GV.pages.length-1)return;st.gvP=p;gvShow(d)}
+function gvInit(){const pg=$('#gvPage');if(!pg)return;st.gvP=st.gvP||0;gvSize();
+  on('#gvPrev',()=>gvGo(-1));on('#gvNext',()=>gvGo(1));on('#gvZi',()=>gvZoomCenter(1.25));on('#gvZo',()=>gvZoomCenter(0.8));on('#gvZr',()=>{GV.z=1;GV.tx=0;GV.ty=0;gvApply()});
+  pg.addEventListener('wheel',e=>{e.preventDefault();const r=pg.getBoundingClientRect();gvZoomAt(GV.z*Math.exp(-e.deltaY*0.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+  pg.addEventListener('dblclick',e=>{const r=pg.getBoundingClientRect();if(GV.z>1.01){GV.z=1;GV.tx=0;GV.ty=0;gvApply()}else gvZoomAt(2.5,e.clientX-r.left,e.clientY-r.top)});
+  const pts=new Map();let last=null,pinch=null;
+  pg.addEventListener('pointerdown',e=>{pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)last={x:e.clientX,y:e.clientY};if(pts.size===2){const [a,b]=[...pts.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),z:GV.z}}if(GV.z>1||pts.size===2){try{pg.setPointerCapture(e.pointerId)}catch(_){}}});
+  pg.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const r=pg.getBoundingClientRect();
+    if(pts.size===2&&pinch){const [a,b]=[...pts.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);gvZoomAt(pinch.z*d/pinch.d,(a.x+b.x)/2-r.left,(a.y+b.y)/2-r.top);e.preventDefault();return}
+    if(GV.z>1&&last){GV.tx+=e.clientX-last.x;GV.ty+=e.clientY-last.y;last={x:e.clientX,y:e.clientY};gvClamp();gvApply();e.preventDefault()}});
+  const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pinch=null;if(pts.size===1){const v=[...pts.values()][0];last={x:v.x,y:v.y}}else last=null};
+  pg.addEventListener('pointerup',up);pg.addEventListener('pointercancel',up);
+  gvShow(0)}
+window.addEventListener('resize',()=>{if(st.view==='app'&&st.tab==='lessons'){gvSize();gvClamp();gvApply()}});
+document.addEventListener('keydown',e=>{if(st.view!=='app'||st.tab!=='lessons'||RD.m||/INPUT|TEXTAREA|SELECT/.test((e.target||{}).tagName||''))return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();gvGo(1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();gvGo(-1)}});
 function lessonsTab(){const guides=st.materials.filter(m=>m.cat==='guide');
-  let h=(st.guideText?`<section class="card"><p class="kicker">기초반 지침서</p><div class="gtext">${esc(st.guideText)}</div></section>`:'')+`<section class="card"><p class="kicker">기초반 지침 보기 · 자료 ${guides.length}개</p>${matGrid(guides,'마스터나 반장이 지침 자료를 올리면 여기에 바로 보여요.')}</section>`+upPanel('guide');
+  let h=`<section class="card gvcard"><p class="kicker">기초반 지침 보기</p>
+    <div class="a4stage gvstage"><div class="a4page" id="gvPage"><div class="a4msg"><p class="muted">지침서를 펼치는 중…</p></div></div></div>
+    <div class="a4bar"><button class="btn" id="gvPrev" disabled>◀ 이전</button><span id="gvNo">- / -</span><button class="btn pri" id="gvNext" disabled>다음 ▶</button></div>
+    <div class="a4bar zbar"><button class="btn" id="gvZo" aria-label="축소">－</button><span id="gvZ">100%</span><button class="btn" id="gvZi" aria-label="확대">＋</button><button class="btn" id="gvZr">원래 크기</button></div>
+    <p class="small muted gvtip">마우스 휠로 최대 5배까지 확대·축소, 확대한 뒤에는 끌어서 옮겨 보세요. 휴대폰은 두 손가락으로 벌리거나 ＋ － 버튼.</p></section>`+upPanel('guide');
   if(isM()&&guides.length)h+=`<section class="card"><p class="kicker">지침 자료 관리 (마스터)</p>${guides.map(m=>matRow(m,true)).join('')}</section>`;
   if(!st.lessons.length)h+=`<section class="card empty">김병구 목사님이 과정을 올리면 여기에 보여요.</section>`;
   for(const l of st.lessons){const done=!!st.prog.done[l.id],open=st.open===l.id;const mats=st.materials.filter(m=>m.lessonId===l.id);
@@ -823,7 +885,7 @@ function lessonsTab(){const guides=st.materials.filter(m=>m.cat==='guide');
         ${isM()?'<p class="small muted">제자 화면 미리보기예요. 고치기는 마스터 창에서 해요.</p>'
         :`<label>나의 나눔 (목사님만 볼 수 있어요) <textarea id="note_${l.id}" maxlength="2000" placeholder="이번 과정에서 받은 은혜와 적용을 적어 보세요.">${esc(st.prog.notes[l.id])}</textarea></label>
           <div class="row"><button class="btn" data-note="${l.id}">나눔 저장</button><button class="btn ${done?'':'pri'}" data-done="${l.id}">${done?'완료 취소':'과제 완료했어요'}</button></div>`}</div>`:''}</article>`}
-  const b=$('#body');b.innerHTML=h;bindUp('guide');bindDelMat();
+  const b=$('#body');b.innerHTML=h;bindUp('guide');bindDelMat();gvInit();
   b.querySelectorAll('[data-open]').forEach(x=>x.onclick=()=>{st.open=st.open===x.dataset.open?null:x.dataset.open;render()});
   b.querySelectorAll('[data-done]').forEach(x=>x.onclick=async()=>{const id=x.dataset.done;if(st.prog.done[id])delete st.prog.done[id];else st.prog.done[id]=Date.now();render();if(await saveProg()&&st.prog.done[id])toast('수고하셨어요! 완료로 표시했어요.')});
   b.querySelectorAll('[data-note]').forEach(x=>x.onclick=async()=>{const id=x.dataset.note;st.prog.notes[id]=$('#note_'+id).value.trim();if(await saveProg())toast('나눔을 저장했어요.')})}
