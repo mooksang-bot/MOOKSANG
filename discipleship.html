@@ -299,6 +299,15 @@ em.by.lead{background:#3b8fc9}
 .gup .gdrop{border:2px dashed var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,box-shadow .15s}
 .gup .gdrop:hover,.gup .gdrop:focus-within{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
 @media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,.75fr) minmax(0,2fr)}.gview .gbox{height:auto;flex:1;min-height:120px}.gview textarea#gText{min-height:84px;height:84px}.gview{display:flex;flex-direction:column;height:100%}}
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end}
+.cgrid .row{margin:0}
+@media (max-width:600px){.cgrid{grid-template-columns:minmax(0,1fr)}}
+table.ctab th[scope=row]{text-align:left;font-weight:700}
+table.ctab td a{color:var(--ink);text-decoration:none;border-bottom:1px dashed var(--muted)}
+table.ctab .cact{gap:6px;flex-wrap:nowrap;justify-content:center}
+table.ctab .cact .btn{min-height:34px;padding:4px 12px;font-size:.88rem}
+table.ctab tr.cedit{background:color-mix(in srgb,#22c55e 14%,transparent)}
+@media (max-width:600px){table.ctab .cact .btn{min-height:30px;padding:2px 8px;font-size:.8rem}table.ctab .cact{gap:4px}table.ctab th,table.ctab td{padding-inline:4px}}
 .rcpt{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .rhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;max-height:230px;overflow:auto;padding:4px}
@@ -833,7 +842,25 @@ function leaderView(){leadSub();document.body.classList.remove('lroster');if(!st
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#lCover',()=>go('cover'));
   $$('[data-ltab]').forEach(b=>b.onclick=()=>{st.ltab=b.dataset.ltab;st.rEdit=null;render()});
-  ({att:lAtt,dues:lDues,roster:lRoster,up:lUp,memo:lMemo})[st.ltab]()}
+  ({att:lAtt,dues:lDues,roster:lContacts,up:lUp,memo:lMemo})[st.ltab]()}
+/* 반장 창 '제자 명단': 이름과 연락처만 보고, 넣고, 고치기 */
+function lContacts(){const ed=st.cEdit&&st.roster.find(r=>r.id===st.cEdit);const R0=st.roster;
+  $('#body').innerHTML=`<section class="card cform"><p class="kicker">${ed?'제자 고치기':'제자 넣기'}</p>
+    <div class="cgrid"><label>이름 <input id="cName" maxlength="20" autocomplete="off" value="${esc(ed?ed.name:'')}" placeholder="예: 홍길동"></label>
+    <label>연락처 <input id="cPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="${esc(ed?ed.phone:'')}" placeholder="010-1234-5678"></label>
+    <div class="row"><button class="btn pri" id="cSave">${ed?'고친 내용 저장':'저장'}</button>${ed?'<button class="btn" id="cCancel">취소</button>':''}</div></div></section>
+   <section class="card"><p class="kicker">제자 명단 · ${R0.length}명</p>
+    ${R0.length?`<div class="tblwrap"><table class="att ctab"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">연락처</th><th scope="col">수정·삭제</th></tr></thead><tbody>
+      ${R0.map((x,i)=>`<tr class="${x.id===st.cEdit?'cedit':''}"><td class="num">${i+1}</td><th scope="row">${esc(x.name)}</th><td>${x.phone?`<a href="tel:${esc(String(x.phone).replace(/[^0-9+]/g,''))}">${esc(x.phone)}</a>`:'<span class="muted">-</span>'}</td>
+        <td><div class="row cact"><button class="btn" data-ced="${x.id}">수정</button><button class="btn danger" data-cdel="${x.id}">삭제</button></div></td></tr>`).join('')}</tbody></table></div>`
+      :'<p class="muted">아직 제자가 없어요. 위에서 이름과 연락처를 넣어 주세요.</p>'}</section>`;
+  on('#cSave',async()=>{const name=$('#cName').value.trim(),phone=$('#cPhone').value.trim();if(!name){toast('이름을 적어 주세요.');return}
+    const o=ed?{...plain(ed),name,phone,updatedAt:Date.now()}:{id:uidGen(),name,phone,role:'',sex:'',createdAt:Date.now(),updatedAt:Date.now()};
+    st.cEdit=null;await saveRoster(o);render()});
+  on('#cCancel',()=>{st.cEdit=null;render()});
+  $$('[data-ced]').forEach(b=>b.onclick=()=>{st.cEdit=b.dataset.ced;render();const i=$('#cName');if(i){i.focus();i.scrollIntoView({block:'center'})}});
+  confirmDel('[data-cdel]','cdel',async id=>{if(st.cEdit===id)st.cEdit=null;await delRoster(id)});
+  const k=e=>{if(e.key==='Enter'){e.preventDefault();$('#cSave').click()}};['#cName','#cPhone'].forEach(q=>{const i=$(q);if(i)i.onkeydown=k})}
 function lUp(){const c=st.lcat||'guide';const mine=st.materials.filter(m=>m.by==='반장').concat(st.notices.filter(n=>n.by==='반장').map(n=>({...n,_n:1}))).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   $('#body').innerHTML=`<section class="card"><p class="kicker">자료 올리기</p>
     <p class="small muted">올린 자료는 제자 화면의 해당 칸에 바로 보여요.</p>
@@ -901,7 +928,7 @@ const ptuIn=(key,v,label,col)=>`<input class="ptuin ${v?'v'+v:''}" data-ptuin="$
 const sumHtml=vals=>{const c={P:0,T:0,U:0};vals.forEach(v=>{if(c[v]!==undefined)c[v]++});return `<span class="sm-s sP">P ${c.P}</span><span class="sm-s sT">T ${c.T}</span><span class="sm-s sU">U ${c.U}</span>`};
 const KO={'ㅔ':'P','ㅅ':'T','ㅕ':'U','ㅆ':'T'};
 function bindPtuIn(){$$('input.ptuin').forEach(inp=>{
-  const PICK=st.view==='master';
+  const PICK=st.view==='master'||st.view==='leader';
   if(PICK){inp.readOnly=true;inp.setAttribute('inputmode','none');inp.classList.add('pick');inp.onclick=e=>{e.preventDefault();openPtuPick(inp)}}
   else inp.onfocus=()=>inp.select();
   inp.oninput=async()=>{let raw=inp.value.slice(-1);raw=KO[raw]||raw.toUpperCase();
@@ -934,7 +961,7 @@ async function applyPtu(inp,raw,advance){
     if(raw)A.days[day][rid]=raw;else delete A.days[day][rid];st.att[ym]=A;
     if(raw&&advance){const all=[...tb.querySelectorAll(`input.ptuin[data-col="${col}"]`)];const nx=all[all.indexOf(inp)+1];if(nx)nx.focus()}
     await saveAtt(ym)}
-const ptuLegendH=()=>'<p class="ptu-legend"><span class="cell ptu vP">P</span> 출석 <span class="cell ptu vT">T</span> 지각 <span class="cell ptu vU">U</span> 무단 결석 <span class="small muted">· '+(st.view==='master'?'칸을 누르면 선택 창이 떠요. P·T·U 중 하나를 고르면 바로 저장돼요':'칸에 P·T·U를 입력하면 아래 사람으로 넘어가요. 지우면 빈칸')+'</span></p>';
+const ptuLegendH=()=>'<p class="ptu-legend"><span class="cell ptu vP">P</span> 출석 <span class="cell ptu vT">T</span> 지각 <span class="cell ptu vU">U</span> 무단 결석 <span class="small muted">· '+(st.view==='master'||st.view==='leader'?'칸을 누르면 선택 창이 떠요. P·T·U 중 하나를 고르면 바로 저장돼요':'칸에 P·T·U를 입력하면 아래 사람으로 넘어가요. 지우면 빈칸')+'</span></p>';
 function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.rEdit!=='new'?st.roster.find(r=>r.id===st.rEdit):null;const r=ed||{};const W=rosterWeeks();const E=!!st.rManage;
   let h='';
   if(st.rEdit)h+=`<section class="card rform"><p class="kicker">${ed?'제자 정보 수정':'제자 추가'}</p>
