@@ -294,6 +294,27 @@ label.rchk.drow{padding:12px}
 .paybtn{min-width:104px;color:var(--danger)}
 .paybtn.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .rrow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+/* 제자 명단: 한 화면 표 + 출석 체크 칸 */
+.rcard{gap:6px;padding:12px 14px}
+.rcard .kicker{margin:0}
+body.lroster .head{padding-block:6px 4px}
+body.lroster .wrap.lead{gap:8px}
+body.lroster .mtabs button{padding:6px 14px}
+@media (max-height:900px){body.lroster .rcard>.small{display:none}}
+.rtop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.btn.sm{min-height:34px;padding:4px 12px;font-size:.88rem}
+.btn.sm.on{border-color:var(--accent);color:var(--accent);background:var(--soft)}
+table.rtab{font-size:.92rem}
+table.rtab th,table.rtab td{padding:2px 6px;height:30px}
+table.rtab th.nm2{text-align:left;position:sticky;left:0;background:var(--card);z-index:1;font-weight:700}
+table.rtab td.no{color:var(--muted);font-size:.8rem}
+table.rtab th.wkh{color:var(--gold);font-size:.8rem}
+table.rtab td.mng{display:flex;gap:4px}
+input.acb{width:20px;height:20px;margin:0;accent-color:#22c55e;cursor:pointer;border-radius:5px;transition:box-shadow .18s}
+input.acb:checked{box-shadow:0 0 0 2px #39ff88,0 0 10px #39ff88,0 0 20px rgba(57,255,136,.55)}
+input.acb:hover,input.acb:focus-visible{box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
+.rgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:600px){table.rtab .ph,table.rtab td.no,table.rtab thead th:first-child,table.rtab tfoot td:first-child{display:none}table.rtab th,table.rtab td{padding:2px 3px;height:28px}.rgrid{grid-template-columns:1fr}table.rtab{font-size:.85rem}table.rtab th.wkh{font-size:.7rem;white-space:normal;min-width:40px}}
 .rrole{font-family:var(--sans);font-size:.8rem;border:1.5px solid var(--gold);color:var(--gold);border-radius:999px;padding:1px 8px;margin-left:4px;vertical-align:middle}
 .lmblock{display:flex;flex-direction:column;gap:8px;border:2px solid var(--gold);border-radius:14px;padding:10px 12px;margin-bottom:6px}
 .item.unread .notice{font-weight:700}
@@ -439,7 +460,7 @@ const entryOk=()=>!!st.pwHash&&st.unlocked===st.pwHash;
 const canEnter=()=>entryOk()||masterUnlocked();
 const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
 function go(view){st.view=view;window.scrollTo(0,0);render()}
-function render(){document.body.classList.toggle('app',st.view!=='cover');
+function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster');
   if(st.view==='master'&&!masterUnlocked())st.view='cover';
   if(st.view==='app'&&!canEnter())st.view='cover';
   if(st.view==='leader'&&!leaderUnlocked())st.view='cover';
@@ -682,7 +703,7 @@ function bindLpw(){on('#lpClose',()=>{st.lpwOpen=false;render()});$('#lpModal').
     if(h===st.leaderHash){st.leaderOk=h;ssSet(LLD,h);st.lpwOpen=false;st.lpwWrong=0;go('leader')}
     else{st.lpwWrong++;if(st.lpwWrong>=5){st.lpwWait=Date.now()+30000;st.lpwWrong=0;st.lpwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else st.lpwMsg='비밀번호가 맞지 않아요.';render();const i=$('#lpIn');if(i)i.focus()}};
   on('#lpGo',go2);const i=$('#lpIn');if(i)i.onkeydown=e=>{if(e.key==='Enter')go2()}}
-function leaderView(){leadSub();if(!st.lmonth)st.lmonth=ymNow();
+function leaderView(){leadSub();document.body.classList.remove('lroster');if(!st.lmonth)st.lmonth=ymNow();
   const T=[['att','출석 체크'],['dues','회비 납부'],['roster','제자 명단'],['up','자료 올리기'],['memo','마스터에게 메모']];
   root.innerHTML=`<div class="shell"><div class="wrap lead">${headHtml(`<button class="who btn-like" id="lCover">표지</button><span class="mbadge lb">반장 창</span>`)}
    <nav class="mtabs" aria-label="반장 메뉴">${T.map(([k,l])=>`<button data-ltab="${k}" class="${st.ltab===k?'on':''}">${l}</button>`).join('')}</nav>
@@ -741,23 +762,39 @@ function lDues(){const A=curAtt(),P=A.dues||{};const mo=+st.lmonth.split('-')[1]
   $('#body').innerHTML=h;bindMon();
   $$('[data-pay]').forEach(c=>c.onchange=async()=>{const A=curAtt();A.dues=A.dues||{};const id=c.dataset.pay;if(c.checked)A.dues[id]=true;else delete A.dues[id];st.att[st.lmonth]=A;render();await saveAtt(st.lmonth)});
   const pa=$('#payAll');if(pa)pa.onchange=async()=>{const A=curAtt();A.dues={};if(pa.checked)st.roster.forEach(r=>A.dues[r.id]=true);st.att[st.lmonth]=A;render();await saveAtt(st.lmonth)}}
-function lRoster(){const ed=st.rEdit&&st.rEdit!=='new'?st.roster.find(r=>r.id===st.rEdit):null;const r=ed||{};
+const pad2=n=>String(n).padStart(2,'0');
+function rosterWeeks(){const s0=st.rStart||'2026-11-29';const d=new Date(s0+'T00:00:00');const out=[];
+  for(let i=0;i<4;i++){const x=new Date(d);x.setDate(d.getDate()+7*i);out.push({ym:`${x.getFullYear()}-${pad2(x.getMonth()+1)}`,day:String(x.getDate()),label:`${x.getMonth()+1}월${pad2(x.getDate())}일`})}return out}
+function shiftWeeks(k){const d=new Date((st.rStart||'2026-11-29')+'T00:00:00');d.setDate(d.getDate()+7*4*k);st.rStart=`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}
+const isIn=(w,rid)=>{const A=st.att[w.ym];return !!(A&&A.days&&A.days[w.day]&&A.days[w.day][rid])};
+function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.rEdit!=='new'?st.roster.find(r=>r.id===st.rEdit):null;const r=ed||{};const W=rosterWeeks();const E=!!st.rManage;
   let h='';
-  if(st.rEdit)h+=`<section class="card"><p class="kicker">${ed?'제자 정보 수정':'제자 추가'}</p>
-    <label>이름 <input id="rName" maxlength="20" autocomplete="off" value="${esc(r.name)}" placeholder="예: 홍길동"></label>
+  if(st.rEdit)h+=`<section class="card rform"><p class="kicker">${ed?'제자 정보 수정':'제자 추가'}</p>
+    <div class="rgrid"><label>이름 <input id="rName" maxlength="20" autocomplete="off" value="${esc(r.name)}" placeholder="예: 홍길동"></label>
     <label>직분 <input id="rRole" maxlength="20" list="roleList" value="${esc(r.role)}" placeholder="예: 집사"><datalist id="roleList"><option value="성도"><option value="집사"><option value="권사"><option value="장로"><option value="청년"></datalist></label>
-    <label>연락처 <input id="rPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="${esc(r.phone)}" placeholder="예: 010-1234-5678"></label>
+    <label>연락처 <input id="rPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="${esc(r.phone)}" placeholder="010-1234-5678"></label></div>
     <div class="row"><button class="btn pri" id="rSave">저장</button><button class="btn" id="rCancel">취소</button></div></section>`;
-  else h+=`<div class="row"><button class="btn pri addbtn" id="rAdd">+ 제자 추가</button></div>`;
-  h+=`<section class="card"><p class="kicker">제자 명단 ${st.roster.length}명</p>
-    ${st.roster.length?st.roster.map(x=>`<div class="item"><div class="rrow"><div><h3>${esc(x.name)}${x.role?` <span class="rrole">${esc(x.role)}</span>`:''}</h3>${x.phone?`<span class="date">${esc(x.phone)}</span>`:''}</div>
-      <div class="row"><button class="btn" data-red="${x.id}">수정</button><button class="btn danger" data-rdel="${x.id}">삭제</button></div></div></div>`).join(''):'<p class="muted">아직 제자가 없어요. 위의 “+ 제자 추가”를 눌러 주세요.</p>'}</section>`;
+  h+=`<section class="card rcard"><div class="rtop"><p class="kicker">제자 명단 · ${st.roster.length}명</p>
+      <div class="row"><button class="btn sm" id="wPrev" aria-label="이전 4주">‹ 4주</button><button class="btn sm" id="wNext" aria-label="다음 4주">4주 ›</button>
+      ${st.rEdit?'':'<button class="btn sm pri" id="rAdd">+ 추가</button>'}<button class="btn sm ${E?'on':''}" id="rMng">${E?'관리 끝':'수정·삭제'}</button></div></div>
+    ${st.roster.length?`<div class="tblwrap"><table class="att rtab"><thead><tr><th scope="col">번호</th><th scope="col">이름</th><th scope="col">직분</th><th scope="col" class="ph">연락처</th>
+      ${W.map(w=>`<th scope="col" class="wkh">${w.label}</th>`).join('')}${E?'<th scope="col">관리</th>':''}</tr></thead><tbody>
+      ${st.roster.map((x,i)=>`<tr><td class="no">${i+1}</td><th scope="row" class="nm2">${esc(x.name)}</th><td>${esc(x.role||'')}</td><td class="ph">${esc(x.phone||'')}</td>
+        ${W.map(w=>{const on=isIn(w,x.id);return `<td><input type="checkbox" class="acb" data-ra="${w.ym}|${w.day}|${x.id}" ${on?'checked':''} aria-label="${esc(x.name)} ${w.label} 출석"></td>`}).join('')}
+        ${E?`<td class="mng"><button class="btn sm" data-red="${x.id}">수정</button><button class="btn sm danger" data-rdel="${x.id}">삭제</button></td>`:''}</tr>`).join('')}</tbody>
+      <tfoot><tr><td></td><th scope="row">출석</th><td></td><td class="ph"></td>${W.map(w=>`<td>${st.roster.filter(x=>isIn(w,x.id)).length}</td>`).join('')}${E?'<td></td>':''}</tr></tfoot></table></div>
+      <p class="small muted">날짜 칸의 네모를 체크하면 그 주일 출석으로 저장돼요. 출석 체크 탭과 같은 기록이에요.</p>`
+    :'<p class="muted">아직 제자가 없어요. “+ 제자 추가”를 눌러 주세요.</p>'}</section>`;
   $('#body').innerHTML=h;
+  on('#wPrev',()=>{shiftWeeks(-1);render()});on('#wNext',()=>{shiftWeeks(1);render()});
+  on('#rMng',()=>{st.rManage=!st.rManage;render()});
   on('#rAdd',()=>{st.rEdit='new';render();$('#rName').focus()});on('#rCancel',()=>{st.rEdit=null;render()});
   on('#rSave',async()=>{const name=$('#rName').value.trim();if(!name){toast('이름을 적어 주세요.');return}
     const o={id:ed?ed.id:uidGen(),name,role:$('#rRole').value.trim(),phone:$('#rPhone').value.trim(),createdAt:ed?ed.createdAt:Date.now(),updatedAt:Date.now()};st.rEdit=null;await saveRoster(o);render()});
   $$('[data-red]').forEach(b=>b.onclick=()=>{st.rEdit=b.dataset.red;render();window.scrollTo(0,0)});
-  confirmDel('[data-rdel]','rdel',id=>delRoster(id))}
+  confirmDel('[data-rdel]','rdel',id=>delRoster(id));
+  $$('[data-ra]').forEach(c=>c.onchange=async()=>{const [ym,day,rid]=c.dataset.ra.split('|');const A=plain(st.att[ym]||{days:{},dues:{}});A.days=A.days||{};A.days[day]=A.days[day]||{};
+    if(c.checked)A.days[day][rid]=true;else delete A.days[day][rid];st.att[ym]=A;render();await saveAtt(ym)})}
 function lMemo(){const D=st.lDraft;
   $('#body').innerHTML=`<section class="card"><p class="kicker">마스터에게 메모 보내기</p>
     <textarea id="lmText" maxlength="2000" ${D.locked?'readonly':''} placeholder="마스터(김병구 목사님)에게 전할 내용을 적어 주세요.">${esc(D.text)}</textarea>
