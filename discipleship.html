@@ -433,7 +433,7 @@ function appView(){const tabs=[['home','홈 화면','home'],['lessons','기초�
    <nav class="tabs"><div class="in">${tabs.map(([k,l,i])=>`<button data-tab="${k}" class="${st.tab===k?'on':''}">${ic(i)}<span>${l}</span></button>`).join('')}</div></nav>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#toCover',()=>go('cover'));on('#toMaster',openMaster);
-  $$('[data-tab]').forEach(b=>b.onclick=()=>{st.tab=b.dataset.tab;st.open=null;window.scrollTo(0,0);render()});
+  $$('[data-tab]').forEach(b=>b.onclick=()=>{if(b.dataset.tab==='home'){st.tab='home';st.open=null;return go('cover')}st.tab=b.dataset.tab;st.open=null;window.scrollTo(0,0);render()});
   ({home:homeTab,lessons:lessonsTab,materials:materialsTab})[st.tab]()}
 function noticeItem(n,isNew){return `<div class="item">${n.pinned?'<span class="pinned">중요 공지</span>':''}
   ${n.title?`<h3>${esc(n.title)}${isNew?'<span class="newdot">새 공지</span>':''}</h3>`:(isNew?'<span class="newdot" style="margin:0;align-self:flex-start">새 공지</span>':'')}
