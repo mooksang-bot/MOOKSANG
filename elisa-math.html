@@ -141,6 +141,17 @@ body.fit .qcard{overflow-y:auto;overscroll-behavior:contain}
   transition:box-shadow .2s,border-color .2s,transform .15s}
 .workbtn:hover,.workbtn:focus-visible,.workbtn:active{border-color:#3fe6d6;box-shadow:0 0 0 2px #5ff5e6,0 0 14px #5ff5e6,0 0 30px rgba(140,90,255,.55);transform:translateY(-1px)}
 .workbtn[aria-expanded="true"]{background:var(--card);color:var(--muted);border-style:dashed}
+/* 숫자판·확인·개념 힌트·잘 모르겠어요·보기: 마우스를 올리거나 누르면 네온 빛 */
+.pad button,.qcard .row .btn,.choices button{transition:box-shadow .18s,border-color .18s,transform .12s,text-shadow .18s}
+.pad button:not(:disabled):hover,.pad button:not(:disabled):active,.pad button:focus-visible,
+.qcard .row .btn:hover,.qcard .row .btn:active,.qcard .row .btn:focus-visible,
+.choices button:not(:disabled):hover,.choices button:not(:disabled):active{
+  border-color:#3fe6d6;box-shadow:0 0 0 2px #5ff5e6,0 0 12px #5ff5e6,0 0 28px rgba(140,90,255,.55),inset 0 0 10px rgba(95,245,230,.25);
+  text-shadow:0 0 8px rgba(95,245,230,.85);transform:translateY(-1px)}
+.pad button.go:not(:disabled):hover,.pad button.go:not(:disabled):active{border-color:#ffd0c2;
+  box-shadow:0 0 0 2px #ffb199,0 0 14px #ff8a65,0 0 32px rgba(255,111,79,.7),inset 0 0 10px rgba(255,255,255,.35);text-shadow:0 0 8px rgba(255,255,255,.9)}
+.pad button:not(:disabled):active,.qcard .row .btn:active,.choices button:not(:disabled):active{transform:translateY(1px)}
+@media (prefers-reduced-motion:reduce){.pad button,.qcard .row .btn,.choices button{transition:none}}
 body.fit .workbtn{margin-top:auto}
 body.fit .workbtn+.ansbox,body.fit .workbtn+.choices{margin-top:0}
 .workbox label{font-family:var(--display);font-size:1rem}
