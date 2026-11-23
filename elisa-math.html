@@ -124,7 +124,14 @@ sup{font-size:.6em}
 
 .fb{border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:10px;animation:pop .3s ease-out}
 @keyframes pop{from{transform:scale(.94);opacity:.4}to{transform:none;opacity:1}}
-.stamp{position:fixed;inset:0;z-index:60;display:grid;place-items:center;pointer-events:none}
+.qcard{position:relative}
+[hidden]{display:none!important}
+body.fit .qcard{overflow-y:auto;overscroll-behavior:contain}
+.inlfb{display:flex;flex-direction:column;gap:10px}
+.inlfb>.fb{animation:pop .3s ease-out}
+.inlfb>.tip{border:3px solid var(--violet);display:flex;flex-direction:column;gap:8px}
+.stamp{position:absolute;inset:0;z-index:60;display:grid;place-items:center;pointer-events:none}
+body>.stamp{position:fixed}
 .stamp>div{width:min(190px,48vw);aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   background:var(--card);border:8px solid currentColor;box-shadow:0 18px 50px rgba(0,0,0,.3);animation:stampin 1.4s ease forwards}
 .stamp.ok{color:var(--good)} .stamp.no{color:var(--bad)}
@@ -526,7 +533,7 @@ function quiz(){
   <section class="qcard"><div class="qhead"><span class="tag">${s.g} · ${s.name}</span>${sess.rev?'<span class="tag rev">비슷한 문제 다시!</span>':''}</div>
    <div class="q">${P.q}</div>${body}
    <div class="row"><button class="btn ghost" id="idk">잘 모르겠어요</button><button class="btn ghost" id="hint">개념 힌트</button></div>
-   </section><div id="fb" class="sheet" hidden></div>`;
+   <div id="fb" class="inlfb" hidden></div></section>`;
   document.getElementById('hint').onclick=()=>tipSheet(`<b>루미의 힌트</b>${s.concept}`);
   document.getElementById('idk').onclick=()=>answer(null);
   if(P.type==='num'){document.getElementById('pad').onclick=e=>{const b=e.target.closest('button');if(b)key(b.dataset.k)}}
@@ -549,8 +556,8 @@ function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill
   else{const c=P.choices[given];ok=c.ok;givenH=c.h;if(!ok)tag=c.tag||'calc';
     app.querySelectorAll('[data-c]').forEach((b,i)=>{b.disabled=true;if(P.choices[i].ok)b.classList.add('right');else if(i===given)b.classList.add('wrong')})}
   sess.answered=true;
-  if(P.type==='num')app.querySelectorAll('#pad button').forEach(b=>b.disabled=true);
-  app.querySelector('#idk').disabled=true;
+  const pad=document.getElementById('pad');if(pad)pad.hidden=true;
+  const idk=app.querySelector('#idk');if(idk)idk.parentElement.hidden=true;
   // 기록
   const k=sk(sess.skill);const wasM=mastered(sess.skill);k.n++;if(ok){k.c++;k.m=k.m*.6+.4}else k.m=k.m*.6;
   S.total.n++;if(ok)S.total.c++;
@@ -575,12 +582,13 @@ function answer(given){if(sess.answered)return;const P=sess.prob,s=SK[sess.skill
     <div class="tip"><b>루미가 찾은 실수: ${TAGS[tag][0]}</b><br>${TAGS[tag][1]}</div>
     <ol class="steps">${P.steps.map(x=>`<li>${x}</li>`).join('')}</ol>
     <button class="btn pri" id="next">${sess.mode==='diag'?'다음 문제 →':'비슷한 문제로 다시 도전 →'}</button></div>`;
+  setTimeout(()=>fb.scrollIntoView({block:'nearest'}),0);
   if(ok)confetti(levelUp?60:18);
   document.getElementById('next').onclick=()=>{if(sess.mode==='diag')sess.i++;nextQ()};
 }
 function stamp(ok){const d=document.createElement('div');d.className='stamp '+(ok?'ok':'no');d.setAttribute('role','status');
-  d.innerHTML=`<div><span>${ok?'○':'✕'}</span><b>${ok?'정답':'오답'}</b></div>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1400)}
-function tipSheet(h){const f=document.getElementById('fb');f.hidden=false;f.innerHTML=`<div class="tip">${h}<button class="btn pri" id="closeTip">알겠어요</button></div>`;document.getElementById('closeTip').onclick=()=>{f.hidden=true;f.innerHTML=''}}
+  d.innerHTML=`<div><span>${ok?'○':'✕'}</span><b>${ok?'정답':'오답'}</b></div>`;(app.querySelector('.qcard')||document.body).appendChild(d);setTimeout(()=>d.remove(),1400)}
+function tipSheet(h){const f=document.getElementById('fb');if(!f)return;f.hidden=false;setTimeout(()=>f.scrollIntoView({block:'nearest'}),0);f.innerHTML=`<div class="tip">${h}<button class="btn pri" id="closeTip">알겠어요</button></div>`;document.getElementById('closeTip').onclick=()=>{f.hidden=true;f.innerHTML=''}}
 
 function finishDiag(){const res=sess.res;let start=res.findIndex(r=>!r.ok);if(start<0)start=Math.min(res.length,SKILLS.length-1);
   res.forEach((r,i)=>{if(r.ok&&i<start){const k=sk(r.id);k.m=Math.max(k.m,.8);k.n=Math.max(k.n,3)}});
