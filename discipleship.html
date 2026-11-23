@@ -492,12 +492,12 @@ function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur
   $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;st.menuOpen=false;render()});
   ({memo:mMemo,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,settings:mSettings})[st.mtab]()}
 function mMemo(){const ed=st.editing&&st.memos.find(n=>n.id===st.editing);const n=ed||{};
-  $('#body').innerHTML=`<section class="card"><p class="kicker">${ed?'메모 수정':'메모하기'}</p>
+  $('#body').innerHTML=`<section class="card" style="order:2"><p class="kicker">${ed?'메모 수정':'메모하기'}</p>
     <label>제목 <input id="nTitle" maxlength="60" value="${esc(n.title)}"></label>
     <label>내용 <textarea id="nText" maxlength="4000">${esc(n.text)}</textarea></label>
     <label class="check"><input type="checkbox" id="nPin" ${n.pinned?'checked':''}> 중요 메모</label>
     <div class="row"><button class="btn pri" id="nSend">저장</button>${ed?'<button class="btn" id="nCancel">취소</button>':''}</div></section>
-   <section class="card"><p class="kicker">저장 메모 ${st.memos.length}개</p>
+   <section class="card" style="order:1"><p class="kicker">저장 메모 ${st.memos.length}개</p>
     ${st.memos.length?st.memos.map(x=>`<div class="item">${x.pinned?'<span class="pinned">중요 메모</span>':''}${x.title?`<h3>${esc(x.title)}</h3>`:''}<p class="notice">${esc(x.text)}</p><span class="date">${fmtDate(x.createdAt)}</span>
       <div class="row"><button class="btn" data-ned="${x.id}">수정</button><button class="btn danger" data-ndel="${x.id}">삭제</button></div></div>`).join(''):'<p class="muted">아직 저장한 메모가 없어요.</p>'}</section>`;
   on('#nSend',async()=>{const text=$('#nText').value.trim(),title=$('#nTitle').value.trim();if(!text&&!title){toast('제목이나 내용을 적어 주세요.');return}
