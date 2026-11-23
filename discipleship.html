@@ -225,6 +225,45 @@ body.mfit .head .mark.pm{width:104px;height:104px;border-width:3px;margin-top:21
 }
 .linkbtn{display:block;border:0;background:none;padding:4px 0;color:var(--accent);text-decoration:underline;text-align:left;font-weight:500}
 #reader[hidden],[hidden]{display:none!important}
+/* 반장 입장 버튼 (입체) */
+.cover .enters .enter.lead{background:linear-gradient(180deg,#d9f1ff 0%,#7cc4ef 42%,#3b8fc9 58%,#2b74ab 100%);color:#08233a;border:1px solid #e3f4ff;text-shadow:0 1px 0 rgba(255,255,255,.5);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.85),inset 0 -3px 0 rgba(10,50,90,.45),0 5px 0 #184d75,0 6px 2px rgba(0,0,0,.35),0 14px 22px rgba(0,0,0,.45)}
+.cover .enters .enter.lead:active{box-shadow:inset 0 2px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(10,50,90,.4),0 1px 0 #184d75,0 3px 8px rgba(0,0,0,.45)}
+@media (hover:hover){.cover .enters .enter.lead:hover{box-shadow:inset 0 2px 0 rgba(255,255,255,.85),inset 0 -3px 0 rgba(10,50,90,.45),0 7px 0 #184d75,0 8px 2px rgba(0,0,0,.35),0 18px 26px rgba(0,0,0,.45),0 0 18px rgba(95,245,230,.55)}}
+.mbadge.lb{background:#3b8fc9}
+/* 반장 창 */
+.monbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.monbar b{font-family:var(--serif);font-size:1.2rem}
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:14px}
+table.att{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.95rem}
+table.att th,table.att td{border-bottom:1px solid var(--line);padding:6px;text-align:center;white-space:nowrap}
+table.att thead th{background:var(--soft);font-weight:700;font-size:.85rem}
+table.att th.nm{text-align:left;position:sticky;left:0;background:var(--card);z-index:1;min-width:84px}
+table.att th.nm span{display:block;font-size:.75rem;color:var(--muted);font-weight:400}
+table.att tfoot th,table.att tfoot td{background:var(--soft);font-weight:700}
+.cell{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-size:1.2rem;color:var(--accent);font-weight:700}
+.cell.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cnt{font-weight:700;color:var(--accent)}
+.duesum{font-size:1rem}.duesum b{font-family:var(--serif);font-size:1.3rem;color:var(--accent)}
+.duerow{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:10px}
+.paybtn{min-width:104px;color:var(--danger)}
+.paybtn.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.rrow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.rrole{font-family:var(--sans);font-size:.8rem;border:1.5px solid var(--gold);color:var(--gold);border-radius:999px;padding:1px 8px;margin-left:4px;vertical-align:middle}
+.lmblock{display:flex;flex-direction:column;gap:8px;border:2px solid var(--gold);border-radius:14px;padding:10px 12px;margin-bottom:6px}
+.item.unread .notice{font-weight:700}
+.newdot{background:var(--danger);color:#fff;border-radius:999px;font-size:.72rem;padding:1px 8px;margin-left:6px;letter-spacing:0}
+.memo-ic{display:inline-flex;align-items:center;gap:6px}
+.memo-ic .n{color:var(--danger)}
+.memo-ic.blink{animation:lmblink 1.1s ease-in-out infinite;border-color:#3fe6d6}
+@keyframes lmblink{0%,100%{box-shadow:0 0 0 2px #5ff5e6,0 0 14px #5ff5e6,0 0 30px rgba(140,90,255,.7)}50%{box-shadow:0 0 0 0 transparent;border-color:var(--line)}}
+@media (prefers-reduced-motion:reduce){.memo-ic.blink{animation:none;box-shadow:0 0 0 2px #5ff5e6,0 0 14px #5ff5e6}}
+/* 반장 창의 모든 박스: 마우스를 올리거나 누르면 네온 */
+.wrap.lead .btn,.wrap.lead .cell,.wrap.lead .card,.wrap.lead .mtabs button,.wrap.lead .who{transition:box-shadow .18s,border-color .18s,transform .12s}
+.wrap.lead .btn:hover,.wrap.lead .btn:active,.wrap.lead .btn:focus-visible,.wrap.lead .cell:hover,.wrap.lead .cell:active,.wrap.lead .cell:focus-visible,
+.wrap.lead .mtabs button:hover,.wrap.lead .mtabs button:active,.wrap.lead .who:hover,.wrap.lead .who:active{border-color:#3fe6d6;box-shadow:0 0 0 2px #5ff5e6,0 0 12px #5ff5e6,0 0 26px rgba(140,90,255,.55)}
+.wrap.lead .card:hover,.wrap.lead .card:active,.wrap.lead .card:focus-within{border-color:#3fe6d6;box-shadow:0 0 0 1px #5ff5e6,0 0 16px rgba(95,245,230,.45),0 0 34px rgba(140,90,255,.3)}
+.wrap.lead textarea{min-height:120px}
 #reader{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;color:#f3ece2;background:#1d1814;background-image:radial-gradient(ellipse at 50% 45%,#40352b 0%,#1d1814 72%);
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 #reader .rbar{display:flex;align-items:center;gap:8px;padding:8px 16px;min-height:56px}
@@ -286,13 +325,14 @@ const LSK='disciple-v2',LUN='disciple-unlocked',LSEEN='disciple-seen';
 let db=null,assets=null;
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
-const LMS='disciple-master-ok';
+const LMS='disciple-master-ok',LLD='disciple-leader-ok';
 const ssGet=k=>{try{return sessionStorage.getItem(k)}catch(e){return null}};
 const ssSet=(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}};
 const st={mode:'loading',master:false,uid:null,cover:{...DEF_COVER},notices:[],lessons:[],materials:[],members:{},progAll:{},
   me:null,meLoaded:false,prog:{done:{},notes:{}},pwHash:null,unlocked:ssGet(LUN),seen:+(lsGet(LSEEN)||0),
   masterHash:null,masterLoaded:false,masterOk:ssGet(LMS),mpwOpen:false,mpwMsg:'',
   memos:[],menuOpen:false,
+  leaderHash:null,leaderOk:ssGet(LLD),lpwOpen:false,lpwMsg:'',lpwWrong:0,lpwWait:0,ltab:'att',lmonth:'',roster:[],att:{},lmemos:[],lDraft:{id:null,text:'',locked:false},lNote:'',rEdit:null,
   view:'cover',tab:'home',mtab:'memo',open:null,editing:null,draft:null,busy:false,pwOpen:false,pwMsg:'',pwWrong:0,pwWait:0,allNotices:false,matKind:'file'};
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -311,8 +351,8 @@ const safeLink=u=>/^https?:\/\//i.test(u)?u:'https://'+u;
 
 /* ================= 저장 ================= */
 const isLocal=()=>st.mode==='local';
-function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null,masterHash:d.masterHash||null,memos:(d.memos||[]).concat(d.notices||[])});st.notices=[]}catch(e){}}
-function lsSave(){lsSet(LSK,JSON.stringify({cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash,masterHash:st.masterHash,memos:st.memos}))}
+function lsLoad(){try{const d=JSON.parse(lsGet(LSK)||'null');if(d)Object.assign(st,{roster:d.roster||[],att:d.att||{},lmemos:d.lmemos||[],leaderHash:d.leaderHash||null,cover:{...DEF_COVER,...d.cover},notices:d.notices||[],lessons:d.lessons||[],materials:d.materials||[],prog:d.prog||{done:{},notes:{}},pwHash:d.pwHash||null,masterHash:d.masterHash||null,memos:(d.memos||[]).concat(d.notices||[])});st.notices=[]}catch(e){}}
+function lsSave(){lsSet(LSK,JSON.stringify({roster:st.roster,att:st.att,lmemos:st.lmemos,leaderHash:st.leaderHash,cover:st.cover,notices:st.notices,lessons:st.lessons,materials:st.materials,prog:st.prog,pwHash:st.pwHash,masterHash:st.masterHash,memos:st.memos}))}
 async function write(fn,okMsg){if(isLocal()){lsSave();if(okMsg)toast(okMsg);return true}
   try{await fn();if(okMsg)toast(okMsg);return true}catch(e){toast(e&&e.code==='invalid_argument'?'저장할 권한이 없어요. 목사님께 “참여자” 권한을 요청해 주세요.':'저장하지 못했어요. 잠시 뒤 다시 해 주세요.');return false}}
 const plain=o=>JSON.parse(JSON.stringify(o));
@@ -357,9 +397,11 @@ function go(view){st.view=view;window.scrollTo(0,0);render()}
 function render(){document.body.classList.toggle('app',st.view!=='cover');
   if(st.view==='master'&&!masterUnlocked())st.view='cover';
   if(st.view==='app'&&!canEnter())st.view='cover';
+  if(st.view==='leader'&&!leaderUnlocked())st.view='cover';
   document.body.classList.toggle('mfit',st.view==='master');
   if(st.view==='cover')return coverView();
   if(st.view==='master')return masterView();
+  if(st.view==='leader')return leaderView();
   if(needReg())return regView();
   appView()}
 const on=(sel,f)=>{const e=$(sel);if(e)e.onclick=f};
@@ -376,12 +418,13 @@ function coverView(){const c=st.draft||st.cover;
      ${pastorSrc(c)?`<div class="pastor"><img src="${esc(pastorSrc(c))}" alt="담당 목사님 사진"></div>`:''}
      <p class="sub">${esc(c.sub)}</p>
      <p class="verse">${verseHtml(c.verse)}</p>
-     ${st.draft?'':`<div class="enters">${st.master?`<button class="enter alt" id="toMaster">${masterUnlocked()?'마스터 창':'마스터 입장'}</button>`:''}<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'제자들 입장'}</button></div>`}
+     ${st.draft?'':`<div class="enters">${st.master?`<button class="enter alt" id="toMaster">${masterUnlocked()?'마스터 창':'마스터 입장'}</button>`:''}<button class="enter" id="enter">${st.mode==='loading'?'준비 중…':'제자들 입장'}</button><button class="enter lead" id="toLeader">${leaderUnlocked()?'반장 창':'반장 입장'}</button></div>`}
      ${st.master&&!st.draft&&!st.pwHash&&st.mode!=='loading'?`<p class="hint">입장 비밀번호가 아직 없어요. 마스터 창 › 다른 기능 › 설정에서 정해 주세요.</p>`:''}
-   </div></section>${st.draft?decorPanel():''}${st.pwOpen?pwPanel():''}${st.mpwOpen?mpwPanel():''}`;
+   </div></section>${st.draft?decorPanel():''}${st.pwOpen?pwPanel():''}${st.mpwOpen?mpwPanel():''}${st.lpwOpen?lpwPanel():''}`;
   on('#enter',()=>{if(st.mode==='loading')return;if(entryOk())return go('app');st.pwOpen=true;st.pwMsg='';render();const i=$('#pwIn');if(i)i.focus()});
   on('#toMaster',openMaster);
-  if(st.draft)bindDecor();if(st.pwOpen)bindPw();if(st.mpwOpen)bindMpw()}
+  on('#toLeader',openLeader);
+  if(st.draft)bindDecor();if(st.pwOpen)bindPw();if(st.mpwOpen)bindMpw();if(st.lpwOpen)bindLpw()}
 function mpwPanel(){const create=st.masterLoaded&&!st.masterHash;
   return `<div class="modal" id="mpModal"><div class="panel" role="dialog" aria-label="마스터 입장" style="max-width:420px">
    <div class="row" style="justify-content:space-between"><h2>${!st.masterLoaded?'잠시만요':create?'마스터 비밀번호 만들기':'마스터 입장'}</h2><button class="btn ghost" id="mpClose">닫기</button></div>
@@ -548,16 +591,119 @@ function lessonsTab(){let h=upPanel('guide');const guides=st.materials.filter(m=
   b.querySelectorAll('[data-done]').forEach(x=>x.onclick=async()=>{const id=x.dataset.done;if(st.prog.done[id])delete st.prog.done[id];else st.prog.done[id]=Date.now();render();if(await saveProg()&&st.prog.done[id])toast('수고하셨어요! 완료로 표시했어요.')});
   b.querySelectorAll('[data-note]').forEach(x=>x.onclick=async()=>{const id=x.dataset.note;st.prog.notes[id]=$('#note_'+id).value.trim();if(await saveProg())toast('나눔을 저장했어요.')})}
 
+/* ---- 반장 창 ---- */
+const LENV=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>`;
+const leaderUnlocked=()=>!!st.leaderHash&&st.leaderOk===st.leaderHash;
+const lmUnread=()=>st.lmemos.filter(m=>!m.read).length;
+async function lmMarkRead(){for(const m of st.lmemos.filter(x=>!x.read)){await saveLMemo({...m,read:true})}render()}
+async function saveLeaderPw(pw){const h=await hashPw('leader:'+pw);st.leaderHash=h;return write(()=>db.collection('settings').doc('leader').set({hash:h,updatedAt:Date.now()}),'반장 비밀번호를 정했어요. 반장님께 알려 주세요.')}
+let leadSubbed=false;
+function leadSub(){if(leadSubbed||!db)return;leadSubbed=true;
+  db.collection('roster').onSnapshot(q=>{st.roster=q.docs.map(x=>({id:x.id,...plain(x.data())})).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));soft()},()=>{});
+  db.collection('attendance').onSnapshot(q=>{st.att=Object.fromEntries(q.docs.map(x=>[x.id,plain(x.data())]));soft()},()=>{});
+  db.collection('leaderMemos').onSnapshot(q=>{st.lmemos=q.docs.map(x=>({id:x.id,...plain(x.data())})).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));soft()},()=>{})}
+const saveRoster=r=>{upsert(st.roster,r);return write(()=>db.collection('roster').doc(r.id).set(body(r)),'저장했어요.')};
+const delRoster=id=>{st.roster=st.roster.filter(x=>x.id!==id);return write(()=>db.collection('roster').doc(id).delete(),'삭제했어요.')};
+const saveAtt=m=>write(()=>db.collection('attendance').doc(m).set(plain(st.att[m]||{})));
+function saveLMemo(m){const i=st.lmemos.findIndex(x=>x.id===m.id);if(i>=0)st.lmemos[i]=m;else st.lmemos.unshift(m);st.lmemos.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  return write(()=>db.collection('leaderMemos').doc(m.id).set(body(m)))}
+const ymNow=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
+function shiftYm(m,k){const [y,mo]=m.split('-').map(Number);const d=new Date(y,mo-1+k,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
+function sundays(m){const [y,mo]=m.split('-').map(Number);const d=new Date(y,mo-1,1),out=[];while(d.getDay()!==0)d.setDate(d.getDate()+1);while(d.getMonth()===mo-1){out.push(String(d.getDate()));d.setDate(d.getDate()+7)}return out}
+function openLeader(){if(leaderUnlocked())return go('leader');st.lpwOpen=true;st.lpwMsg='';render();const i=$('#lpIn');if(i)i.focus()}
+function lpwPanel(){const none=!st.leaderHash;
+  return `<div class="modal" id="lpModal"><div class="panel" role="dialog" aria-label="반장 입장" style="max-width:420px">
+   <div class="row" style="justify-content:space-between"><h2>${none?'아직 반장 비밀번호가 없어요':'반장 입장'}</h2><button class="btn ghost" id="lpClose">닫기</button></div>
+   ${none?'<p>마스터가 마스터 창 › 다른 기능 › 설정에서 반장 비밀번호를 정하면 들어올 수 있어요.</p>'
+   :`<p class="muted">마스터에게 받은 반장 비밀번호를 입력해 주세요. 앱을 다시 열면 또 물어봐요.</p>
+     <input id="lpIn" class="pwin" type="password" autocomplete="off" maxlength="20" aria-label="반장 비밀번호">
+     <p class="perr" aria-live="polite">${esc(st.lpwMsg)}</p>
+     <button class="btn pri" id="lpGo">입장</button>`}</div></div>`}
+function bindLpw(){on('#lpClose',()=>{st.lpwOpen=false;render()});$('#lpModal').onclick=e=>{if(e.target.id==='lpModal'){st.lpwOpen=false;render()}};
+  const go2=async()=>{if(Date.now()<st.lpwWait){st.lpwMsg='잠시 뒤에 다시 해 주세요.';return render()}
+    const h=await hashPw('leader:'+$('#lpIn').value.trim());
+    if(h===st.leaderHash){st.leaderOk=h;ssSet(LLD,h);st.lpwOpen=false;st.lpwWrong=0;go('leader')}
+    else{st.lpwWrong++;if(st.lpwWrong>=5){st.lpwWait=Date.now()+30000;st.lpwWrong=0;st.lpwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else st.lpwMsg='비밀번호가 맞지 않아요.';render();const i=$('#lpIn');if(i)i.focus()}};
+  on('#lpGo',go2);const i=$('#lpIn');if(i)i.onkeydown=e=>{if(e.key==='Enter')go2()}}
+function leaderView(){leadSub();if(!st.lmonth)st.lmonth=ymNow();
+  const T=[['att','출석 체크'],['dues','회비 납부'],['roster','제자 명단'],['memo','마스터에게 메모']];
+  root.innerHTML=`<div class="shell"><div class="wrap lead">${headHtml(`<button class="who btn-like" id="lCover">표지</button><span class="mbadge lb">반장 창</span>`)}
+   <nav class="mtabs" aria-label="반장 메뉴">${T.map(([k,l])=>`<button data-ltab="${k}" class="${st.ltab===k?'on':''}">${l}</button>`).join('')}</nav>
+   <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
+  on('#lCover',()=>go('cover'));
+  $$('[data-ltab]').forEach(b=>b.onclick=()=>{st.ltab=b.dataset.ltab;st.rEdit=null;render()});
+  ({att:lAtt,dues:lDues,roster:lRoster,memo:lMemo})[st.ltab]()}
+function monBar(){const [y,mo]=st.lmonth.split('-').map(Number);
+  return `<div class="monbar"><button class="btn" id="mPrev">‹ 지난달</button><b>${y}년 ${mo}월</b><button class="btn" id="mNext">다음달 ›</button></div>`}
+function bindMon(){on('#mPrev',()=>{st.lmonth=shiftYm(st.lmonth,-1);render()});on('#mNext',()=>{st.lmonth=shiftYm(st.lmonth,1);render()})}
+const noRoster=()=>`<section class="card empty">먼저 제자 명단에 제자를 추가해 주세요.<div class="row" style="justify-content:center;margin-top:10px"><button class="btn pri" id="goRoster">+ 제자 추가하러 가기</button></div></section>`;
+function curAtt(){return plain(st.att[st.lmonth]||{days:{},dues:{}})}
+function lAtt(){const days=sundays(st.lmonth),mo=+st.lmonth.split('-')[1],A=curAtt(),D=A.days||{};
+  let h=`<section class="card"><p class="kicker">출석 체크 · 주일 기준</p>${monBar()}`;
+  if(!st.roster.length){$('#body').innerHTML=h+'</section>'+noRoster();bindMon();on('#goRoster',()=>{st.ltab='roster';st.rEdit='new';render()});return}
+  h+=`<div class="tblwrap"><table class="att"><thead><tr><th scope="col">이름</th>${days.map(d=>`<th scope="col">${mo}/${d}</th>`).join('')}<th scope="col">출석</th></tr></thead><tbody>
+    ${st.roster.map(r=>{const c=days.filter(d=>D[d]&&D[d][r.id]).length;return `<tr><th scope="row" class="nm">${esc(r.name)}${r.role?`<span>${esc(r.role)}</span>`:''}</th>
+      ${days.map(d=>{const on=!!(D[d]&&D[d][r.id]);return `<td><button class="cell ${on?'on':''}" data-att="${d}|${r.id}" aria-pressed="${on}" aria-label="${esc(r.name)} ${mo}월 ${d}일 ${on?'출석':'결석'}">${on?'○':''}</button></td>`}).join('')}
+      <td class="cnt">${c}/${days.length}</td></tr>`}).join('')}</tbody>
+    <tfoot><tr><th scope="row">출석 인원</th>${days.map(d=>`<td>${st.roster.filter(r=>D[d]&&D[d][r.id]).length}</td>`).join('')}<td></td></tr></tfoot></table></div>
+    <p class="small muted">칸을 누르면 출석(○)과 결석이 바뀌어요. 한 달의 주일이 차례로 나와요.</p></section>`;
+  $('#body').innerHTML=h;bindMon();
+  $$('[data-att]').forEach(b=>b.onclick=async()=>{const [d,rid]=b.dataset.att.split('|');const A=curAtt();A.days=A.days||{};A.days[d]=A.days[d]||{};
+    if(A.days[d][rid])delete A.days[d][rid];else A.days[d][rid]=true;st.att[st.lmonth]=A;render();await saveAtt(st.lmonth)})}
+function lDues(){const A=curAtt(),P=A.dues||{};
+  let h=`<section class="card"><p class="kicker">회비 납부 · 한 달 단위</p>${monBar()}`;
+  if(!st.roster.length){$('#body').innerHTML=h+'</section>'+noRoster();bindMon();on('#goRoster',()=>{st.ltab='roster';st.rEdit='new';render()});return}
+  const n=st.roster.filter(r=>P[r.id]).length;
+  h+=`<p class="duesum"><b>${n}</b>명 납부 · <b>${st.roster.length-n}</b>명 미납 (전체 ${st.roster.length}명)</p>
+    ${st.roster.map(r=>{const on=!!P[r.id];return `<div class="duerow"><span class="nm">${esc(r.name)}${r.role?` <span class="small muted">${esc(r.role)}</span>`:''}</span>
+      <button class="btn paybtn ${on?'on':''}" data-pay="${r.id}" aria-pressed="${on}">${on?'납부 완료':'미납'}</button></div>`}).join('')}</section>`;
+  $('#body').innerHTML=h;bindMon();
+  $$('[data-pay]').forEach(b=>b.onclick=async()=>{const A=curAtt();A.dues=A.dues||{};const id=b.dataset.pay;if(A.dues[id])delete A.dues[id];else A.dues[id]=true;st.att[st.lmonth]=A;render();await saveAtt(st.lmonth)})}
+function lRoster(){const ed=st.rEdit&&st.rEdit!=='new'?st.roster.find(r=>r.id===st.rEdit):null;const r=ed||{};
+  let h='';
+  if(st.rEdit)h+=`<section class="card"><p class="kicker">${ed?'제자 정보 수정':'제자 추가'}</p>
+    <label>이름 <input id="rName" maxlength="20" autocomplete="off" value="${esc(r.name)}" placeholder="예: 홍길동"></label>
+    <label>직분 <input id="rRole" maxlength="20" list="roleList" value="${esc(r.role)}" placeholder="예: 집사"><datalist id="roleList"><option value="성도"><option value="집사"><option value="권사"><option value="장로"><option value="청년"></datalist></label>
+    <label>연락처 <input id="rPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="${esc(r.phone)}" placeholder="예: 010-1234-5678"></label>
+    <div class="row"><button class="btn pri" id="rSave">저장</button><button class="btn" id="rCancel">취소</button></div></section>`;
+  else h+=`<div class="row"><button class="btn pri addbtn" id="rAdd">+ 제자 추가</button></div>`;
+  h+=`<section class="card"><p class="kicker">제자 명단 ${st.roster.length}명</p>
+    ${st.roster.length?st.roster.map(x=>`<div class="item"><div class="rrow"><div><h3>${esc(x.name)}${x.role?` <span class="rrole">${esc(x.role)}</span>`:''}</h3>${x.phone?`<span class="date">${esc(x.phone)}</span>`:''}</div>
+      <div class="row"><button class="btn" data-red="${x.id}">수정</button><button class="btn danger" data-rdel="${x.id}">삭제</button></div></div></div>`).join(''):'<p class="muted">아직 제자가 없어요. 위의 “+ 제자 추가”를 눌러 주세요.</p>'}</section>`;
+  $('#body').innerHTML=h;
+  on('#rAdd',()=>{st.rEdit='new';render();$('#rName').focus()});on('#rCancel',()=>{st.rEdit=null;render()});
+  on('#rSave',async()=>{const name=$('#rName').value.trim();if(!name){toast('이름을 적어 주세요.');return}
+    const o={id:ed?ed.id:uidGen(),name,role:$('#rRole').value.trim(),phone:$('#rPhone').value.trim(),createdAt:ed?ed.createdAt:Date.now(),updatedAt:Date.now()};st.rEdit=null;await saveRoster(o);render()});
+  $$('[data-red]').forEach(b=>b.onclick=()=>{st.rEdit=b.dataset.red;render();window.scrollTo(0,0)});
+  confirmDel('[data-rdel]','rdel',id=>delRoster(id))}
+function lMemo(){const D=st.lDraft;
+  $('#body').innerHTML=`<section class="card"><p class="kicker">마스터에게 메모 보내기</p>
+    <textarea id="lmText" maxlength="2000" ${D.locked?'readonly':''} placeholder="마스터(김병구 목사님)에게 전할 내용을 적어 주세요.">${esc(D.text)}</textarea>
+    <p class="small" style="color:var(--accent);min-height:1.4em">${esc(st.lNote)}</p>
+    <div class="row"><button class="btn" id="lmEdit" ${D.locked?'':'disabled'}>수정하기</button><button class="btn pri" id="lmSend">보내기</button>${D.id?'<button class="btn ghost" id="lmNew">새 메모 쓰기</button>':''}</div></section>
+   <section class="card"><p class="kicker">보낸 메모 ${st.lmemos.length}개</p>
+    ${st.lmemos.length?st.lmemos.map(m=>`<div class="item"><p class="notice">${esc(m.text)}</p><span class="date">${fmtDate(m.updatedAt)}${m.edited?' · 수정됨':''}</span>
+      <div class="row"><span class="status ${m.read?'ok':'no'}">${m.read?'● 마스터가 읽음':'● 아직 안 읽음'}</span><button class="btn" data-lmed="${m.id}">수정하기</button></div></div>`).join(''):'<p class="muted">아직 보낸 메모가 없어요.</p>'}</section>`;
+  const t=$('#lmText');t.oninput=()=>{D.text=t.value};
+  on('#lmEdit',()=>{D.locked=false;st.lNote='';render();const x=$('#lmText');x.focus()});
+  on('#lmSend',async()=>{const text=$('#lmText').value.trim();if(!text){toast('보낼 내용을 적어 주세요.');return}
+    const old=st.lmemos.find(x=>x.id===D.id);
+    const m={id:D.id||uidGen(),text,from:'반장',createdAt:old?old.createdAt:Date.now(),updatedAt:Date.now(),read:false,edited:!!old};
+    const ok=await saveLMemo(m);st.lDraft={id:m.id,text,locked:true};st.lNote=ok?(old?'고친 메모를 마스터에게 다시 보냈어요.':'마스터에게 보냈어요.'):'';render()});
+  on('#lmNew',()=>{st.lDraft={id:null,text:'',locked:false};st.lNote='';render();$('#lmText').focus()});
+  $$('[data-lmed]').forEach(b=>b.onclick=()=>{const m=st.lmemos.find(x=>x.id===b.dataset.lmed);if(!m)return;st.lDraft={id:m.id,text:m.text,locked:false};st.lNote='고친 다음 보내기를 눌러 주세요.';render();window.scrollTo(0,0);$('#lmText').focus()})}
+
 /* ---- 마스터 창 ---- */
 const MSECT=[['memo','메모하기'],['lessons','훈련 과정 입력'],['materials','자료 입력'],['pastor','목사님 사진'],['members','성도 명단'],['settings','설정']];
 function masterView(){if(!MSECT.some(x=>x[0]===st.mtab))st.mtab='memo';const cur=MSECT.find(x=>x[0]===st.mtab);
-  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like" id="toApp">제자 화면</button><span class="mbadge">마스터 창</span>`)}
+  root.innerHTML=`<div class="shell m"><div class="wrap">${headHtml(`<button class="who btn-like memo-ic ${lmUnread()?'blink':''}" id="lmIc" aria-label="반장이 보낸 메모 ${lmUnread()}개">${LENV}반장 메모<b class="n">${lmUnread()||''}</b></button><button class="who btn-like" id="toApp">제자 화면</button><span class="mbadge">마스터 창</span>`)}
    <div class="mbar"><h2>${st.mtab==='memo'?'':cur[1]}</h2><div class="mmenu">
      ${st.mtab!=='memo'?'<button class="btn" id="toMemo">← 메모하기</button>':''}
      <button class="btn" id="mMenu" aria-expanded="${st.menuOpen}">${st.menuOpen?'닫기':'다른 기능'}</button>
      ${st.menuOpen?`<div class="mpop" role="menu">${MSECT.map(([k,l])=>`<button role="menuitem" data-mtab="${k}" class="${st.mtab===k?'on':''}">${l}</button>`).join('')}</div>`:''}</div></div>
    <main class="wrap" id="body" style="max-width:none"></main></div></div>`;
   on('#toCover',()=>go('cover'));on('#toApp',()=>{st.tab='home';st.menuOpen=false;go('app')});
+  on('#lmIc',async()=>{st.mtab='memo';st.menuOpen=false;render();const c=$('#lmCard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});await lmMarkRead()});
   on('#mMenu',()=>{st.menuOpen=!st.menuOpen;render()});on('#toMemo',()=>{st.mtab='memo';st.editing=null;render()});
   $$('[data-mtab]').forEach(b=>b.onclick=()=>{st.mtab=b.dataset.mtab;st.editing=null;st.menuOpen=false;render()});
   ({memo:mMemo,lessons:mLessons,materials:mMaterials,pastor:mPastor,members:mMembers,settings:mSettings})[st.mtab]()}
@@ -567,12 +713,16 @@ function mMemo(){const ed=st.editing&&st.memos.find(n=>n.id===st.editing);const 
     <label>내용 <textarea id="nText" maxlength="4000">${esc(n.text)}</textarea></label>
     <label class="check"><input type="checkbox" id="nPin" ${n.pinned?'checked':''}> 중요 메모</label>
     <div class="row"><button class="btn pri" id="nSend">저장</button>${ed?'<button class="btn" id="nCancel">취소</button>':''}</div></section>
-   <section class="card" style="order:1"><p class="kicker">저장 메모 ${st.memos.length}개</p>
+   <section class="card" style="order:1">${st.lmemos.length?`<div class="lmblock" id="lmCard"><p class="kicker">반장이 보낸 메모 ${lmUnread()?`<span class="newdot">새 메모 ${lmUnread()}</span>`:''}</p>
+     ${st.lmemos.map(m=>`<div class="item ${m.read?'':'unread'}"><p class="notice">${esc(m.text)}</p><span class="date">${fmtDate(m.updatedAt)}${m.edited?' · 수정됨':''}${m.read?'':' · 새 메모'}</span></div>`).join('')}
+     ${lmUnread()?'<div class="row"><button class="btn" id="lmRead">모두 읽음으로 표시</button></div>':''}</div>`:''}
+    <p class="kicker">저장 메모 ${st.memos.length}개</p>
     ${st.memos.length?st.memos.map(x=>`<div class="item">${x.pinned?'<span class="pinned">중요 메모</span>':''}${x.title?`<h3>${esc(x.title)}</h3>`:''}<p class="notice">${esc(x.text)}</p><span class="date">${fmtDate(x.createdAt)}</span>
       <div class="row"><button class="btn" data-ned="${x.id}">수정</button><button class="btn danger" data-ndel="${x.id}">삭제</button></div></div>`).join(''):'<p class="muted">아직 저장한 메모가 없어요.</p>'}</section>`;
   on('#nSend',async()=>{const text=$('#nText').value.trim(),title=$('#nTitle').value.trim();if(!text&&!title){toast('제목이나 내용을 적어 주세요.');return}
     const o={id:n.id||uidGen(),title,text,pinned:$('#nPin').checked,createdAt:n.createdAt||Date.now(),updatedAt:Date.now()};st.editing=null;await saveMemo(o);render()});
   on('#nCancel',()=>{st.editing=null;render()});
+  on('#lmRead',lmMarkRead);
   $$('[data-ned]').forEach(b=>b.onclick=()=>{st.editing=b.dataset.ned;render()});
   confirmDel('[data-ndel]','ndel',id=>delMemo(id))}
 function confirmDel(sel,key,fn){$$(sel).forEach(b=>b.onclick=()=>{const id=b.dataset[key];b.parentElement.innerHTML=`<span>삭제할까요?</span><button class="btn danger" data-y>삭제</button><button class="btn" data-n>취소</button>`;
@@ -661,7 +811,13 @@ function mSettings(){$('#body').innerHTML=`<section class="card"><p class="kicke
     <label>${st.pwHash?'새 비밀번호':'비밀번호'} (4~20자) <input id="p1" type="password" autocomplete="new-password" maxlength="20"></label>
     <label>한 번 더 입력 <input id="p2" type="password" autocomplete="new-password" maxlength="20"></label>
     <div class="row"><button class="btn pri" id="pSave">${st.pwHash?'비밀번호 바꾸기':'비밀번호 정하기'}</button></div>
-    <p class="small muted">비밀번호를 바꾸면 이미 들어와 있던 성도님 기기도 새 비밀번호를 다시 물어봐요.</p></section>
+    <p class="small muted">비밀번호를 바꾸면 이미 들어와 있던 성도님 기기도 새 비밀번호를 다시 물어봐요.</p>
+    <p class="kicker" style="margin-top:10px">반장 입장 비밀번호</p>
+    <span class="status ${st.leaderHash?'ok':'no'}">${st.leaderHash?'● 반장 비밀번호가 정해져 있어요':'● 아직 반장 비밀번호가 없어요'}</span>
+    <p>반장은 이 비밀번호로 들어와 출석 체크, 회비 납부, 제자 명단을 관리하고 마스터에게 메모를 보내요.</p>
+    <label>${st.leaderHash?'새 반장 비밀번호':'반장 비밀번호'} (4~20자) <input id="l1" type="password" autocomplete="new-password" maxlength="20"></label>
+    <label>한 번 더 입력 <input id="l2" type="password" autocomplete="new-password" maxlength="20"></label>
+    <div class="row"><button class="btn pri" id="lSave">${st.leaderHash?'반장 비밀번호 바꾸기':'반장 비밀번호 정하기'}</button></div></section>
    <section class="card"><p class="kicker">마스터 비밀번호</p>
     <p>마스터 창을 열 때 묻는 비밀번호예요. 앱을 닫았다 다시 열면 또 물어봐요.</p>
     <label>새 마스터 비밀번호 (4~20자) <input id="m1" type="password" autocomplete="new-password" maxlength="20"></label>
@@ -670,6 +826,7 @@ function mSettings(){$('#body').innerHTML=`<section class="card"><p class="kicke
     <p class="kicker" style="margin-top:10px">표지</p><p>표지의 배경 사진, 제목, 말씀을 바꿀 수 있어요.</p><div class="row"><button class="btn" id="decor">표지 꾸미기 창 열기</button></div></section>`;
   on('#pSave',async()=>{const a=$('#p1').value.trim(),b=$('#p2').value.trim();if(a.length<4){toast('비밀번호를 4자 이상 적어 주세요.');return}if(a!==b){toast('두 비밀번호가 달라요.');return}await savePw(a);render()});
   on('#decor',()=>{st.draft=plain(st.cover);go('cover')});
+  on('#lSave',async()=>{const a=$('#l1').value.trim(),b=$('#l2').value.trim();if(a.length<4){toast('비밀번호를 4자 이상 적어 주세요.');return}if(a!==b){toast('두 비밀번호가 달라요.');return}await saveLeaderPw(a);render()});
   on('#mSavePw',async()=>{const a=$('#m1').value.trim(),b=$('#m2').value.trim();if(a.length<4){toast('4자 이상 적어 주세요.');return}if(a!==b){toast('두 비밀번호가 달라요.');return}await saveMasterPw(a);render()});
   on('#mLock',lockMaster)}
 
@@ -783,6 +940,7 @@ lsLoad();sortAll();render();
   const col=(name,key)=>db.collection(name).onSnapshot(q=>{st[key]=q.docs.map(x=>({id:x.id,...x.data()}));sortAll();soft()},()=>{});
   db.collection('board').doc('cover').onSnapshot(s=>{st.cover=s.exists?{...DEF_COVER,...s.data()}:{...DEF_COVER};soft()},()=>{});
   db.collection('settings').doc('entry').onSnapshot(s=>{st.pwHash=s.exists?(s.data().hash||null):null;soft()},()=>{});
+  st.leaderHash=null;db.collection('settings').doc('leader').onSnapshot(s=>{st.leaderHash=s.exists?(s.data().hash||null):null;soft()},()=>{});
   col('notices','notices');col('lessons','lessons');col('materials','materials');
   if(st.uid){
     db.collection('members').doc(st.uid).onSnapshot(s=>{st.me=s.exists?s.data():null;st.meLoaded=true;clearTimeout(timer);soft()},()=>{st.meLoaded=true;soft()});
@@ -790,6 +948,7 @@ lsLoad();sortAll();render();
   }
   if(st.master){
     col('memos','memos');
+    db.collection('leaderMemos').onSnapshot(q=>{st.lmemos=q.docs.map(x=>({id:x.id,...plain(x.data())})).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));soft()},()=>{});
     (async()=>{try{const q=await db.collection('notices').get();for(const d of q.docs){await db.collection('memos').doc(d.id).set({...d.data()});await db.collection('notices').doc(d.id).delete()}}catch(e){}})();
     db.collection('settings').doc('master').onSnapshot(s=>{st.masterHash=s.exists?(s.data().hash||null):null;st.masterLoaded=true;soft()},()=>{st.masterLoaded=true;soft()});
     db.collection('members').onSnapshot(q=>{st.members=Object.fromEntries(q.docs.map(x=>[x.id,x.data()]));soft()},()=>{});
