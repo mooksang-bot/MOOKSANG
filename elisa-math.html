@@ -42,6 +42,12 @@ a{color:var(--violet)}
 
 /* top bar */
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.chips{display:inline-flex;gap:6px;align-items:center}
+.resetbtn{cursor:pointer;color:var(--bad);border-color:var(--bad)}
+.resetbtn:hover{background:var(--bad-bg)}
+.rmodal{position:fixed;inset:0;z-index:70;background:#00000059;display:grid;place-items:center;padding:16px}
+.rbox{background:var(--card);border:3px solid var(--line);border-radius:24px;padding:20px;max-width:380px;width:100%;display:flex;flex-direction:column;gap:10px;text-align:center}
+.rbox .btn{width:100%}
 .chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:4px 14px;font-family:var(--display);font-size:1rem;white-space:nowrap}
 .chip b{font-weight:400;color:var(--pri)}
 .back{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px 16px}
@@ -470,7 +476,22 @@ const IC={
  map:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="M4 9l10-4 12 4 10-4v26l-10 4-12-4-10 4z"/><path d="M14 5v26M26 9v26"/></svg>`,
  rep:`<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 34h28M10 28V18M18 28V10M26 28v-6M34 28V14"/></svg>`
 };
-function topBar(title){return `<div class="topbar">${title?`<button class="back" data-go="home">← 처음으로</button><h2>${title}</h2>`:`<span class="chip">⭐ 별 <b>${S.stars}</b>개</span>`}<span class="chip">오늘 <b>${S.daily.date===today()?S.daily.count:0}</b>문제</span></div>`}
+function topBar(title){return `<div class="topbar">${title?`<button class="back" data-go="home">← 처음으로</button><h2>${title}</h2>`:`<span class="chip">⭐ 별 <b>${S.stars}</b>개</span>`}<span class="chips"><span class="chip">오늘 <b>${S.daily.date===today()?S.daily.count:0}</b>문제</span><button class="chip resetbtn" data-reset>초기화</button></span></div>`}
+function openReset(){closeReset();const d=document.createElement('div');d.className='rmodal';d.id='rmodal';
+  d.innerHTML=`<div class="rbox" role="dialog" aria-label="초기화"><h3>푼 문제 초기화</h3>
+    <p>어떤 기록을 지울까요? 지운 기록은 되돌릴 수 없어요.</p>
+    <button class="btn pri" id="rToday">오늘 푼 문제만 초기화</button>
+    <button class="btn" id="rAll">모든 기록 처음부터 (진단·단원 실력·오답·별)</button>
+    <button class="btn ghost" id="rNo">취소</button></div>`;
+  document.body.appendChild(d);
+  d.onclick=e=>{if(e.target===d)closeReset()};
+  document.getElementById('rNo').onclick=closeReset;
+  const done=msg=>{save();if(view==='quiz')view='home';sess=null;render();
+    const b=document.querySelector('#rmodal .rbox');if(b)b.innerHTML=`<h3>${msg}</h3><button class="btn pri" id="rOk">확인</button>`;const o=document.getElementById('rOk');if(o)o.onclick=closeReset};
+  document.getElementById('rToday').onclick=()=>{const t=today();S.daily={date:t,count:0};
+    S.history=S.history.filter(h=>new Date(h.t).toLocaleDateString('sv')!==t);done('오늘 푼 문제를 초기화했어요.')};
+  document.getElementById('rAll').onclick=()=>{S=blank();done('모든 기록을 처음부터 다시 시작해요.')}}
+function closeReset(){const d=document.getElementById('rmodal');if(d)d.remove()}
 
 function render(){window.scrollTo(0,0);
   const g=gate(),v=g||view;
@@ -480,6 +501,7 @@ function render(){window.scrollTo(0,0);
   else if(v==='home')home();else if(v==='road')road();else if(v==='report')report();else if(v==='quiz')quiz();
   const pi=document.getElementById('photoIn');if(pi)pi.onchange=()=>{setPhoto(pi.files[0]);pi.value=''};
   app.querySelectorAll('[data-photo]').forEach(b=>b.onclick=()=>{const i=document.getElementById('photoIn');if(i)i.click()});
+  app.querySelectorAll('[data-reset]').forEach(b=>b.onclick=openReset);
   app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==='diag')startDiag();else if(g==='practice')startPractice(false);else if(g==='review')startPractice(true);else{view=g;render()}});
   updateSave()}
 
