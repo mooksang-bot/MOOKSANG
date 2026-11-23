@@ -291,6 +291,8 @@ em.by.lead{background:#3b8fc9}
 @media (max-width:420px){.mgrid{grid-template-columns:1fr 1fr}.tabs button{font-size:.72rem;letter-spacing:-.02em}.tabs button span{white-space:nowrap}.seg .btn{padding:8px 6px;font-size:.9rem}}
 /* 받는 제자 체크 목록: 마우스를 올리면 녹색 네온, 체크하면 녹색으로 빛남 */
 .gtext{white-space:pre-wrap;line-height:1.75;font-size:1rem;color:var(--ink)}
+/* 기초반 지침서 창: 지침서 보기(왼쪽·위) ↔ 파일 올리기(오른쪽·아래) */
+#body>.gview{order:1}#body>.gup{order:2}
 .gview .gbox>.gtext{max-height:30%;overflow:auto;flex:none}
 .gview .gbox{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:color-mix(in srgb,var(--soft) 55%,transparent);height:62vh;overflow:hidden;overflow:auto;display:flex;flex-direction:column;gap:10px}
 .ggrid{display:grid;gap:8px;justify-content:center;align-content:start;grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
@@ -310,7 +312,7 @@ em.by.lead{background:#3b8fc9}
 .gview textarea#gText{min-height:140px}
 .gup .gdrop{border:2px dashed var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,box-shadow .15s}
 .gup .gdrop:hover,.gup .gdrop:focus-within{border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
-@media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,.75fr) minmax(0,2fr)}.gview .gbox{height:auto;flex:1;min-height:120px}.gview textarea#gText{min-height:84px;height:84px}.gview{display:flex;flex-direction:column;height:100%}}
+@media (min-width:900px){body.mfit #body>.gup{align-self:start}body.mfit #body:has(>.gview){grid-template-columns:minmax(0,2fr) minmax(0,.75fr)}.gview .gbox{height:auto;flex:1;min-height:120px}.gview textarea#gText{min-height:84px;height:84px}.gview{display:flex;flex-direction:column;height:100%}}
 .cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.7fr) minmax(0,1fr) auto;gap:10px;align-items:end}
 .cgrid .row{margin:0}
 @media (max-width:600px){.cgrid{grid-template-columns:minmax(0,1fr)}}
