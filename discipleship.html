@@ -346,6 +346,20 @@ th.sumh{font-size:.8rem}
 th.wkh .sh{display:none}
 @media (max-width:600px){th.wkh .lg{display:none}th.wkh .sh{display:inline}}
 @media (max-width:600px){.ptuin{width:30px;height:28px;font-size:.92rem}.sm-s{font-size:.66rem;padding:0 4px;margin-right:1px}td.sumc{padding:2px 2px}}
+.ptuin.pick{cursor:pointer;caret-color:transparent}
+#ptuPick{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.35)}
+#ptuPick .pp-box{position:fixed;background:var(--card);border:2px solid #39ff88;border-radius:16px;padding:12px;box-shadow:0 0 0 1px #39ff88,0 0 22px rgba(57,255,136,.45),0 14px 34px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:10px;width:max-content;max-width:calc(100vw - 16px)}
+#ptuPick .pp-t{margin:0;font-weight:700;font-size:.95rem;color:var(--ink)}
+#ptuPick .pp-row{display:flex;gap:8px}
+#ptuPick .pp-b{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:78px;padding:10px 8px;border-radius:12px;border:2px solid transparent;font-family:var(--sans);cursor:pointer;transition:box-shadow .15s,transform .1s}
+#ptuPick .pp-b b{font-size:1.6rem;line-height:1}
+#ptuPick .pp-b span{font-size:.85rem;font-weight:700}
+#ptuPick .pp-b.vP{background:#22c55e;color:#06210f}#ptuPick .pp-b.vT{background:#f59e0b;color:#2a1700}#ptuPick .pp-b.vU{background:#ef4444;color:#fff}
+#ptuPick .pp-b.cur{border-color:#fff}
+#ptuPick .pp-b:hover,#ptuPick .pp-b:focus-visible{outline:none;box-shadow:0 0 0 2px #39ff88,0 0 16px #39ff88;transform:translateY(-1px)}
+#ptuPick .pp-row2{display:flex;gap:8px}
+#ptuPick .pp-c{flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--line);background:var(--soft);color:var(--ink);font-family:var(--sans);font-weight:700;cursor:pointer}
+#ptuPick .pp-c:hover,#ptuPick .pp-c:focus-visible{outline:none;border-color:#39ff88;box-shadow:0 0 0 2px #39ff88,0 0 12px #39ff88}
 .ptu-legend{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.9rem}
 .ptu-legend .cell.ptu{width:24px;height:22px;font-size:.8rem;box-shadow:none}
 .ok-mark{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#22c55e;color:#06210f;font-weight:700;box-shadow:0 0 10px rgba(57,255,136,.55)}
@@ -802,7 +816,7 @@ function lAtt(){const days=sundays(st.lmonth),mo=+st.lmonth.split('-')[1],A=curA
       ${days.map((d,i)=>`<td>${ptuIn(st.lmonth+'|'+d+'|'+r.id,attOf(st.lmonth,d,r.id),esc(r.name)+' '+mo+'월 '+d+'일',i)}</td>`).join('')}
       <td class="sumc">${sumHtml(days.map(d=>attOf(st.lmonth,d,r.id)))}</td></tr>`}).join('')}</tbody>
     <tfoot><tr><th scope="row">출석 인원</th>${days.map((d,i)=>`<td data-colsum="${i}">${st.roster.filter(r=>attOf(st.lmonth,d,r.id)==='P').length}</td>`).join('')}<td></td></tr></tfoot></table></div>
-    ${ptuLegend}</section>`;
+    ${ptuLegendH()}</section>`;
   $('#body').innerHTML=h;bindMon();
   bindPtuIn()}
 function lDues(){const A=curAtt(),P=A.dues||{};const mo=+st.lmonth.split('-')[1];
@@ -834,21 +848,40 @@ const ptuIn=(key,v,label,col)=>`<input class="ptuin ${v?'v'+v:''}" data-ptuin="$
 const sumHtml=vals=>{const c={P:0,T:0,U:0};vals.forEach(v=>{if(c[v]!==undefined)c[v]++});return `<span class="sm-s sP">P ${c.P}</span><span class="sm-s sT">T ${c.T}</span><span class="sm-s sU">U ${c.U}</span>`};
 const KO={'ㅔ':'P','ㅅ':'T','ㅕ':'U','ㅆ':'T'};
 function bindPtuIn(){$$('input.ptuin').forEach(inp=>{
-  inp.onfocus=()=>inp.select();
+  const PICK=st.view==='master';
+  if(PICK){inp.readOnly=true;inp.setAttribute('inputmode','none');inp.classList.add('pick');inp.onclick=e=>{e.preventDefault();openPtuPick(inp)}}
+  else inp.onfocus=()=>inp.select();
   inp.oninput=async()=>{let raw=inp.value.slice(-1);raw=KO[raw]||raw.toUpperCase();
     const old=inp.dataset.v!==undefined?inp.dataset.v:(inp.defaultValue||'');
     if(raw!==''&&!PTU[raw]){inp.value=old;toast('P(출석) · T(지각) · U(무단 결석) 중 하나를 입력해 주세요.');return}
-    inp.value=raw;inp.dataset.v=raw;inp.className='ptuin'+(raw?' v'+raw:'');
+    await applyPtu(inp,raw,true)};
+  inp.onkeydown=e=>{const tb=inp.closest('table'),col=+inp.dataset.col;
+    if(PICK){const k=KO[e.key]||String(e.key).toUpperCase();if(PTU[k]){e.preventDefault();applyPtu(inp,k,true);return}if(e.key==='Backspace'||e.key==='Delete'){e.preventDefault();applyPtu(inp,'',false);return}if(e.key===' '){e.preventDefault();openPtuPick(inp);return}}
+    const go=(dc,dr)=>{const rows=[...tb.querySelectorAll('tbody tr')];const ri=rows.indexOf(inp.closest('tr'));const r2=rows[ri+dr];if(!r2)return;const t=r2.querySelector(`input.ptuin[data-col="${col+dc}"]`);if(t){e.preventDefault();t.focus()}};
+    if(e.key==='ArrowDown'||(e.key==='Enter'&&!PICK))go(0,1);else if(e.key==='Enter'&&PICK){e.preventDefault();openPtuPick(inp)}else if(e.key==='ArrowUp')go(0,-1);else if(e.key==='ArrowRight'&&(PICK||!inp.value))go(1,0);else if(e.key==='ArrowLeft'&&(PICK||!inp.value))go(-1,0)}})}
+/* 마스터 창: 칸을 누르면 P·T·U 선택 창 */
+function closePtuPick(){const o=document.getElementById('ptuPick');if(o){const f=o._inp;o.remove();if(f&&document.contains(f))f.focus()}}
+function openPtuPick(inp){closePtuPick();const cur=inp.value||'';
+  const o=document.createElement('div');o.id='ptuPick';o._inp=inp;o.setAttribute('role','dialog');o.setAttribute('aria-label',(inp.getAttribute('aria-label')||'')+' 선택');
+  o.innerHTML=`<div class="pp-box"><p class="pp-t">${esc((inp.getAttribute('aria-label')||'').replace(/ 출결.*$/,''))}</p>
+    <div class="pp-row">${['P','T','U'].map(k=>`<button class="pp-b v${k} ${cur===k?'cur':''}" data-pick="${k}"><b>${k}</b><span>${PTU[k]}</span></button>`).join('')}</div>
+    <div class="pp-row2"><button class="pp-c" data-pick="">지우기</button><button class="pp-c" data-pick="x">닫기</button></div></div>`;
+  document.body.appendChild(o);
+  const box=o.querySelector('.pp-box'),r=inp.getBoundingClientRect(),bw=box.offsetWidth,bh=box.offsetHeight;
+  let x=r.left+r.width/2-bw/2;x=Math.max(8,Math.min(innerWidth-bw-8,x));let y=r.bottom+8;if(y+bh>innerHeight-8)y=Math.max(8,r.top-bh-8);
+  box.style.left=x+'px';box.style.top=y+'px';
+  o.onclick=async e=>{const b=e.target.closest('[data-pick]');if(!b){if(e.target===o)closePtuPick();return}const v=b.dataset.pick;if(v==='x'){closePtuPick();return}o._inp=null;o.remove();await applyPtu(inp,v,false);inp.focus()};
+  o.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();closePtuPick()}const k=KO[e.key]||String(e.key).toUpperCase();if(PTU[k]){e.preventDefault();o.querySelector(`[data-pick="${k}"]`).click()}};
+  (o.querySelector('.pp-b.cur')||o.querySelector('.pp-b')).focus()}
+async function applyPtu(inp,raw,advance){
+    inp.value=raw;inp.dataset.v=raw;inp.className='ptuin'+(inp.readOnly?' pick':'')+(raw?' v'+raw:'');
     const tr=inp.closest('tr');const sc=tr&&tr.querySelector('.sumc');if(sc)sc.innerHTML=sumHtml([...tr.querySelectorAll('input.ptuin')].map(x=>x.value));
     const col=inp.dataset.col,tb=inp.closest('table');const fc=tb&&tb.querySelector(`tfoot [data-colsum="${col}"]`);if(fc)fc.textContent=[...tb.querySelectorAll(`input.ptuin[data-col="${col}"]`)].filter(x=>x.value==='P').length;
     const [ym,day,rid]=inp.dataset.ptuin.split('|');const A=plain(st.att[ym]||{days:{},dues:{}});A.days=A.days||{};A.days[day]=A.days[day]||{};
     if(raw)A.days[day][rid]=raw;else delete A.days[day][rid];st.att[ym]=A;
-    if(raw){const all=[...tb.querySelectorAll(`input.ptuin[data-col="${col}"]`)];const nx=all[all.indexOf(inp)+1];if(nx)nx.focus()}
-    await saveAtt(ym)};
-  inp.onkeydown=e=>{const tb=inp.closest('table'),col=+inp.dataset.col;
-    const go=(dc,dr)=>{const rows=[...tb.querySelectorAll('tbody tr')];const ri=rows.indexOf(inp.closest('tr'));const r2=rows[ri+dr];if(!r2)return;const t=r2.querySelector(`input.ptuin[data-col="${col+dc}"]`);if(t){e.preventDefault();t.focus()}};
-    if(e.key==='ArrowDown'||e.key==='Enter')go(0,1);else if(e.key==='ArrowUp')go(0,-1);else if(e.key==='ArrowRight'&&!inp.value)go(1,0);else if(e.key==='ArrowLeft'&&!inp.value)go(-1,0)}})}
-const ptuLegend='<p class="ptu-legend"><span class="cell ptu vP">P</span> 출석 <span class="cell ptu vT">T</span> 지각 <span class="cell ptu vU">U</span> 무단 결석 <span class="small muted">· 칸에 P·T·U를 입력하면 아래 사람으로 넘어가요. 지우면 빈칸</span></p>';
+    if(raw&&advance){const all=[...tb.querySelectorAll(`input.ptuin[data-col="${col}"]`)];const nx=all[all.indexOf(inp)+1];if(nx)nx.focus()}
+    await saveAtt(ym)}
+const ptuLegendH=()=>'<p class="ptu-legend"><span class="cell ptu vP">P</span> 출석 <span class="cell ptu vT">T</span> 지각 <span class="cell ptu vU">U</span> 무단 결석 <span class="small muted">· '+(st.view==='master'?'칸을 누르면 선택 창이 떠요. P·T·U 중 하나를 고르면 바로 저장돼요':'칸에 P·T·U를 입력하면 아래 사람으로 넘어가요. 지우면 빈칸')+'</span></p>';
 function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.rEdit!=='new'?st.roster.find(r=>r.id===st.rEdit):null;const r=ed||{};const W=rosterWeeks();const E=!!st.rManage;
   let h='';
   if(st.rEdit)h+=`<section class="card rform"><p class="kicker">${ed?'제자 정보 수정':'제자 추가'}</p>
@@ -867,7 +900,7 @@ function lRoster(){document.body.classList.add('lroster');const ed=st.rEdit&&st.
         ${W.map((w,i)=>`<td>${ptuIn(w.ym+'|'+w.day+'|'+x.id,attV(w,x.id),esc(x.name)+' '+w.label,i)}</td>`).join('')}<td class="sumc">${sumHtml(W.map(w=>attV(w,x.id)))}</td>
         ${E?`<td class="mng"><button class="btn sm" data-red="${x.id}">수정</button><button class="btn sm danger" data-rdel="${x.id}">삭제</button></td>`:''}</tr>`).join('')}</tbody>
       <tfoot><tr><td></td><th scope="row">출석</th><td></td><td class="ph"></td>${W.map((w,i)=>`<td data-colsum="${i}">${st.roster.filter(x=>isIn(w,x.id)).length}</td>`).join('')}<td></td>${E?'<td></td>':''}</tr></tfoot></table></div>
-      ${ptuLegend}`
+      ${ptuLegendH()}`
     :'<p class="muted">아직 제자가 없어요. “+ 제자 추가”를 눌러 주세요.</p>'}</section>`;
   $('#body').innerHTML=h;
   on('#wPrev',()=>{shiftWeeks(-1);render()});on('#wNext',()=>{shiftWeeks(1);render()});
