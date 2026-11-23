@@ -292,6 +292,13 @@ label.oxb:has(input:focus-visible){outline:3px solid var(--accent)}
 @keyframes shadeIn{from{opacity:0}to{opacity:1}}
 @keyframes shadeOut{from{opacity:1}to{opacity:0}}
 .lecview:fullscreen{background:#111;padding:16px;height:100vh}
+.lecview.fs{position:fixed;inset:0;z-index:100;margin:0;border:0;border-radius:0;background:#111;color:#f3ece2;height:100vh;height:100dvh;max-height:none;
+  padding:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px}
+.lecview.fs .a4stage,body.mfit .lecview.fs .a4stage{flex:1;min-height:0;height:auto}
+.lecview.fs .kicker{color:#e1b75e}
+.lecview.fs .a4bar .btn{background:#2a2622;color:#f3ece2;border-color:#4a433b}
+.lecview.fs .a4bar .btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+body.lecfs{overflow:hidden}
 .lecview:fullscreen .a4stage{height:auto}
 .gvcard{gap:8px}
 .gvcard .a4stage.gvstage{flex:none;height:max(320px,min(calc(100vh - 320px),calc((100vw - 48px)*1.4142)))}
@@ -662,7 +669,7 @@ const needReg=()=>st.mode==='db'&&!st.master&&st.meLoaded&&!st.me;
 /* 마스터(편집자)라도 '제자들 입장'으로 들어오면 제자와 똑같은 화면만 보여요 ('2반 입장' 버튼) */
 const isM=()=>!!st.master&&st.view!=='app';
 function go(view){st.view=view;window.scrollTo(0,0);render()}
-function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster','lattfit','lcfit');
+function render(){document.body.classList.toggle('app',st.view!=='cover');document.body.classList.remove('lroster','lattfit','lcfit','lecfs');
   if(st.view==='master'&&!masterUnlocked())st.view='cover';
   if(st.view==='app'&&!canEnter())st.view='cover';
   if(st.view==='leader'&&!leaderUnlocked())st.view='cover';
@@ -964,7 +971,7 @@ function bindLpw(){on('#lpClose',()=>{st.lpwOpen=false;render()});$('#lpModal').
     if(h===st.leaderHash){st.leaderOk=h;ssSet(LLD,h);st.lpwOpen=false;st.lpwWrong=0;go('leader')}
     else{st.lpwWrong++;if(st.lpwWrong>=5){st.lpwWait=Date.now()+30000;st.lpwWrong=0;st.lpwMsg='5번 틀렸어요. 30초 뒤에 다시 해 주세요.'}else st.lpwMsg='비밀번호가 맞지 않아요.';render();const i=$('#lpIn');if(i)i.focus()}};
   on('#lpGo',go2);const i=$('#lpIn');if(i)i.onkeydown=e=>{if(e.key==='Enter')go2()}}
-function leaderView(){leadSub();document.body.classList.remove('lroster','lattfit','lcfit');if(!st.lmonth)st.lmonth=ymNow();
+function leaderView(){leadSub();document.body.classList.remove('lroster','lattfit','lcfit','lecfs');if(!st.lmonth)st.lmonth=ymNow();
   const T=[['att','출석 체크'],['dues','회비 납부'],['roster','2반 명단']];if(!T.some(t=>t[0]===st.ltab))st.ltab='att';
   root.innerHTML=`<div class="shell"><div class="wrap lead"><header class="head nohp"><div class="t"><h1>${esc(st.cover.title)}</h1></div></header>
    <nav class="mtabs" aria-label="반장 메뉴">${T.map(([k,l])=>`<button data-ltab="${k}" class="${st.ltab===k?'on':''}">${l}</button>`).join('')}<button class="lhome" id="lCover">홈 화면</button></nav>
@@ -1318,7 +1325,13 @@ function lecInner(m,src){const ct=m.contentType||'';
 function lecSize(){const stg=$('.a4stage'),pg=stg&&stg.querySelector('.a4page');if(!pg)return;const W=stg.clientWidth,H=stg.clientHeight;
   let h=Math.min(H,W*1.4142);if(h<120)h=W*1.4142;const w=h/1.4142;pg.style.width=Math.floor(w)+'px';pg.style.height=Math.floor(h)+'px'}
 window.addEventListener('resize',()=>{if(st.view==='master'&&st.mtab==='lecture')lecSize()});
-document.addEventListener('fullscreenchange',()=>{const b=$('#lecFull');if(b)b.textContent=document.fullscreenElement?'전체 화면 끝':'전체 화면';setTimeout(lecSize,50)});
+/* 전체 화면: 화면을 꽉 채우는 방식(아이폰·삼성폰·앱 안에서도 됨) + 가능하면 브라우저 전체 화면도 함께 */
+function lecFs(on,quiet){const c=$('.lecview');st.lecFs=!!on;document.body.classList.toggle('lecfs',st.lecFs);if(c)c.classList.toggle('fs',st.lecFs);
+  const b=$('#lecFull');if(b)b.textContent=st.lecFs?'전체 화면 끝':'전체 화면';
+  if(!quiet){try{if(st.lecFs){const el=document.documentElement;if(el.requestFullscreen&&!document.fullscreenElement)el.requestFullscreen().catch(()=>{})}else if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(e){}}
+  setTimeout(lecSize,60);setTimeout(lecSize,350)}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&st.lecFs)lecFs(false,true);setTimeout(lecSize,60)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.lecFs)lecFs(false)});
 async function lecShow(dir){const m=lecList().find(x=>x.id===st.lecSel);const pg=$('.a4page');if(!m||!pg)return;
   const ct=m.contentType||'';let src='';try{src=(/^image\//.test(ct)||/pdf/.test(ct))?await lecSrc(m,st.lecP):''}catch(e){pg.innerHTML='<div class="a4msg"><p class="muted">자료를 열지 못했어요. 다시 올려 보세요.</p></div>';return}
   const n=lecCount(m)||1;if(st.lecP>n-1){st.lecP=n-1;return lecShow(0)}
@@ -1347,7 +1360,7 @@ function mLecture(){const L=lecList();if(!L.some(m=>m.id===st.lecSel)){st.lecSel
   on('#lecGoUp',async()=>{const fs=[...$('#lecFile').files];const m=await doUpload(fs,{id:uidGen(),title:fs.length?fs[0].name.replace(/\.[^.]+$/,''):'',desc:'',lessonId:'',cat:'lecture',by:'마스터',createdAt:Date.now()});if(m){st.lecSel=m.id;st.lecP=0;render()}});
   $$('[data-lec]').forEach(b=>b.onclick=()=>{st.lecSel=b.dataset.lec;st.lecP=0;render()});
   on('#lecPrev',()=>lecGo(-1));on('#lecNext',()=>lecGo(1));
-  on('#lecFull',()=>{const c=$('.lecview');if(document.fullscreenElement)document.exitFullscreen();else if(c&&c.requestFullscreen)c.requestFullscreen().catch(()=>toast('이 기기에서는 전체 화면을 쓸 수 없어요.'))});
+  on('#lecFull',()=>lecFs(!st.lecFs));if(st.lecFs)lecFs(true,true);
   bindDelMat();lecSize();if(cur)lecShow(0)}
 /* ================= 퀴즈: 문제 만들기 ================= */
 const QT={mc:'객관식',ox:'O / X',short:'단답형'};
