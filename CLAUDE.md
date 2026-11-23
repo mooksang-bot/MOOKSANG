@@ -13,6 +13,13 @@
 - 엘리사 수학 교실: https://claude.ai/artifact/Uy3a4EgyVVn9ffyqfLgPW6 (`elisa-math.html`, 기록: `ELISA_MATH.md`)
 - 제자 훈련 [기초반]: https://claude.ai/artifact/NPJuoiZmYBS64ck3DDiE44 (`discipleship.html`, 기록: `DISCIPLESHIP.md`)
 
+## 이어서 작업하기
+- 사용자가 "엘리사 수학 웹 불러오기"라고 하면:
+  1. `ELISA_MATH.md`의 "지금 상태"를 먼저 읽는다.
+  2. `elisa-math.html`을 그 상태에서부터 이어서 고친다. 새로 만들지 않는다.
+  3. 게시는 같은 주소(위 웹 목록)로 한다.
+- "제자 훈련 웹 불러오기"도 같은 방식으로 한다. `DISCIPLESHIP.md`와 `discipleship.html`을 쓴다.
+
 ## 그 밖의 선호
 - 쉬운 한국어로 설명한다.
 - 사용자가 "실행"이라고 하면 확인 질문 없이 바로 진행한다.
